@@ -58,8 +58,8 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     {
       id: 'tab-risk',
       category: 'Analysis Views',
-      label: 'Portfolio Risk & VaR Analysis',
-      description: 'Parametric VaR, CVaR, Euler risk decomposition, and correlation matrix',
+      label: 'Portfolio Overview',
+      description: 'Plain-English risk level, diversification, risk drivers, and advanced metrics',
       icon: <Activity className="w-4 h-4 text-emerald-400" />,
       shortcut: '⌘1',
       action: () => {
@@ -70,10 +70,10 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     {
       id: 'tab-monte-carlo',
       category: 'Analysis Views',
-      label: 'Monte Carlo Simulation Engine',
-      description: 'Geometric Brownian Motion stochastic path projections (1,000 runs)',
+      label: 'Future Outcomes',
+      description: 'Explore a range of possible long-term portfolio outcomes',
       icon: <TrendingUp className="w-4 h-4 text-emerald-400" />,
-      shortcut: '⌘2',
+      shortcut: '⌘3',
       action: () => {
         setActiveTab('monte-carlo');
         onClose();
@@ -82,10 +82,10 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     {
       id: 'tab-stress',
       category: 'Analysis Views',
-      label: 'Macro Stress Testing & Scenario Engine',
-      description: 'Tech Crash, Rates Spike, Stagflation, and Custom multi-factor shocks',
+      label: 'What If? Market Scenarios',
+      description: 'See how your portfolio might respond to crashes, rate changes, and custom scenarios',
       icon: <ShieldAlert className="w-4 h-4 text-rose-400" />,
-      shortcut: '⌘3',
+      shortcut: '⌘2',
       action: () => {
         setActiveTab('stress');
         onClose();
@@ -94,8 +94,8 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     {
       id: 'tab-hedging',
       category: 'Analysis Views',
-      label: 'Options Hedging Lab & AI Copilot',
-      description: 'Black-Scholes protective puts, collar strategies, and Gemini quant analyst',
+      label: 'Advanced Lab',
+      description: 'Optional technical tools for hedging and AI-assisted analysis',
       icon: <Sparkles className="w-4 h-4 text-cyan-400" />,
       shortcut: '⌘4',
       action: () => {

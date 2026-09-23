@@ -32,10 +32,10 @@ interface HeaderProps {
 }
 
 const tabs = [
-  { id: 'risk' as const, label: 'Risk Overview', icon: BarChart3 },
-  { id: 'monte-carlo' as const, label: 'Monte Carlo', icon: TrendingUp },
-  { id: 'stress' as const, label: 'Stress Tests', icon: ShieldAlert },
-  { id: 'hedging' as const, label: 'Hedging & AI', icon: Sparkles },
+  { id: 'risk' as const, label: 'Overview', icon: BarChart3 },
+  { id: 'stress' as const, label: 'What If?', icon: ShieldAlert },
+  { id: 'monte-carlo' as const, label: 'Future', icon: TrendingUp },
+  { id: 'hedging' as const, label: 'Advanced', icon: Sparkles },
 ];
 
 export const Header: React.FC<HeaderProps> = ({

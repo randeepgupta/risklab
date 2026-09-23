@@ -16,23 +16,23 @@ The project also explores a practical pattern for AI-enabled software: use an LL
 
 ## Current status
 
-**v0.1.1 — Quantitative correctness baseline + portfolio onboarding**
+**v0.2.0 — Investor-friendly MVP**
 
-Phase 1 focused on validating and correcting the financial math before adding more features. Key corrections include positive-semidefinite correlation handling, bond-duration sign conventions, VaR/CVaR calculations, downside-risk modeling, stress-factor hierarchy, and more defensible hedge labeling.
+The current release keeps the validated quantitative engine but changes the product experience for informed individual investors. The default interface answers plain-English questions first — how risky is my portfolio, what drives that risk, what if markets change, and what could the portfolio become — while technical methodology remains available on demand.
 
-See [`docs/phase-1-correctness.md`](docs/phase-1-correctness.md) for the detailed validation notes.
+See [`docs/product-requirements.md`](docs/product-requirements.md) for the MVP product principles and [`docs/phase-1-correctness.md`](docs/phase-1-correctness.md) for the quantitative validation baseline.
 
 ## Features
 
 | Area | Capabilities |
 | --- | --- |
 | Portfolio onboarding | Clean ticker/allocation builder with sample portfolio and allocation validation |
-| Portfolio analytics | Position weights, portfolio volatility, Sharpe/Sortino, risk contribution |
-| Correlation | Pairwise correlation matrix with PSD projection before covariance calculations |
+| Overview | Plain-English risk level, diversification, biggest risk driver, holdings, and optional advanced metrics |
+| Diversification | Plain-English view of which holdings move together, powered by the correlation model |
 | Risk metrics | 95%/99% parametric VaR and Expected Shortfall across multiple horizons |
-| Stress testing | Preset and natural-language scenarios with bounded factor shocks |
-| Monte Carlo | Geometric Brownian Motion simulation with percentile outcome bands |
-| Hedging lab | Illustrative protective puts, put spreads, collars, and beta overlays |
+| What If? | Preset and natural-language market scenarios with estimated portfolio impact |
+| Future | Long-term simulated outcome ranges with technical Monte Carlo details available on demand |
+| Advanced lab | Optional illustrative protective puts, put spreads, collars, beta overlays, and AI copilot |
 | AI copilot | Natural-language scenario parsing and risk explanations using Gemini |
 | Desktop/PWA UX | Installable PWA, keyboard shortcuts, exportable JSON/CSV snapshots |
 
@@ -183,6 +183,7 @@ risklab/
 ├── docs/
 │   ├── architecture.md
 │   ├── phase-1-correctness.md
+│   ├── product-requirements.md
 │   ├── quantitative-methodology.md
 │   └── roadmap.md
 ├── public/

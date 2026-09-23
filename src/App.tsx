@@ -9,6 +9,7 @@ import { Header } from './components/Header';
 import { PortfolioSetup } from './components/PortfolioSetup';
 import { HoldingsTable } from './components/HoldingsTable';
 import { RiskMetricsCard } from './components/RiskMetricsCard';
+import { PortfolioSummary } from './components/PortfolioSummary';
 import { RiskContributionChart } from './components/RiskContributionChart';
 import { CorrelationMatrix } from './components/CorrelationMatrix';
 import { MonteCarloView } from './components/MonteCarloView';
@@ -255,10 +256,10 @@ export default function App() {
           setActiveTab('risk');
         } else if (event.key === '2') {
           event.preventDefault();
-          setActiveTab('monte-carlo');
+          setActiveTab('stress');
         } else if (event.key === '3') {
           event.preventDefault();
-          setActiveTab('stress');
+          setActiveTab('monte-carlo');
         } else if (event.key === '4') {
           event.preventDefault();
           setActiveTab('hedging');
@@ -315,11 +316,11 @@ export default function App() {
       }`}>
         {activeTab === 'risk' && (
           <div className={`animate-fadeIn ${isCompactMode ? 'space-y-4' : 'space-y-6'}`}>
-            <RiskMetricsCard metrics={metrics} />
-
-            <HoldingsTable
+            <PortfolioSummary
+              metrics={metrics}
               positions={positions}
-              onUpdatePositions={setPositions}
+              onOpenStress={() => setActiveTab('stress')}
+              onOpenFuture={() => setActiveTab('monte-carlo')}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -329,6 +330,24 @@ export default function App() {
               />
               <CorrelationMatrix data={correlationData} />
             </div>
+
+            <HoldingsTable
+              positions={positions}
+              onUpdatePositions={setPositions}
+            />
+
+            <details className="group bg-slate-900/40 border border-slate-800 rounded-xl p-5">
+              <summary className="cursor-pointer list-none flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-bold text-white">Advanced risk metrics</div>
+                  <div className="text-xs text-slate-400 mt-0.5">VaR, expected shortfall, Sharpe, Sortino, beta, and model assumptions.</div>
+                </div>
+                <span className="text-xs text-slate-500 group-open:text-emerald-400">Show details</span>
+              </summary>
+              <div className="mt-5 pt-5 border-t border-slate-800">
+                <RiskMetricsCard metrics={metrics} />
+              </div>
+            </details>
           </div>
         )}
 

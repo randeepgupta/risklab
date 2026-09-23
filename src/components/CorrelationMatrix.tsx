@@ -1,128 +1,102 @@
 import React, { useState } from 'react';
 import { CorrelationMatrixData } from '../types/risk';
-import { Layers, Info } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 interface CorrelationMatrixProps {
   data: CorrelationMatrixData;
 }
 
 export const CorrelationMatrix: React.FC<CorrelationMatrixProps> = ({ data }) => {
-  const [hoveredCell, setHoveredCell] = useState<{
-    t1: string;
-    t2: string;
-    val: number;
-  } | null>(null);
-
+  const [hoveredCell, setHoveredCell] = useState<{ t1: string; t2: string; val: number } | null>(null);
   const { tickers, matrix } = data;
 
-  // Helper to color-code correlation value
   const getCellColor = (val: number) => {
     if (val === 1.0) return 'bg-slate-800 text-slate-400 font-semibold';
-    if (val < 0) return 'bg-sky-950/70 text-sky-300 border border-sky-800/40'; // negative correlation hedge
-    if (val < 0.3) return 'bg-emerald-950/50 text-emerald-300 border border-emerald-800/30'; // low correlation
-    if (val < 0.6) return 'bg-amber-950/40 text-amber-200 border border-amber-800/30'; // moderate
-    if (val < 0.8) return 'bg-orange-950/60 text-orange-200 border border-orange-800/40 font-semibold'; // strong
-    return 'bg-rose-950/70 text-rose-300 border border-rose-800/50 font-bold'; // very strong tech clustering
+    if (val < 0) return 'bg-sky-950/70 text-sky-300 border border-sky-800/40';
+    if (val < 0.3) return 'bg-emerald-950/50 text-emerald-300 border border-emerald-800/30';
+    if (val < 0.6) return 'bg-amber-950/40 text-amber-200 border border-amber-800/30';
+    if (val < 0.8) return 'bg-orange-950/60 text-orange-200 border border-orange-800/40 font-semibold';
+    return 'bg-rose-950/70 text-rose-300 border border-rose-800/50 font-bold';
   };
+
+  const avgPairwise = (() => {
+    let total = 0;
+    let count = 0;
+    for (let i = 0; i < matrix.length; i += 1) {
+      for (let j = i + 1; j < matrix.length; j += 1) {
+        total += matrix[i][j];
+        count += 1;
+      }
+    }
+    return count ? total / count : 0;
+  })();
+
+  const relationship = avgPairwise >= 0.7 ? 'move together a lot' : avgPairwise >= 0.45 ? 'often move together' : 'show useful differences in how they move';
 
   return (
     <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-2">
-        <div>
-          <div className="flex items-center space-x-2">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              Cross-Asset Correlation Matrix
-            </h3>
-            <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono-nums border border-slate-700">
-              ρ(i, j)
-            </span>
-          </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Empirical pairwise correlations. Values close to +1.0 indicate clustered risk that drops together.
-          </p>
-        </div>
-
-        {/* Legend */}
-        <div className="flex items-center space-x-3 text-[11px] font-mono-nums">
-          <span className="flex items-center gap-1 text-sky-400">
-            <span className="w-2.5 h-2.5 rounded-sm bg-sky-900/80 border border-sky-700" /> Negative (&lt;0)
-          </span>
-          <span className="flex items-center gap-1 text-emerald-400">
-            <span className="w-2.5 h-2.5 rounded-sm bg-emerald-900/80 border border-emerald-700" /> Low (0–0.3)
-          </span>
-          <span className="flex items-center gap-1 text-amber-400">
-            <span className="w-2.5 h-2.5 rounded-sm bg-amber-900/80 border border-amber-700" /> Moderate (0.3–0.6)
-          </span>
-          <span className="flex items-center gap-1 text-rose-400">
-            <span className="w-2.5 h-2.5 rounded-sm bg-rose-900/80 border border-rose-700" /> High (&gt;0.8)
-          </span>
-        </div>
+      <div className="pb-4 border-b border-slate-800">
+        <h3 className="text-base font-bold text-white">Which investments move together?</h3>
+        <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+          Your holdings {relationship}. When several investments fall at the same time, owning more tickers may not provide as much diversification as it appears.
+        </p>
       </div>
 
       <div className="pt-4 overflow-x-auto">
-        <div className="inline-block min-w-full align-middle">
-          <table className="border-collapse text-xs font-mono-nums mx-auto">
-            <thead>
-              <tr>
-                <th className="p-2 text-left text-slate-500 text-[10px] uppercase">Asset</th>
-                {tickers.map(t => (
-                  <th key={t} className="p-2 text-center text-slate-300 font-bold w-16">
-                    {t}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {tickers.map((rowTicker, i) => (
-                <tr key={rowTicker}>
-                  <td className="p-2 text-slate-300 font-bold pr-3 text-right">
-                    {rowTicker}
-                  </td>
-                  {tickers.map((colTicker, j) => {
-                    const val = matrix[i][j];
-                    const isHovered =
-                      hoveredCell &&
-                      hoveredCell.t1 === rowTicker &&
-                      hoveredCell.t2 === colTicker;
+        <div className="min-w-[460px]">
+          <div
+            className="grid gap-1"
+            style={{ gridTemplateColumns: `72px repeat(${tickers.length}, minmax(46px, 1fr))` }}
+          >
+            <div />
+            {tickers.map(ticker => (
+              <div key={ticker} className="text-[10px] text-center text-slate-400 font-mono-nums font-semibold py-1">
+                {ticker}
+              </div>
+            ))}
 
-                    return (
-                      <td key={`${rowTicker}-${colTicker}`} className="p-1">
-                        <div
-                          onMouseEnter={() =>
-                            setHoveredCell({ t1: rowTicker, t2: colTicker, val })
-                          }
-                          onMouseLeave={() => setHoveredCell(null)}
-                          className={`w-14 h-9 rounded flex items-center justify-center transition-transform cursor-pointer ${getCellColor(
-                            val
-                          )} ${isHovered ? 'ring-2 ring-emerald-400 scale-105 z-10' : ''}`}
-                        >
-                          {val.toFixed(2)}
-                        </div>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            {matrix.map((row, i) => (
+              <React.Fragment key={tickers[i]}>
+                <div className="text-[10px] text-right pr-2 text-slate-400 font-mono-nums font-semibold flex items-center justify-end">
+                  {tickers[i]}
+                </div>
+                {row.map((val, j) => (
+                  <div
+                    key={`${i}-${j}`}
+                    onMouseEnter={() => setHoveredCell({ t1: tickers[i], t2: tickers[j], val })}
+                    onMouseLeave={() => setHoveredCell(null)}
+                    className={`rounded-md px-1 py-2 text-center text-[10px] font-mono-nums transition-transform hover:scale-105 ${getCellColor(val)}`}
+                    title={`${tickers[i]} / ${tickers[j]}: ${val.toFixed(2)}`}
+                  >
+                    {val.toFixed(2)}
+                  </div>
+                ))}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
       </div>
 
-      {hoveredCell ? (
-        <div className="mt-4 p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 text-xs text-slate-300 flex items-center justify-between font-mono-nums">
-          <div>
-            Correlation between <span className="font-bold text-white">{hoveredCell.t1}</span> and{' '}
-            <span className="font-bold text-white">{hoveredCell.t2}</span>:
-          </div>
-          <div className="text-emerald-400 font-bold text-sm">
-            ρ = {hoveredCell.val.toFixed(2)}
-          </div>
-        </div>
-      ) : (
-        <div className="mt-4 text-center text-[11px] text-slate-500 font-mono-nums">
-          Hover over any correlation cell to inspect pairwise diversification dynamics.
-        </div>
-      )}
+      <div className="mt-3 min-h-5 text-[11px] text-slate-400">
+        {hoveredCell ? (
+          <span>
+            <strong className="text-white">{hoveredCell.t1}</strong> and <strong className="text-white">{hoveredCell.t2}</strong>{' '}
+            have modeled correlation of <strong className="text-emerald-300">{hoveredCell.val.toFixed(2)}</strong>.
+          </span>
+        ) : (
+          <span>Hover a cell to see the relationship between two holdings.</span>
+        )}
+      </div>
+
+      <details className="mt-3 group border-t border-slate-800 pt-3 text-xs text-slate-400">
+        <summary className="cursor-pointer list-none flex items-center gap-1.5 hover:text-slate-200">
+          <ChevronDown className="w-3.5 h-3.5 group-open:rotate-180 transition-transform" />
+          What do these numbers mean?
+        </summary>
+        <p className="mt-2 leading-relaxed">
+          Correlation ranges from -1 to +1. Values near +1 mean two assets tend to move in the same direction, values near 0 mean their movements are less related, and negative values mean they often move in opposite directions. Technical notation: ρ(i, j).
+        </p>
+      </details>
     </div>
   );
 };

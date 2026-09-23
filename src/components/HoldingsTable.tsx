@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, X, Info } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { PortfolioPosition } from '../types/risk';
 import { ASSET_DATABASE } from '../utils/quantEngine';
 
@@ -111,7 +111,7 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
             </span>
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Configure allocations to recalibrate risk, correlations, and stress outcomes.
+            Your current holdings. Change an amount or add an asset and RiskLab will recalculate the analysis.
           </p>
         </div>
 
@@ -178,8 +178,6 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
               <th className="py-3 px-4">Class</th>
               <th className="py-3 px-4 text-right">Investment ($)</th>
               <th className="py-3 px-4 text-right">Weight (%)</th>
-              <th className="py-3 px-4 text-right">Ann. Vol (σ)</th>
-              <th className="py-3 px-4 text-right">Beta (β)</th>
               <th className="py-3 px-4 text-center">Actions</th>
             </tr>
           </thead>
@@ -251,16 +249,6 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
                       <span className="w-12 text-right">{weightPct.toFixed(1)}%</span>
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-right font-mono-nums">
-                    <span className={meta.volatility > 0.35 ? 'text-amber-400 font-semibold' : 'text-slate-300'}>
-                      {(meta.volatility * 100).toFixed(1)}%
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right font-mono-nums">
-                    <span className={meta.beta > 1.5 ? 'text-rose-400 font-semibold' : 'text-slate-300'}>
-                      {meta.beta.toFixed(2)}
-                    </span>
-                  </td>
                   <td className="py-3 px-4 text-center">
                     <div className="flex items-center justify-center space-x-1.5">
                       {!isEditing && (
@@ -300,8 +288,6 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
                 ${totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}
               </td>
               <td className="py-3 px-4 text-right">100.0%</td>
-              <td className="py-3 px-4 text-right text-slate-400">-</td>
-              <td className="py-3 px-4 text-right text-slate-400">-</td>
               <td></td>
             </tr>
           </tfoot>

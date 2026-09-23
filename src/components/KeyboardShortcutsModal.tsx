@@ -16,10 +16,10 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
     {
       group: 'Analysis Navigation',
       items: [
-        { key: '⌘ 1', label: 'Portfolio Risk & VaR View' },
-        { key: '⌘ 2', label: 'Monte Carlo Simulation Engine' },
-        { key: '⌘ 3', label: 'Stress Testing & Scenarios' },
-        { key: '⌘ 4', label: 'Hedging Lab & AI Copilot' },
+        { key: '⌘ 1', label: 'Portfolio Overview' },
+        { key: '⌘ 2', label: 'What If? Scenarios' },
+        { key: '⌘ 3', label: 'Future Outcomes' },
+        { key: '⌘ 4', label: 'Advanced Lab' },
       ],
     },
     {

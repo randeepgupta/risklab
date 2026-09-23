@@ -104,11 +104,9 @@ You can ask me "what if" stress questions, or ask how to hedge specific drawdown
         id: 'bot_' + Date.now(),
         sender: 'assistant',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        text: `### Downside Risk & Hedging Analysis
+        text: `### Copilot unavailable
 
-If technology & growth assets draw down by 40%:
-- Your portfolio would suffer an estimated **-$74,000 to -$88,000** loss (~30-35% drawdown) due to heavy beta loadings in NVDA, QQQM, and TSLA.
-- **Hedge Recommendation:** To cap maximum loss at 20%, implement a **Zero-Cost Collar** (Buy 85% Put, Sell 110% Call) or a **95/80 Bear Put Spread**. This provides a firm floor at -$50,000 (20% maximum loss) without requiring significant cash outflow.`,
+The AI explanation service is not available right now. RiskLab will not invent a portfolio-specific answer. You can still use the deterministic risk metrics, stress scenarios, and illustrative hedge calculations shown in this Advanced lab.`,
       };
       setMessages(prev => [...prev, fallbackMsg]);
     } finally {
@@ -124,12 +122,12 @@ If technology & growth assets draw down by 40%:
           <div>
             <div className="flex items-center space-x-2">
               <ShieldCheck className="w-5 h-5 text-emerald-400" />
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-                Options Hedging Engine & Black-Scholes Pricing
+              <h2 className="text-lg font-bold text-white">
+                Advanced lab: can I reduce my downside?
               </h2>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Illustrative portfolio-level hedge economics. Real trades require a tradable proxy, beta/delta sizing, live option prices, and basis-risk analysis.
+            <p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
+              This optional lab explores ways investors sometimes pay to reduce losses. It is intentionally more technical than the core RiskLab experience and is illustrative only — real hedges require live option prices and careful sizing.
             </p>
           </div>
 

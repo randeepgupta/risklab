@@ -2,6 +2,25 @@
 
 All notable project-level changes are documented here.
 
+## 0.2.0 — Investor-friendly MVP
+
+### Changed
+
+- reorganized the product around four investor questions: Overview, What If?, Future, and Advanced
+- added a plain-English portfolio summary with risk level, biggest risk driver, diversification quality, and a very-bad-day model estimate
+- renamed Euler decomposition to "What is driving your risk?" and moved the technical method behind an explanation control
+- renamed the correlation matrix to "Which investments move together?" with a plain-English interpretation
+- simplified the holdings table by removing volatility and beta from the default view
+- redesigned Monte Carlo as "What could my portfolio become?" with typical, weak, loss, and doubling outcomes
+- redesigned stress testing as "What happens if markets change?" with natural-language scenarios and advanced controls hidden by default
+- moved hedging into an explicitly optional Advanced lab
+- updated command palette and shortcut labels to match the investor-first navigation
+
+### Added
+
+- investor-friendly product requirements in `docs/product-requirements.md`
+- progressive disclosure pattern: answer first, explanation second, technical detail third
+
 ## 0.1.1 — Clean portfolio onboarding
 
 ### Changed

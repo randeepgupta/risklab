@@ -105,7 +105,7 @@ export const DesktopInstallModal: React.FC<DesktopInstallModalProps> = ({
               <div>
                 <span className="text-xs font-semibold text-slate-200">Zero-Latency Engine</span>
                 <p className="text-[11px] text-slate-400 mt-0.5">
-                  Monte Carlo paths and Euler risk run directly in client memory with no server roundtrips.
+                  Portfolio risk and future-outcome calculations run directly in client memory with no server roundtrips.
                 </p>
               </div>
             </div>

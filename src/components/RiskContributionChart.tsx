@@ -1,51 +1,25 @@
 import React, { useState } from 'react';
 import { RiskContribution } from '../types/risk';
-import { PieChart, AlertCircle, Info } from 'lucide-react';
+import { AlertCircle, ChevronDown } from 'lucide-react';
 
 interface RiskContributionChartProps {
   contributions: RiskContribution[];
   portfolioVol: number;
 }
 
-export const RiskContributionChart: React.FC<RiskContributionChartProps> = ({
-  contributions,
-  portfolioVol,
-}) => {
+export const RiskContributionChart: React.FC<RiskContributionChartProps> = ({ contributions }) => {
   const [hoveredTicker, setHoveredTicker] = useState<string | null>(null);
-
-  // Sort by risk contribution descending
   const sorted = [...contributions].sort(
-    (a, b) => b.percentRiskContribution - a.percentRiskContribution
+    (a, b) => b.percentRiskContribution - a.percentRiskContribution,
   );
 
   return (
     <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-2">
-        <div>
-          <div className="flex items-center space-x-2">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              Risk Contribution by Asset
-            </h3>
-            <span className="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-mono-nums border border-amber-500/20">
-              Euler Decomposition
-            </span>
-          </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Compares <span className="text-slate-300 font-medium">Capital Weight (%)</span> against{' '}
-            <span className="text-amber-400 font-medium">Risk Contribution (%)</span>. High-beta assets dominate total risk.
-          </p>
-        </div>
-
-        <div className="flex items-center space-x-4 text-xs font-mono-nums">
-          <div className="flex items-center space-x-1.5">
-            <div className="w-3 h-3 rounded-sm bg-slate-600" />
-            <span className="text-slate-400">Capital Weight %</span>
-          </div>
-          <div className="flex items-center space-x-1.5">
-            <div className="w-3 h-3 rounded-sm bg-amber-500" />
-            <span className="text-slate-400">Risk Contrib %</span>
-          </div>
-        </div>
+      <div className="pb-4 border-b border-slate-800">
+        <h3 className="text-base font-bold text-white">What is driving your risk?</h3>
+        <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+          A holding can be a small part of your money but a large part of your portfolio&apos;s ups and downs. Compare how much you own with how much risk it contributes.
+        </p>
       </div>
 
       <div className="space-y-4 pt-4">
@@ -65,64 +39,53 @@ export const RiskContributionChart: React.FC<RiskContributionChartProps> = ({
                   : 'bg-slate-950/30 border-slate-800/60 hover:border-slate-700/60'
               }`}
             >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
                   <span className="font-bold text-white font-mono-nums">{item.ticker}</span>
-                  <span className="text-xs text-slate-400">
-                    Standalone Vol: {(item.volatility * 100).toFixed(1)}%
-                  </span>
                   {isRiskHeavy && (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-400 font-mono-nums flex items-center gap-1">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-300 flex items-center gap-1">
                       <AlertCircle className="w-2.5 h-2.5" />
-                      Disproportionate Risk
+                      More risk than its size suggests
                     </span>
                   )}
                 </div>
-
-                <div className="flex items-center space-x-3 text-xs font-mono-nums">
-                  <span className="text-slate-400">
-                    Weight: <span className="text-slate-200 font-semibold">{weightPct.toFixed(1)}%</span>
-                  </span>
-                  <span className="text-slate-500">|</span>
-                  <span className="text-amber-400 font-bold">
-                    Risk: {riskContribPct.toFixed(1)}%
-                  </span>
+                <div className="text-xs text-slate-400">
+                  {weightPct.toFixed(1)}% of money <span className="text-slate-600 mx-1">→</span>{' '}
+                  <span className="text-amber-300 font-semibold">{riskContribPct.toFixed(1)}% of risk</span>
                 </div>
               </div>
 
-              {/* Visual dual bar: Weight vs Risk Contribution */}
               <div className="space-y-1.5">
-                {/* Capital Weight bar */}
-                <div className="w-full bg-slate-800/80 rounded-full h-2 overflow-hidden flex">
-                  <div
-                    className="bg-slate-500 h-full rounded-full transition-all duration-300"
-                    style={{ width: `${Math.min(100, weightPct)}%` }}
-                  />
+                <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                  <span className="w-16">Money</span>
+                  <div className="flex-1 bg-slate-800/80 rounded-full h-2 overflow-hidden">
+                    <div className="bg-slate-500 h-full rounded-full" style={{ width: `${Math.min(100, weightPct)}%` }} />
+                  </div>
                 </div>
-                {/* Risk Contribution bar */}
-                <div className="w-full bg-slate-800/80 rounded-full h-2 overflow-hidden flex">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${
-                      isRiskHeavy ? 'bg-amber-400 shadow-sm shadow-amber-500/20' : 'bg-emerald-400'
-                    }`}
-                    style={{ width: `${Math.min(100, riskContribPct)}%` }}
-                  />
+                <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                  <span className="w-16">Risk</span>
+                  <div className="flex-1 bg-slate-800/80 rounded-full h-2 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${isRiskHeavy ? 'bg-amber-400' : 'bg-emerald-400'}`}
+                      style={{ width: `${Math.min(100, riskContribPct)}%` }}
+                    />
+                  </div>
                 </div>
               </div>
-
-              {hoveredTicker === item.ticker && (
-                <div className="mt-2.5 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-mono-nums animate-fadeIn">
-                  <span>Investment: ${item.investment.toLocaleString()}</span>
-                  <span>Marginal Risk (MCR): {(item.marginalRisk * 100).toFixed(2)}%</span>
-                  <span>
-                    Risk Factor Multiplier: {(riskContribPct / Math.max(0.1, weightPct)).toFixed(2)}x
-                  </span>
-                </div>
-              )}
             </div>
           );
         })}
       </div>
+
+      <details className="mt-4 group border-t border-slate-800 pt-3 text-xs text-slate-400">
+        <summary className="cursor-pointer list-none flex items-center gap-1.5 text-slate-400 hover:text-slate-200">
+          <ChevronDown className="w-3.5 h-3.5 group-open:rotate-180 transition-transform" />
+          How is this calculated?
+        </summary>
+        <p className="mt-2 leading-relaxed">
+          Technical method: <strong className="text-slate-300">Euler risk decomposition</strong>. The model combines each position&apos;s weight, volatility, and correlation with the rest of the portfolio to estimate its share of total portfolio volatility.
+        </p>
+      </details>
     </div>
   );
 };
