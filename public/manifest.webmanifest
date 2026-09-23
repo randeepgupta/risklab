@@ -1,0 +1,60 @@
+{
+  "name": "RiskLab Desktop — Financial Risk & Scenario Engine",
+  "short_name": "RiskLab",
+  "description": "Desktop financial risk engine, Monte Carlo simulation, VaR/CVaR, and options hedging.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "lang": "en",
+  "scope": "/",
+  "id": "/",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Portfolio Risk & VaR",
+      "short_name": "Risk & VaR",
+      "url": "/?tab=risk",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Monte Carlo Simulation",
+      "short_name": "Monte Carlo",
+      "url": "/?tab=monte-carlo",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Factor Stress Testing",
+      "short_name": "Stress Test",
+      "url": "/?tab=stress",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Options Hedging Lab",
+      "short_name": "Hedging Lab",
+      "url": "/?tab=hedging",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}
