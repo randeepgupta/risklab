@@ -1,7 +1,7 @@
 {
   "name": "risklab",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "AI-assisted quantitative portfolio risk analysis, stress testing, and Monte Carlo simulation.",
   "type": "module",
   "engines": {

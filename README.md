@@ -16,7 +16,7 @@ The project also explores a practical pattern for AI-enabled software: use an LL
 
 ## Current status
 
-**v0.1.0 — Quantitative correctness baseline**
+**v0.1.1 — Quantitative correctness baseline + portfolio onboarding**
 
 Phase 1 focused on validating and correcting the financial math before adding more features. Key corrections include positive-semidefinite correlation handling, bond-duration sign conventions, VaR/CVaR calculations, downside-risk modeling, stress-factor hierarchy, and more defensible hedge labeling.
 
@@ -26,6 +26,7 @@ See [`docs/phase-1-correctness.md`](docs/phase-1-correctness.md) for the detaile
 
 | Area | Capabilities |
 | --- | --- |
+| Portfolio onboarding | Clean ticker/allocation builder with sample portfolio and allocation validation |
 | Portfolio analytics | Position weights, portfolio volatility, Sharpe/Sortino, risk contribution |
 | Correlation | Pairwise correlation matrix with PSD projection before covariance calculations |
 | Risk metrics | 95%/99% parametric VaR and Expected Shortfall across multiple horizons |

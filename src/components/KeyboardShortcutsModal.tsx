@@ -14,7 +14,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
 
   const shortcutGroups = [
     {
-      group: 'Workstation Navigation',
+      group: 'Analysis Navigation',
       items: [
         { key: '⌘ 1', label: 'Portfolio Risk & VaR View' },
         { key: '⌘ 2', label: 'Monte Carlo Simulation Engine' },
@@ -44,7 +44,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
               <Keyboard className="w-4 h-4" />
             </div>
             <h3 className="text-sm font-bold text-white tracking-tight">
-              Desktop Workstation Shortcuts
+              RiskLab Keyboard Shortcuts
             </h3>
           </div>
           <button

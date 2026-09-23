@@ -2,6 +2,23 @@
 
 All notable project-level changes are documented here.
 
+## 0.1.1 — Clean portfolio onboarding
+
+### Changed
+
+- added a focused landing page that asks users for portfolio value and ticker allocations before showing analytics
+- replaced the dense desktop-workstation titlebar with a compact product header
+- simplified analysis navigation to Risk Overview, Monte Carlo, Stress Tests, and Hedging & AI
+- moved export, install, layout, help, and quick actions into compact utility menus
+- added an Edit Portfolio flow that returns users to the allocation builder without losing their current holdings
+- simplified footer language and removed workstation-specific visual clutter
+
+### Added
+
+- sample portfolio path for first-time users
+- allocation validation with a live 100% progress indicator
+- explicit disclosure of the current modeled-asset limitation on the onboarding screen
+
 ## 0.1.0 — Quantitative correctness baseline
 
 ### Corrected

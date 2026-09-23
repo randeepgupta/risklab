@@ -1,11 +1,12 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PortfolioPosition } from './types/risk';
 import {
   ASSET_DATABASE,
-  calculatePortfolioRisk,
   buildCorrelationMatrix,
+  calculatePortfolioRisk,
 } from './utils/quantEngine';
 import { Header } from './components/Header';
+import { PortfolioSetup } from './components/PortfolioSetup';
 import { HoldingsTable } from './components/HoldingsTable';
 import { RiskMetricsCard } from './components/RiskMetricsCard';
 import { RiskContributionChart } from './components/RiskContributionChart';
@@ -13,44 +14,42 @@ import { CorrelationMatrix } from './components/CorrelationMatrix';
 import { MonteCarloView } from './components/MonteCarloView';
 import { StressTestingView } from './components/StressTestingView';
 import { HedgingLabView } from './components/HedgingLabView';
-import { DesktopTitlebar } from './components/DesktopTitlebar';
 import { DesktopInstallModal } from './components/DesktopInstallModal';
 import { DesktopCommandPalette } from './components/DesktopCommandPalette';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 
-// Preset portfolios
 const MVP_PORTFOLIO: PortfolioPosition[] = [
   {
     ticker: 'SPY',
-    name: ASSET_DATABASE['SPY'].name,
-    assetClass: ASSET_DATABASE['SPY'].assetClass,
+    name: ASSET_DATABASE.SPY.name,
+    assetClass: ASSET_DATABASE.SPY.assetClass,
     investment: 100000,
     weight: 0.40,
-    price: ASSET_DATABASE['SPY'].price,
+    price: ASSET_DATABASE.SPY.price,
   },
   {
     ticker: 'QQQM',
-    name: ASSET_DATABASE['QQQM'].name,
-    assetClass: ASSET_DATABASE['QQQM'].assetClass,
+    name: ASSET_DATABASE.QQQM.name,
+    assetClass: ASSET_DATABASE.QQQM.assetClass,
     investment: 70000,
     weight: 0.28,
-    price: ASSET_DATABASE['QQQM'].price,
+    price: ASSET_DATABASE.QQQM.price,
   },
   {
     ticker: 'NVDA',
-    name: ASSET_DATABASE['NVDA'].name,
-    assetClass: ASSET_DATABASE['NVDA'].assetClass,
+    name: ASSET_DATABASE.NVDA.name,
+    assetClass: ASSET_DATABASE.NVDA.assetClass,
     investment: 50000,
     weight: 0.20,
-    price: ASSET_DATABASE['NVDA'].price,
+    price: ASSET_DATABASE.NVDA.price,
   },
   {
     ticker: 'TSLA',
-    name: ASSET_DATABASE['TSLA'].name,
-    assetClass: ASSET_DATABASE['TSLA'].assetClass,
+    name: ASSET_DATABASE.TSLA.name,
+    assetClass: ASSET_DATABASE.TSLA.assetClass,
     investment: 30000,
     weight: 0.12,
-    price: ASSET_DATABASE['TSLA'].price,
+    price: ASSET_DATABASE.TSLA.price,
   },
 ];
 
@@ -88,12 +87,21 @@ const PRESETS: Record<string, PortfolioPosition[]> = {
   ],
 };
 
+const PRESET_NAMES: Record<string, string> = {
+  mvp: 'Growth demo',
+  balanced: 'Balanced core',
+  semi_heavy: 'Semiconductor & AI',
+  all_weather: 'All-weather macro',
+};
+
 export default function App() {
   const [positions, setPositions] = useState<PortfolioPosition[]>(MVP_PORTFOLIO);
+  const [portfolioReady, setPortfolioReady] = useState(false);
+  const [portfolioName, setPortfolioName] = useState('Custom portfolio');
+  const [setupSeedPositions, setSetupSeedPositions] = useState<PortfolioPosition[]>([]);
+  const [setupInitialValue, setSetupInitialValue] = useState(100000);
   const [activeTab, setActiveTab] = useState<RiskLabTab>(getInitialTab);
-  const [activePreset, setActivePreset] = useState<string>('mvp');
 
-  // Desktop workstation states
   const [isStandalone, setIsStandalone] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
@@ -101,7 +109,6 @@ export default function App() {
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [isCompactMode, setIsCompactMode] = useState(false);
 
-  // Check standalone desktop status & listen for PWA install prompt
   useEffect(() => {
     const checkStandalone = () => {
       const isDisplayStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -111,12 +118,12 @@ export default function App() {
 
     checkStandalone();
     const mediaQuery = window.matchMedia('(display-mode: standalone)');
-    const handleMediaChange = (e: MediaQueryListEvent) => setIsStandalone(e.matches);
+    const handleMediaChange = (event: MediaQueryListEvent) => setIsStandalone(event.matches);
     mediaQuery.addEventListener('change', handleMediaChange);
 
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setDeferredPrompt(event);
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
@@ -126,26 +133,50 @@ export default function App() {
     };
   }, []);
 
-  // Quant metrics recalculated reactively
-  const metrics = useMemo(() => {
-    return calculatePortfolioRisk(positions);
-  }, [positions]);
+  const metrics = useMemo(() => calculatePortfolioRisk(positions), [positions]);
 
-  const correlationData = useMemo(() => {
-    return buildCorrelationMatrix(positions.map(p => p.ticker));
-  }, [positions]);
+  const correlationData = useMemo(
+    () => buildCorrelationMatrix(positions.map((position) => position.ticker)),
+    [positions],
+  );
+
+  const handleAnalyzePortfolio = (newPositions: PortfolioPosition[], portfolioValue: number) => {
+    setPositions(newPositions);
+    setSetupSeedPositions(newPositions);
+    setSetupInitialValue(portfolioValue);
+    setPortfolioName('Custom portfolio');
+    setActiveTab('risk');
+    setPortfolioReady(true);
+  };
+
+  const handleUseSample = () => {
+    setPositions(MVP_PORTFOLIO);
+    setSetupSeedPositions(MVP_PORTFOLIO);
+    setSetupInitialValue(250000);
+    setPortfolioName(PRESET_NAMES.mvp);
+    setActiveTab('risk');
+    setPortfolioReady(true);
+  };
+
+  const handleEditPortfolio = () => {
+    setSetupSeedPositions(positions);
+    setSetupInitialValue(positions.reduce((sum, position) => sum + position.investment, 0));
+    setPortfolioReady(false);
+  };
 
   const handleSelectPreset = (key: string) => {
-    if (PRESETS[key]) {
-      setPositions(PRESETS[key]);
-      setActivePreset(key);
-    }
+    const preset = PRESETS[key];
+    if (!preset) return;
+
+    setPositions(preset);
+    setSetupSeedPositions(preset);
+    setSetupInitialValue(preset.reduce((sum, position) => sum + position.investment, 0));
+    setPortfolioName(PRESET_NAMES[key] || 'Preset portfolio');
+    setActiveTab('risk');
+    setPortfolioReady(true);
   };
 
-  const handleResetToMvp = () => {
-    setPositions(MVP_PORTFOLIO);
-    setActivePreset('mvp');
-  };
+  const handleResetToMvp = () => handleSelectPreset('mvp');
 
   const handleTriggerInstall = async () => {
     if (deferredPrompt) {
@@ -161,13 +192,13 @@ export default function App() {
     }
   };
 
-  // Export JSON snapshot
   const handleExportJson = useCallback(() => {
     const data = {
       exportedAt: new Date().toISOString(),
-      app: 'RiskLab Desktop Workstation',
+      app: 'RiskLab',
       version: '0.1',
       portfolio: {
+        name: portfolioName,
         totalValue: metrics.totalValue,
         volatility: metrics.annualizedVolatility,
         sharpeRatio: metrics.sharpeRatio,
@@ -183,20 +214,19 @@ export default function App() {
     link.download = `risklab-portfolio-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
-  }, [metrics, positions]);
+  }, [metrics, portfolioName, positions]);
 
-  // Export CSV snapshot
   const handleExportCsv = useCallback(() => {
     const headers = ['Ticker', 'Name', 'Asset Class', 'Price', 'Investment ($)', 'Weight (%)'];
-    const rows = positions.map(p => [
-      p.ticker,
-      `"${p.name.replace(/"/g, '""')}"`,
-      p.assetClass,
-      p.price.toFixed(2),
-      p.investment.toFixed(2),
-      (p.weight * 100).toFixed(2),
+    const rows = positions.map((position) => [
+      position.ticker,
+      `"${position.name.replace(/"/g, '""')}"`,
+      position.assetClass,
+      position.price.toFixed(2),
+      position.investment.toFixed(2),
+      (position.weight * 100).toFixed(2),
     ]);
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -206,96 +236,92 @@ export default function App() {
     URL.revokeObjectURL(url);
   }, [positions]);
 
-  // Global desktop keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if user is actively typing in an input or textarea
-      const target = e.target as HTMLElement | null;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!portfolioReady) return;
+
+      const target = event.target as HTMLElement | null;
       const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
 
-      // Cmd/Ctrl + K: Command Palette
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setIsCommandPaletteOpen(prev => !prev);
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setIsCommandPaletteOpen((open) => !open);
         return;
       }
 
-      // Cmd/Ctrl + 1 to 4: Tabs
-      if ((e.metaKey || e.ctrlKey) && !isInput) {
-        if (e.key === '1') {
-          e.preventDefault();
+      if ((event.metaKey || event.ctrlKey) && !isInput) {
+        if (event.key === '1') {
+          event.preventDefault();
           setActiveTab('risk');
-        } else if (e.key === '2') {
-          e.preventDefault();
+        } else if (event.key === '2') {
+          event.preventDefault();
           setActiveTab('monte-carlo');
-        } else if (e.key === '3') {
-          e.preventDefault();
+        } else if (event.key === '3') {
+          event.preventDefault();
           setActiveTab('stress');
-        } else if (e.key === '4') {
-          e.preventDefault();
+        } else if (event.key === '4') {
+          event.preventDefault();
           setActiveTab('hedging');
-        } else if (e.key.toLowerCase() === 'd') {
-          e.preventDefault();
-          setIsCompactMode(prev => !prev);
-        } else if (e.key.toLowerCase() === 'e') {
-          e.preventDefault();
+        } else if (event.key.toLowerCase() === 'd') {
+          event.preventDefault();
+          setIsCompactMode((compact) => !compact);
+        } else if (event.key.toLowerCase() === 'e') {
+          event.preventDefault();
           handleExportJson();
         }
       }
 
-      // '?' key for shortcuts help (when outside inputs)
-      if (e.key === '?' && !isInput) {
-        e.preventDefault();
+      if (event.key === '?' && !isInput) {
+        event.preventDefault();
         setIsShortcutsModalOpen(true);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleExportJson]);
+  }, [handleExportJson, portfolioReady]);
+
+  if (!portfolioReady) {
+    return (
+      <PortfolioSetup
+        initialPositions={setupSeedPositions}
+        initialPortfolioValue={setupInitialValue}
+        onAnalyze={handleAnalyzePortfolio}
+        onUseSample={handleUseSample}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-slate-950 font-sans">
-      {/* Desktop Workstation Window Titlebar */}
-      <DesktopTitlebar
-        isStandalone={isStandalone}
-        onOpenInstallModal={() => setIsInstallModalOpen(true)}
-        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
-        onOpenHelpModal={() => setIsShortcutsModalOpen(true)}
-        onExportJson={handleExportJson}
-        onExportCsv={handleExportCsv}
-        isCompactMode={isCompactMode}
-        onToggleCompactMode={() => setIsCompactMode(prev => !prev)}
-        installPromptAvailable={Boolean(deferredPrompt)}
-      />
-
-      {/* Institutional Header with Metrics Bar */}
       <Header
-        metrics={metrics}
+        portfolioName={portfolioName}
+        totalValue={metrics.totalValue}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onSelectPreset={handleSelectPreset}
-        activePreset={activePreset}
-        onResetToMvp={handleResetToMvp}
+        onEditPortfolio={handleEditPortfolio}
+        onExportJson={handleExportJson}
+        onExportCsv={handleExportCsv}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        onOpenHelpModal={() => setIsShortcutsModalOpen(true)}
+        onOpenInstallModal={() => setIsInstallModalOpen(true)}
+        isStandalone={isStandalone}
+        isCompactMode={isCompactMode}
+        onToggleCompactMode={() => setIsCompactMode((compact) => !compact)}
       />
 
-      {/* Main Content Area with adaptive density */}
       <main className={`flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 transition-all ${
         isCompactMode ? 'py-3 space-y-4' : 'py-6 space-y-6'
       }`}>
-        {/* TAB 1: Portfolio Risk & VaR */}
         {activeTab === 'risk' && (
           <div className={`animate-fadeIn ${isCompactMode ? 'space-y-4' : 'space-y-6'}`}>
-            {/* 4 Core Quantitative Metrics */}
             <RiskMetricsCard metrics={metrics} />
 
-            {/* Holdings Management Table */}
             <HoldingsTable
               positions={positions}
               onUpdatePositions={setPositions}
             />
 
-            {/* Risk Contribution & Correlation Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <RiskContributionChart
                 contributions={metrics.riskContributions}
@@ -306,7 +332,6 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB 2: Monte Carlo Simulation */}
         {activeTab === 'monte-carlo' && (
           <div className="animate-fadeIn">
             <MonteCarloView
@@ -317,14 +342,12 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB 3: Stress Testing & Factor Scenario Engine */}
         {activeTab === 'stress' && (
           <div className="animate-fadeIn">
             <StressTestingView positions={positions} />
           </div>
         )}
 
-        {/* TAB 4: Hedging Lab & Conversational AI Copilot */}
         {activeTab === 'hedging' && (
           <div className="animate-fadeIn">
             <HedgingLabView positions={positions} metrics={metrics} />
@@ -332,42 +355,13 @@ export default function App() {
         )}
       </main>
 
-      {/* Institutional Quant Desktop Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950/80 py-3 mt-12 text-xs text-slate-500 font-mono-nums">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center space-x-2">
-            <span className="font-bold text-slate-300">RiskLab Workstation</span>
-            <span>• Quantitative Risk Architecture & PWA Desktop Engine</span>
-          </div>
-          <div className="flex items-center space-x-3 text-[11px]">
-            <span>Kernel: GBM & Black-Scholes</span>
-            <span>•</span>
-            <span>VaR: Parametric Delta-Normal</span>
-            <span>•</span>
-            <button
-              type="button"
-              onClick={() => setIsShortcutsModalOpen(true)}
-              className="hover:text-emerald-400 underline transition-colors cursor-pointer"
-            >
-              Shortcuts (⌘K / ?)
-            </button>
-            {!isStandalone && (
-              <>
-                <span>•</span>
-                <button
-                  type="button"
-                  onClick={() => setIsInstallModalOpen(true)}
-                  className="text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
-                >
-                  Install Desktop App
-                </button>
-              </>
-            )}
-          </div>
+      <footer className="border-t border-slate-900/90 py-5 mt-10 text-xs text-slate-600">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span><strong className="text-slate-400">RiskLab</strong> · Quantitative portfolio risk analytics</span>
+          <span>Educational analytics only · Not investment advice</span>
         </div>
       </footer>
 
-      {/* Modals */}
       <DesktopInstallModal
         isOpen={isInstallModalOpen}
         onClose={() => setIsInstallModalOpen(false)}
@@ -381,7 +375,7 @@ export default function App() {
         onClose={() => setIsCommandPaletteOpen(false)}
         setActiveTab={setActiveTab}
         onSelectPreset={handleSelectPreset}
-        onToggleCompactMode={() => setIsCompactMode(prev => !prev)}
+        onToggleCompactMode={() => setIsCompactMode((compact) => !compact)}
         onExportJson={handleExportJson}
         onExportCsv={handleExportCsv}
         onOpenInstallModal={() => setIsInstallModalOpen(true)}
@@ -395,4 +389,3 @@ export default function App() {
     </div>
   );
 }
-

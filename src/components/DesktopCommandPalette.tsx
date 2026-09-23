@@ -57,7 +57,7 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     // Tabs
     {
       id: 'tab-risk',
-      category: 'Workstation View',
+      category: 'Analysis Views',
       label: 'Portfolio Risk & VaR Analysis',
       description: 'Parametric VaR, CVaR, Euler risk decomposition, and correlation matrix',
       icon: <Activity className="w-4 h-4 text-emerald-400" />,
@@ -69,7 +69,7 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     },
     {
       id: 'tab-monte-carlo',
-      category: 'Workstation View',
+      category: 'Analysis Views',
       label: 'Monte Carlo Simulation Engine',
       description: 'Geometric Brownian Motion stochastic path projections (1,000 runs)',
       icon: <TrendingUp className="w-4 h-4 text-emerald-400" />,
@@ -81,7 +81,7 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     },
     {
       id: 'tab-stress',
-      category: 'Workstation View',
+      category: 'Analysis Views',
       label: 'Macro Stress Testing & Scenario Engine',
       description: 'Tech Crash, Rates Spike, Stagflation, and Custom multi-factor shocks',
       icon: <ShieldAlert className="w-4 h-4 text-rose-400" />,
@@ -93,7 +93,7 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     },
     {
       id: 'tab-hedging',
-      category: 'Workstation View',
+      category: 'Analysis Views',
       label: 'Options Hedging Lab & AI Copilot',
       description: 'Black-Scholes protective puts, collar strategies, and Gemini quant analyst',
       icon: <Sparkles className="w-4 h-4 text-cyan-400" />,
@@ -153,7 +153,7 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     // Workstation Tools
     {
       id: 'toggle-fullscreen',
-      category: 'Workstation Controls',
+      category: 'App Controls',
       label: 'Toggle Fullscreen Mode',
       description: 'Maximize window to display-grade workstation canvas',
       icon: <Maximize2 className="w-4 h-4 text-slate-300" />,
@@ -169,9 +169,9 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     },
     {
       id: 'toggle-density',
-      category: 'Workstation Controls',
-      label: 'Toggle High-Density Workstation Mode',
-      description: 'Switch between spacious layout and compact Bloomberg-style view',
+      category: 'App Controls',
+      label: 'Toggle Compact Layout',
+      description: 'Switch between spacious and compact analysis layouts',
       icon: <Sliders className="w-4 h-4 text-slate-300" />,
       shortcut: '⌘D',
       action: () => {
@@ -181,7 +181,7 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     },
     {
       id: 'export-json',
-      category: 'Workstation Controls',
+      category: 'App Controls',
       label: 'Export Portfolio Snapshot (JSON)',
       description: 'Download full portfolio positions and risk metrics snapshot',
       icon: <FileJson className="w-4 h-4 text-emerald-400" />,
@@ -193,7 +193,7 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     },
     {
       id: 'export-csv',
-      category: 'Workstation Controls',
+      category: 'App Controls',
       label: 'Export Holdings Spreadsheet (CSV)',
       description: 'Download comma-separated holdings table',
       icon: <FileSpreadsheet className="w-4 h-4 text-cyan-400" />,
@@ -204,7 +204,7 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     },
     {
       id: 'install-desktop',
-      category: 'Workstation Controls',
+      category: 'App Controls',
       label: 'Install RiskLab Desktop App (PWA)',
       description: 'Launch installation flow for macOS / Windows / Linux desktop',
       icon: <Download className="w-4 h-4 text-emerald-400" />,
@@ -215,9 +215,9 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     },
     {
       id: 'reset-mvp',
-      category: 'Workstation Controls',
-      label: 'Reset Workstation to Initial State',
-      description: 'Clear modifications and reload the $250K baseline portfolio',
+      category: 'App Controls',
+      label: 'Load Growth Demo Portfolio',
+      description: 'Load the $250K sample growth portfolio',
       icon: <RefreshCw className="w-4 h-4 text-rose-400" />,
       action: () => {
         onResetToMvp();
@@ -350,7 +350,7 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
             <span>↵ to select</span>
             <span>esc to dismiss</span>
           </div>
-          <span>RiskLab Workstation</span>
+          <span>RiskLab</span>
         </div>
       </div>
     </div>
