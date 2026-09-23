@@ -1,3 +1,5 @@
+// Also exercise the UI scenario-state logic against the actual stress engine.
+import './scenarioControls.test';
 import assert from 'node:assert/strict';
 import {
   ASSET_DATABASE,
