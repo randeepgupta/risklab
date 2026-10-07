@@ -175,6 +175,7 @@ export interface HedgingStrategy {
 }
 
 export interface AiScenarioParseResponse {
+  ai?: AiResponseSource;
   scenarioName: string;
   factorShocks: {
     equityShockPct: number;
@@ -190,9 +191,17 @@ export interface AiScenarioParseResponse {
 }
 
 export interface AiCopilotMessage {
+  ai?: AiResponseSource;
   id: string;
   sender: 'user' | 'assistant';
   timestamp: string;
   text: string;
   scenarioData?: Partial<AiScenarioParseResponse>;
+}
+
+export interface AiResponseSource {
+  provider: 'cloudflare' | 'fallback';
+  model?: string;
+  label: string;
+  reason?: 'not_configured' | 'unavailable';
 }

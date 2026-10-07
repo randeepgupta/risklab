@@ -62,7 +62,7 @@ You can ask me "what if" stress questions, or ask how to hedge specific drawdown
 
   const handleSendMessage = async (queryText?: string) => {
     const text = queryText || inputQuery;
-    if (!text.trim()) return;
+    if (!text.trim() || isLoadingCopilot) return;
 
     const userMsg: AiCopilotMessage = {
       id: 'user_' + Date.now(),
@@ -94,6 +94,7 @@ You can ask me "what if" stress questions, or ask how to hedge specific drawdown
         sender: 'assistant',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         text: data.answer || 'No response generated.',
+        ai: data.ai ?? {provider: 'fallback', label: 'Legacy copilot service'},
       };
 
       setMessages(prev => [...prev, botMsg]);
@@ -288,7 +289,7 @@ The AI explanation service is not available right now. RiskLab will not invent a
             </div>
           </div>
           <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono-nums border border-emerald-500/20">
-            Powered by Gemini 3.8
+            AI responses show their source
           </span>
         </div>
 
@@ -316,6 +317,9 @@ The AI explanation service is not available right now. RiskLab will not invent a
                   }`}
                 >
                   <div className="text-[10px] text-slate-400 mb-1 opacity-75">{msg.timestamp}</div>
+                  {msg.ai && <div className="mb-2 text-sm font-semibold text-emerald-300">
+                    {msg.ai.label}{msg.ai.provider === 'fallback' && msg.ai.reason === 'unavailable' ? ' · AI unavailable right now' : ''}
+                  </div>}
                   <div>{msg.text}</div>
                 </div>
                 {isUser && (
@@ -376,6 +380,7 @@ The AI explanation service is not available right now. RiskLab will not invent a
           <input
             type="text"
             aria-label="Ask RiskLab Copilot a question"
+            maxLength={2000}
             value={inputQuery}
             onChange={e => setInputQuery(e.target.value)}
             placeholder="Ask RiskLab Copilot a quantitative or scenario question..."

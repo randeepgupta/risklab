@@ -1,6 +1,6 @@
 import React, { useMemo, useReducer, useState } from 'react';
 import { AlertCircle, ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
-import { PortfolioPosition, StressScenario } from '../types/risk';
+import { PortfolioPosition, StressScenario, AiResponseSource } from '../types/risk';
 import { PRESET_SCENARIOS, executeStressTest } from '../utils/quantEngine';
 import {
   createScenarioControls,
@@ -30,6 +30,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
   const [aiPrompt, setAiPrompt] = useState('AI stocks fall sharply and the Fed cuts rates');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiResultExplanation, setAiResultExplanation] = useState<string | null>(null);
+  const [aiSource, setAiSource] = useState<AiResponseSource | null>(null);
   const scenarioForCalculation = useMemo(() => scenarioFromControls(controls), [controls]);
 
   const stressResult = useMemo(
@@ -39,7 +40,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
 
   const handleAiScenario = async (event?: React.FormEvent) => {
     event?.preventDefault();
-    if (!aiPrompt.trim()) return;
+    if (!aiPrompt.trim() || isAiLoading) return;
     setIsAiLoading(true);
     try {
       const response = await fetch('/api/gemini/parse-scenario', {
@@ -49,20 +50,21 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
       });
       if (!response.ok) throw new Error('Scenario service unavailable');
       const data = await response.json();
+      setAiSource(data.ai ?? {provider: 'fallback', label: 'Legacy scenario service'});
       const factorShocks = data.factorShocks ?? PRESET_SCENARIOS[1].factorShocks!;
       setAiResultExplanation(data.macroTransmissionExplanation ?? null);
       dispatch({ type: 'load', scenario: {
         id: `ai_${Date.now()}`,
         name: data.scenarioName || aiPrompt,
         description: data.macroTransmissionExplanation || 'Custom market scenario translated from your description.',
-        category: 'ai_generated',
+        category: data.ai?.provider === 'cloudflare' ? 'ai_generated' : 'custom',
         tickerShocks: {},
         factorShocks,
       } });
     } catch (error) {
       console.error('Error parsing scenario', error);
-      setAiResultExplanation('AI translation was unavailable, so RiskLab loaded its built-in AI selloff scenario instead.');
-      dispatch({ type: 'load', scenario: PRESET_SCENARIOS[1] });
+      setAiSource({provider: 'fallback', label: 'Scenario service unavailable', reason: 'unavailable'});
+      setAiResultExplanation('Your previous scenario is unchanged. Please try again.');
     } finally {
       setIsAiLoading(false);
     }
@@ -99,6 +101,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
             <label className="text-xs text-slate-400 font-semibold">Describe a market scenario in plain English</label>
             <input
               type="text"
+              maxLength={2000}
               value={aiPrompt}
               onChange={event => setAiPrompt(event.target.value)}
               placeholder="e.g. Technology falls 30% and interest rates decline"
@@ -125,6 +128,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
               onClick={() => {
                 dispatch({ type: 'load', scenario: PRESET_SCENARIOS[item.index] });
                 setAiResultExplanation(null);
+                setAiSource(null);
               }}
               className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700/50 disabled:opacity-50"
             >
@@ -135,7 +139,10 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
 
         {aiResultExplanation && !controls.edited && (
           <div className="mt-4 rounded-lg bg-slate-950/70 border border-slate-800 p-3 text-xs text-slate-300 leading-relaxed">
-            <strong className="text-emerald-300">Why the model expects this impact: </strong>{aiResultExplanation}
+            {aiSource && <p className="mb-2 text-sm font-semibold text-slate-200" role="status">
+              {aiSource.label}{aiSource.provider === 'fallback' && aiSource.reason === 'unavailable' ? ' · AI unavailable right now' : ''}
+            </p>}
+            {aiSource?.label !== 'Scenario service unavailable' && <strong className="text-emerald-300">Why the model expects this impact: </strong>}{aiResultExplanation}
           </div>
         )}
       </section>

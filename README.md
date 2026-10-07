@@ -2,7 +2,7 @@
 
 RiskLab can run as one Cloudflare Worker serving the React app and `/api/*` endpoints. The quantitative engine continues to run in the browser; no database is required for the current app.
 
-See [Cloudflare deployment guide](docs/cloudflare-deployment.md) for GitHub auto-deploy settings and local deployment instructions. The existing Express development and Node deployment commands remain available.
+See [Cloudflare deployment guide](docs/cloudflare-deployment.md) for GitHub auto-deploy settings and local deployment instructions. The Cloudflare deployment uses Workers AI (Llama 3.3) for scenario interpretation and the copilot, with visibly labeled deterministic fallbacks. The existing Express development and Node deployment commands remain available.
 
 # RiskLab
 
@@ -39,16 +39,16 @@ See [`docs/product-requirements.md`](docs/product-requirements.md) for the MVP p
 | What If? | Preset and natural-language market scenarios with estimated portfolio impact |
 | Future | Long-term simulated outcome ranges with technical Monte Carlo details available on demand |
 | Advanced lab | Optional illustrative protective puts, put spreads, collars, beta overlays, and AI copilot |
-| AI copilot | Natural-language scenario parsing and risk explanations using Gemini |
+| AI copilot | Natural-language scenario parsing and risk explanations using Cloudflare Workers AI (hosted) or legacy Gemini (local) |
 | Desktop/PWA UX | Installable PWA, keyboard shortcuts, exportable JSON/CSV snapshots |
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    UI[React / TypeScript UI] --> API[Express API]
+    UI[React / TypeScript UI] --> API[Worker / Express API]
     UI --> QE[Quant Engine]
-    API --> AI[Gemini Scenario Parser]
+    API --> AI[Workers AI / Gemini Parser]
     AI --> B[Bounded Scenario Inputs]
     B --> QE
     QE --> R[Risk Metrics]
@@ -86,8 +86,8 @@ The full methodology, assumptions, and limitations are documented in [`docs/quan
 ## Tech stack
 
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS
-- **Backend:** Node.js, Express, TypeScript
-- **AI:** Google Gemini via `@google/genai`
+- **Backend:** Cloudflare Worker for hosting; Node.js / Express for local development; TypeScript
+- **AI:** Cloudflare Workers AI (Llama 3.3) for hosting; Google Gemini via `@google/genai` for the legacy local server
 - **Quant layer:** custom TypeScript risk engine
 - **PWA:** `vite-plugin-pwa`
 - **Testing:** focused quantitative test suite executed with `tsx`
