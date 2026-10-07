@@ -244,3 +244,46 @@ modeled exposure. Proxy selections are shown in the holdings table, preserved in
 and included in the CSV's Risk Proxy column. Unavailable prices export as blank rather than a
 proxy quote. Choose another proxy in Edit Portfolio. Run `npm run test:symbols` for directory,
 search and model consistency checks.
+
+### Historical risk models from a public snapshot
+
+Historical mode calculates each covered holding's risk from a committed, dated public dataset,
+loaded once and reused in the browser. Changing allocations, adding covered holdings and running
+analysis do not call a market-data API. No account, token or backend market-data secret is needed.
+The PWA also caches the snapshot. The listing directory remains broader than historical coverage;
+unsupported holdings can use the existing, explicitly selected proxy in preset mode. A portfolio
+uses one mode consistently, with no hidden mixture of historical and preset covariance estimates.
+
+`npm run refresh:risk-models` deliberately rebuilds `public/models/historical-snapshot.json`
+from the publicly readable `post-no-preference/stocks` DoltHub database. The generator uses its
+indexed daily closing-price records and dividend/split tables to form total-return indices over
+the latest available year. It checks query completeness, valid closes, source dates, minimum
+history and availability of corporate-action dates. Missing, short or stale symbols are omitted;
+failed refreshes preserve the previous snapshot. Refresh and commit the file when desired;
+there is no scheduled job or runtime upstream price fetch. Repeated generator queries have a
+one-hour temporary cache to permit resuming downloads; remove `risklab-public-data-cache` from
+your system's temporary directory if you need to bypass it for source corrections.
+
+For the selected holdings and SPY benchmark, RiskLab aligns identical daily return intervals,
+requires at least 126 common returns, and calculates sample variance/covariance, annualized
+volatility (252 days), correlations, beta versus SPY, and annualized arithmetic historical mean
+return. The mean supplies the existing simulation/parametric risk drift and is explicitly labeled
+as historical, not a forecast. VaR/CVaR still use the normal-distribution model; this does not
+turn them into empirical historical VaR. Rate duration and sector stress sensitivities remain
+preset assumptions where available; unknown holdings use only their measured market beta in
+factor stress tests, with zero unspecified sector/rate loadings. Closing prices alone do not
+estimate all macroeconomic transmission paths. No live quote or future return is implied.
+
+The UI and JSON export preserve provider, observation count, historical window, capture time,
+correlations and last closing-price date. CSV identifies the risk mode and data-through date.
+All holdings in an updated historical portfolio are recalibrated together against the same
+snapshot and window. Flat series produce zero volatility with finite risk contributions.
+
+Data attribution: https://www.dolthub.com/repositories/post-no-preference/stocks,
+creator `post-no-preference`, licensed CC BY-SA 4.0. RiskLab's stored adjusted indices and derived
+historical-model data are adaptations distributed under the same license:
+https://creativecommons.org/licenses/by-sa/4.0/. Adjustments and methodology are described above.
+This data license does not change the license of unrelated application code. Snapshot and
+model data retain source and license metadata. The public dataset is community-maintained;
+corporate actions, source corrections and ticker reuse can affect estimates. Inspect the visible
+as-of date and coverage before relying on a model.

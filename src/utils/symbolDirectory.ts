@@ -22,10 +22,10 @@ export function searchSymbols(symbols: ListedSymbol[], query: string, excluded: 
   return symbols.filter(symbol => !excluded.has(symbol.ticker) && (!text || symbol.ticker.includes(text) || symbol.name.toUpperCase().includes(text)))
     .sort((a, b) => rank(a) - rank(b) || a.ticker.localeCompare(b.ticker)).slice(0, limit);
 }
-export function createListedPosition(symbol: ListedSymbol, investment: number, weight: number, riskProxyTicker = ''): PortfolioPosition {
+export function createListedPosition(symbol: ListedSymbol, investment: number, weight: number, riskProxyTicker = '', historicalAvailable = false): PortfolioPosition {
   const ownModel = ASSET_DATABASE[symbol.ticker];
   const model = ownModel || ASSET_DATABASE[riskProxyTicker];
-  if (!model) throw new Error('Choose a modeled risk proxy for this holding');
+  if (!model && !historicalAvailable) throw new Error('Choose a modeled risk proxy for this holding');
   return { ticker: symbol.ticker, name: symbol.name, assetClass: ownModel?.assetClass ?? 'Other', investment, weight,
-    price: ownModel?.price ?? 0, ...(ownModel ? {} : {riskProxyTicker}) };
+    price: ownModel?.price ?? 0, ...(ownModel || historicalAvailable ? {} : {riskProxyTicker}) };
 }

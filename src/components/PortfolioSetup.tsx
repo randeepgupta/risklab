@@ -19,6 +19,12 @@ interface PortfolioSetupProps {
   initialPortfolioValue?: number;
   onAnalyze: (positions: PortfolioPosition[], portfolioValue: number) => void;
   onUseSample: () => void;
+  historicalMode: boolean;
+  onHistoricalModeChange: (enabled: boolean) => void;
+  historicalTickers: Set<string>;
+  snapshotAsOf?: string;
+  modelError?: string;
+  onRetrySnapshot: () => void;
 }
 
 const supportedTickers = Object.keys(ASSET_DATABASE).sort();
@@ -27,7 +33,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
   initialPositions = [],
   initialPortfolioValue = 100000,
   onAnalyze,
-  onUseSample,
+  onUseSample, historicalMode, onHistoricalModeChange, historicalTickers, snapshotAsOf, modelError, onRetrySnapshot,
 }) => {
   const nextId = useRef(1);
   const [portfolioValue, setPortfolioValue] = useState(String(Math.round(initialPortfolioValue || 100000)));
@@ -66,7 +72,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
   const uniqueTickers = new Set(rows.map((row) => row.ticker));
   const allocationsValid = rows.every((row) => {
     const value = Number.parseFloat(row.allocation);
-    return row.ticker && (ASSET_DATABASE[row.ticker] || ASSET_DATABASE[row.riskProxyTicker || '']) && Number.isFinite(value) && value > 0 && value <= 100;
+    return row.ticker && (historicalMode ? historicalTickers.has(row.ticker) : ASSET_DATABASE[row.ticker] || ASSET_DATABASE[row.riskProxyTicker || '']) && Number.isFinite(value) && value > 0 && value <= 100;
   });
   const isValid =
     rows.length > 0 && rows.length <= 30 &&
@@ -97,7 +103,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
     const positions: PortfolioPosition[] = rows.map((row) => {
       const weight = Number.parseFloat(row.allocation) / 100;
       const symbol = row.symbol || {ticker: row.ticker, name: row.name || ASSET_DATABASE[row.ticker]?.name || row.ticker, kind: 'Stock' as const, exchange: ''};
-      return createListedPosition(symbol, parsedPortfolioValue * weight, weight, row.riskProxyTicker);
+      return createListedPosition(symbol, parsedPortfolioValue * weight, weight, row.riskProxyTicker, historicalMode && historicalTickers.has(row.ticker));
     });
 
     onAnalyze(positions, parsedPortfolioValue);
@@ -139,6 +145,15 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
           </div>
 
           <div className="p-5 sm:p-7 space-y-6">
+            <div className="rounded-xl border border-slate-800 bg-slate-950/45 p-4 text-xs">
+              <label className="flex items-center gap-2 font-semibold text-slate-200">
+                <input type="checkbox" checked={historicalMode} onChange={event => onHistoricalModeChange(event.target.checked)} />
+                Use historical risk models
+              </label>
+              <p className="mt-2 text-slate-400">{snapshotAsOf ? `${historicalTickers.size.toLocaleString()} holdings covered · Public data through ${snapshotAsOf}. Loaded once, reused for portfolio calculations. No token needed.` : 'Loading public historical snapshot…'}</p>
+              <p className="mt-1 text-slate-500">Uncheck to use preset assumptions and modeling proxies. Historical coverage is smaller than the listing directory.</p>
+              {modelError && <p role="alert" className="mt-2 text-rose-300">{modelError} {!snapshotAsOf && <button type="button" className="ml-2 underline" onClick={onRetrySnapshot}>Retry snapshot</button>}</p>}
+            </div>
             <div>
               <label htmlFor="portfolio-value" className="block text-xs font-semibold text-slate-300 mb-2">
                 Portfolio value
@@ -170,11 +185,12 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
                   return (
                     <div key={row.id} className="grid grid-cols-[1fr_120px_32px] gap-3 items-center">
                       <div className="min-w-0">
-                        <SymbolPicker value={row.ticker} name={row.name} excluded={usedByOthers}
+                        <SymbolPicker value={row.ticker} name={row.name} excluded={usedByOthers} historicalTickers={historicalMode ? historicalTickers : undefined}
                           onSelect={symbol => setRows(current => current.map(candidate => candidate.id === row.id
                             ? {...candidate, ticker: symbol.ticker, name: symbol.name, symbol, riskProxyTicker: ''} : candidate))} />
-                        <RiskProxyPicker ticker={row.ticker} value={row.riskProxyTicker || ''}
-                          onChange={value => updateRow(row.id, 'riskProxyTicker', value)} />
+                        {!historicalMode && <RiskProxyPicker ticker={row.ticker} value={row.riskProxyTicker || ''}
+                          onChange={value => updateRow(row.id, 'riskProxyTicker', value)} />}
+                        {historicalMode && row.ticker && <p className={`mt-1 text-[11px] ${historicalTickers.has(row.ticker) ? 'text-emerald-400' : 'text-amber-300'}`}>{historicalTickers.has(row.ticker) ? 'Own historical risk model' : snapshotAsOf ? 'Not covered by this snapshot. Choose another holding or use preset assumptions.' : 'Checking historical coverage…'}</p>}
                       </div>
 
                       <div className="relative">
@@ -257,7 +273,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
 
         <p className="mt-5 text-center text-[11px] text-slate-600">
           Search US-listed stocks and ETFs by ticker or name. Up to 30 holdings per portfolio.
-          New tickers require a risk proxy; all analysis uses modeled assumptions, not live market data.
+          Covered holdings use their own historical data. Preset mode requires proxies for other tickers. No live market prices.
         </p>
       </main>
     </div>

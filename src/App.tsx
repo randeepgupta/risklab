@@ -2,8 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PortfolioPosition } from './types/risk';
 import {
   ASSET_DATABASE,
-  buildCorrelationMatrix,
-  positionModelTicker,
+  buildPositionCorrelationMatrix,
   calculatePortfolioRisk,
 } from './utils/quantEngine';
 import { Header } from './components/Header';
@@ -19,6 +18,7 @@ import { HedgingLabView } from './components/HedgingLabView';
 import { DesktopInstallModal } from './components/DesktopInstallModal';
 import { DesktopCommandPalette } from './components/DesktopCommandPalette';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
+import {loadRiskSnapshot, applyHistoricalSnapshot, type RiskSnapshot} from './utils/riskSnapshot';
 
 const MVP_PORTFOLIO: PortfolioPosition[] = [
   {
@@ -97,6 +97,12 @@ const PRESET_NAMES: Record<string, string> = {
 };
 
 export default function App() {
+  const [riskSnapshot, setRiskSnapshot] = useState<RiskSnapshot | null>(null);
+  const [historicalMode, setHistoricalMode] = useState(true);
+  const [modelError, setModelError] = useState('');
+  useEffect(() => {loadRiskSnapshot().then(setRiskSnapshot).catch(error => setModelError(error.message));}, []);
+  const retryRiskSnapshot = () => {setModelError(''); loadRiskSnapshot().then(setRiskSnapshot).catch(error => setModelError(error.message));};
+  const historicalTickers = useMemo(() => new Set<string>(Object.keys(riskSnapshot?.symbols || {})), [riskSnapshot]);
   const [positions, setPositions] = useState<PortfolioPosition[]>(MVP_PORTFOLIO);
   const [portfolioReady, setPortfolioReady] = useState(false);
   const [portfolioName, setPortfolioName] = useState('Custom portfolio');
@@ -138,13 +144,21 @@ export default function App() {
   const metrics = useMemo(() => calculatePortfolioRisk(positions), [positions]);
 
   const correlationData = useMemo(
-    () => buildCorrelationMatrix(positions.map((position) => position.ticker), positions.map(positionModelTicker)),
+    () => buildPositionCorrelationMatrix(positions),
     [positions],
   );
 
   const handleAnalyzePortfolio = (newPositions: PortfolioPosition[], portfolioValue: number) => {
-    setPositions(newPositions);
-    setSetupSeedPositions(newPositions);
+    let analyzed = newPositions;
+    try {
+      if (historicalMode) {
+        if (!riskSnapshot) throw new Error('Historical snapshot is still loading. Retry or select preset assumptions.');
+        analyzed = applyHistoricalSnapshot(newPositions, riskSnapshot);
+      }
+    } catch (error) {setModelError(error instanceof Error ? error.message : 'Could not calculate historical risk.'); return;}
+    setModelError('');
+    setPositions(analyzed);
+    setSetupSeedPositions(analyzed);
     setSetupInitialValue(portfolioValue);
     setPortfolioName('Custom portfolio');
     setActiveTab('risk');
@@ -160,7 +174,16 @@ export default function App() {
     setPortfolioReady(true);
   };
 
+  const handleUpdatePositions = (newPositions: PortfolioPosition[]) => {
+    try {
+      const next = positions.some(position => position.historicalModel) && riskSnapshot
+        ? applyHistoricalSnapshot(newPositions, riskSnapshot) : newPositions;
+      setPositions(next); setModelError('');
+    } catch (error) {setModelError(error instanceof Error ? error.message : 'Unable to update risk models.');}
+  };
+
   const handleEditPortfolio = () => {
+    setHistoricalMode(positions.every(position => !!position.historicalModel));
     setSetupSeedPositions(positions);
     setSetupInitialValue(positions.reduce((sum, position) => sum + position.investment, 0));
     setPortfolioReady(false);
@@ -219,7 +242,7 @@ export default function App() {
   }, [metrics, portfolioName, positions]);
 
   const handleExportCsv = useCallback(() => {
-    const headers = ['Ticker', 'Name', 'Asset Class', 'Price', 'Investment ($)', 'Weight (%)', 'Risk Proxy'];
+    const headers = ['Ticker', 'Name', 'Asset Class', 'Price', 'Investment ($)', 'Weight (%)', 'Risk Proxy', 'Risk Model', 'Data Through'];
     const rows = positions.map((position) => [
       position.ticker,
       `"${position.name.replace(/"/g, '""')}"`,
@@ -228,6 +251,8 @@ export default function App() {
       position.investment.toFixed(2),
       (position.weight * 100).toFixed(2),
       position.riskProxyTicker || '',
+      position.historicalModel ? 'Historical snapshot' : 'Preset assumptions',
+      position.historicalModel?.endDate || '',
     ]);
     const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -291,6 +316,8 @@ export default function App() {
         initialPortfolioValue={setupInitialValue}
         onAnalyze={handleAnalyzePortfolio}
         onUseSample={handleUseSample}
+        historicalMode={historicalMode} onHistoricalModeChange={mode => {setHistoricalMode(mode); setModelError('');}}
+        historicalTickers={historicalTickers} snapshotAsOf={riskSnapshot?.asOf} modelError={modelError} onRetrySnapshot={retryRiskSnapshot}
       />
     );
   }
@@ -316,6 +343,13 @@ export default function App() {
       <main className={`flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 transition-all ${
         isCompactMode ? 'py-3 space-y-4' : 'py-6 space-y-6'
       }`}>
+        {modelError && <p role="alert" className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">{modelError}</p>}
+        {positions[0]?.historicalModel && <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-xs text-slate-300">
+          <p className="font-semibold text-emerald-300">Historical risk · Public data snapshot · No API token needed</p>
+          <p className="mt-1">{positions[0].historicalModel.startDate} to {positions[0].historicalModel.endDate} · {positions[0].historicalModel.observations} matched daily returns · SPY benchmark · Prices as of {positions[0].priceAsOf}</p>
+          <p className="mt-1 text-slate-400">Volatility, correlations and beta use split/dividend-adjusted history. Return inputs use the historical annualized mean, which is not a forecast. VaR and simulations retain distribution assumptions; rate and sector stress inputs remain illustrative.</p>
+          <a href="https://www.dolthub.com/repositories/post-no-preference/stocks" target="_blank" rel="noreferrer" className="text-emerald-400 underline">Data: post-no-preference/stocks · CC BY-SA 4.0 · RiskLab adjusted snapshot</a>
+        </div>}
         {activeTab === 'risk' && (
           <div className={`animate-fadeIn ${isCompactMode ? 'space-y-4' : 'space-y-6'}`}>
             <PortfolioSummary
@@ -335,7 +369,8 @@ export default function App() {
 
             <HoldingsTable
               positions={positions}
-              onUpdatePositions={setPositions}
+              onUpdatePositions={handleUpdatePositions}
+              historicalTickers={positions.some(position => position.historicalModel) ? historicalTickers : undefined}
             />
 
             <details className="group bg-slate-900/40 border border-slate-800 rounded-xl p-5">

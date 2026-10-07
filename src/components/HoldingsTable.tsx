@@ -7,12 +7,13 @@ import { ListedSymbol, createListedPosition } from '../utils/symbolDirectory';
 
 interface HoldingsTableProps {
   positions: PortfolioPosition[];
+  historicalTickers?: Set<string>;
   onUpdatePositions: (newPositions: PortfolioPosition[]) => void;
 }
 
 export const HoldingsTable: React.FC<HoldingsTableProps> = ({
   positions,
-  onUpdatePositions,
+  onUpdatePositions, historicalTickers,
 }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [newTicker, setNewTicker] = useState('');
@@ -30,9 +31,9 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
   const handleAddPosition = (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(newInvestment);
-    if (!Number.isFinite(amount) || amount <= 0 || !newSymbol || usedTickers.has(newTicker) || positions.length >= 30 || !(ASSET_DATABASE[newTicker] || ASSET_DATABASE[riskProxyTicker])) return;
+    if (!Number.isFinite(amount) || amount <= 0 || !newSymbol || usedTickers.has(newTicker) || positions.length >= 30 || !(historicalTickers ? historicalTickers.has(newTicker) : ASSET_DATABASE[newTicker] || ASSET_DATABASE[riskProxyTicker])) return;
 
-    const newPositions = [...positions, createListedPosition(newSymbol, amount, 0, riskProxyTicker)];
+    const newPositions = [...positions, createListedPosition(newSymbol, amount, 0, riskProxyTicker, historicalTickers?.has(newTicker))];
 
     const newTotal = newPositions.reduce((sum, p) => sum + p.investment, 0);
     const updated = newPositions.map(p => ({
@@ -110,10 +111,11 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
         ) : (
           <form onSubmit={handleAddPosition} className="flex flex-wrap items-start gap-2 w-full">
             <div className="min-w-0 flex-1 basis-64">
-              <SymbolPicker value={newTicker} excluded={usedTickers} onSelect={symbol => {
+              <SymbolPicker value={newTicker} excluded={usedTickers} historicalTickers={historicalTickers} onSelect={symbol => {
                 setNewTicker(symbol.ticker); setNewSymbol(symbol); setRiskProxyTicker('');
               }} />
-              <RiskProxyPicker ticker={newTicker} value={riskProxyTicker} onChange={setRiskProxyTicker} />
+              {!historicalTickers && <RiskProxyPicker ticker={newTicker} value={riskProxyTicker} onChange={setRiskProxyTicker} />}
+              {historicalTickers && newTicker && !historicalTickers.has(newTicker) && <p className="mt-1 text-xs text-amber-300">This holding is outside the historical snapshot. Use Edit Portfolio to switch to preset assumptions.</p>}
             </div>
 
             <div className="relative">
@@ -130,7 +132,7 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
 
             <button
               type="submit"
-              disabled={!newSymbol || !(ASSET_DATABASE[newTicker] || ASSET_DATABASE[riskProxyTicker]) || !Number.isFinite(Number(newInvestment)) || Number(newInvestment) <= 0}
+              disabled={!newSymbol || !(historicalTickers ? historicalTickers.has(newTicker) : ASSET_DATABASE[newTicker] || ASSET_DATABASE[riskProxyTicker]) || !Number.isFinite(Number(newInvestment)) || Number(newInvestment) <= 0}
               className="p-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded transition-colors"
               title="Confirm Add"
             >
@@ -173,6 +175,7 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
                         {pos.name}
                       </span>
                     </div>
+                    {pos.historicalModel && <p className="mt-1 text-[11px] text-emerald-400">Own historical model · {pos.historicalModel.observations} daily returns</p>}
                     {pos.riskProxyTicker && <p className="mt-1 text-[11px] text-amber-300">Modeled using {pos.riskProxyTicker} · proxy assumptions</p>}
                   </td>
                   <td className="py-3 px-4">
