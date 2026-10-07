@@ -173,7 +173,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
             </div>
 
             <div>
-              <div className="grid grid-cols-[1fr_120px_32px] gap-3 px-1 mb-2 text-[11px] uppercase tracking-wider text-slate-500">
+              <div className="grid grid-cols-[minmax(0,1fr)_80px_32px] sm:grid-cols-[minmax(0,1fr)_120px_32px] gap-3 px-1 mb-2 text-[11px] uppercase tracking-wider text-slate-500">
                 <span>Holding</span>
                 <span className="text-right">Allocation</span>
                 <span />
@@ -183,7 +183,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
                 {rows.map((row) => {
                   const usedByOthers = new Set<string>(rows.filter((candidate) => candidate.id !== row.id).map((candidate) => candidate.ticker));
                   return (
-                    <div key={row.id} className="grid grid-cols-[1fr_120px_32px] gap-3 items-center">
+                    <div key={row.id} className="grid grid-cols-[minmax(0,1fr)_80px_32px] sm:grid-cols-[minmax(0,1fr)_120px_32px] gap-3 items-start">
                       <div className="min-w-0">
                         <SymbolPicker value={row.ticker} name={row.name} excluded={usedByOthers} historicalTickers={historicalMode ? historicalTickers : undefined}
                           onSelect={symbol => setRows(current => current.map(candidate => candidate.id === row.id
@@ -211,7 +211,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
                         type="button"
                         onClick={() => removeRow(row.id)}
                         disabled={rows.length === 1}
-                        className="h-8 w-8 rounded-md text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-500 transition-colors flex items-center justify-center"
+                        className="mt-1.5 h-8 w-8 rounded-md text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-500 transition-colors flex items-center justify-center"
                         title="Remove holding"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -263,6 +263,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
               <button
                 type="button"
                 onClick={onUseSample}
+                title="Generate a fresh portfolio with 4–7 randomly selected holdings and allocations"
                 className="px-4 py-3 text-sm font-semibold text-slate-300 hover:text-white rounded-lg border border-slate-700 hover:border-slate-600 hover:bg-slate-800/70 transition-colors"
               >
                 Try sample portfolio

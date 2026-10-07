@@ -23,7 +23,8 @@
     "deploy:cloudflare": "npm run build:cloudflare && npx wrangler deploy",
     "test:ai": "node --import tsx tests/workersAi.test.ts",
     "refresh:symbols": "node scripts/update-symbol-directory.mjs",
-    "test:symbols": "node --import tsx tests/symbolDirectory.test.ts"
+    "test:symbols": "node --import tsx tests/symbolDirectory.test.ts",
+    "test:sample": "node --import tsx tests/samplePortfolio.test.ts"
   },
   "keywords": [
     "portfolio-risk",

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PortfolioPosition } from './types/risk';
+import {createRandomSamplePortfolio, SAMPLE_PORTFOLIO_VALUE} from './utils/samplePortfolio';
 import {
   ASSET_DATABASE,
   buildPositionCorrelationMatrix,
@@ -166,10 +167,18 @@ export default function App() {
   };
 
   const handleUseSample = () => {
-    setPositions(MVP_PORTFOLIO);
-    setSetupSeedPositions(MVP_PORTFOLIO);
-    setSetupInitialValue(250000);
-    setPortfolioName(PRESET_NAMES.mvp);
+    let sample = createRandomSamplePortfolio();
+    try {
+      if (historicalMode && riskSnapshot) sample = applyHistoricalSnapshot(sample, riskSnapshot);
+    } catch (error) {
+      setModelError(error instanceof Error ? error.message : 'Could not calculate sample risk.');
+      return;
+    }
+    setModelError('');
+    setPositions(sample);
+    setSetupSeedPositions(sample);
+    setSetupInitialValue(SAMPLE_PORTFOLIO_VALUE);
+    setPortfolioName('Random sample portfolio');
     setActiveTab('risk');
     setPortfolioReady(true);
   };
