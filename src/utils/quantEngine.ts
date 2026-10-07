@@ -10,7 +10,7 @@ import {
   HedgingStrategy,
 } from '../types/risk';
 
-// Realistic empirical market data database
+// Illustrative model assumptions; not a live or historical market-data feed.
 export const ASSET_DATABASE: Record<string, AssetData> = {
   SPY: {
     ticker: 'SPY',
@@ -440,16 +440,20 @@ export function projectToValidCorrelationMatrix(raw: number[][]): number[][] {
   return correlation;
 }
 
-export function buildCorrelationMatrix(tickers: string[]): CorrelationMatrixData {
-  const n = tickers.length;
-  const rawMatrix: number[][] = [];
-  for (let i = 0; i < n; i++) {
-    rawMatrix[i] = [];
-    for (let j = 0; j < n; j++) {
-      rawMatrix[i][j] = getPairwiseCorrelation(tickers[i], tickers[j]);
-    }
-  }
-  const matrix = projectToValidCorrelationMatrix(rawMatrix);
+export function positionModelTicker(position: PortfolioPosition): string {
+  return ASSET_DATABASE[position.ticker] ? position.ticker :
+    position.riskProxyTicker && ASSET_DATABASE[position.riskProxyTicker] ? position.riskProxyTicker : position.ticker;
+}
+
+export function buildCorrelationMatrix(tickers: string[], modelTickers: string[] = tickers): CorrelationMatrixData {
+  // Project distinct model exposures first, then expand aliases. Two holdings
+  // using the same proxy must not gain fictitious diversification from PSD repair.
+  const exposures = tickers.map((ticker, index) => modelTickers[index] ?? ticker);
+  const unique = [...new Set(exposures)];
+  const rawMatrix = unique.map(first => unique.map(second => getPairwiseCorrelation(first, second)));
+  const projected = projectToValidCorrelationMatrix(rawMatrix);
+  const indices = exposures.map(ticker => unique.indexOf(ticker));
+  const matrix = indices.map(i => indices.map(j => projected[i][j]));
   return { tickers, matrix };
 }
 
@@ -564,14 +568,14 @@ export function calculatePortfolioRisk(
   const n = positions.length;
   const weights = positions.map(p => p.investment / totalValue);
   const vols = positions.map(p => {
-    const meta = ASSET_DATABASE[p.ticker];
+    const meta = ASSET_DATABASE[positionModelTicker(p)];
     return meta ? meta.volatility : 0.25;
   });
 
   // Covariance matrix: Cov(i, j) = rho(i, j) * vol_i * vol_j.
   // Pairwise estimates are projected to a PSD correlation matrix first so
   // portfolio variance and risk decomposition remain mathematically coherent.
-  const correlationMatrix = buildCorrelationMatrix(positions.map(p => p.ticker)).matrix;
+  const correlationMatrix = buildCorrelationMatrix(positions.map(p => p.ticker), positions.map(positionModelTicker)).matrix;
   const covMatrix: number[][] = [];
   for (let i = 0; i < n; i++) {
     covMatrix[i] = [];
@@ -625,7 +629,7 @@ export function calculatePortfolioRisk(
   let durationSensitivity = 0;
 
   positions.forEach((p, i) => {
-    const meta = ASSET_DATABASE[p.ticker] || {
+    const meta = ASSET_DATABASE[positionModelTicker(p)] || {
       expectedReturn: 0.1,
       beta: 1.0,
       duration: 2.5,
@@ -923,6 +927,8 @@ export function executeStressTest(
     let shockPct = 0;
     if (scenario.tickerShocks[p.ticker] !== undefined) {
       shockPct = scenario.tickerShocks[p.ticker];
+    } else if (scenario.tickerShocks[positionModelTicker(p)] !== undefined) {
+      shockPct = scenario.tickerShocks[positionModelTicker(p)];
     } else if (scenario.factorShocks) {
       // Translate hierarchical factor shocks into an estimated asset return.
       // Sector shocks are treated as absolute scenario levels, so only their
@@ -933,7 +939,7 @@ export function executeStressTest(
       // VIX is retained as scenario metadata for future option repricing, but is
       // not separately subtracted from spot returns because it is strongly
       // endogenous to the equity shock and would otherwise double-count panic.
-      const meta = ASSET_DATABASE[p.ticker] || {
+      const meta = ASSET_DATABASE[positionModelTicker(p)] || {
         beta: 1.0,
         duration: 2.5,
         semiBeta: 0.2,

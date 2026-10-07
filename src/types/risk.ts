@@ -14,7 +14,8 @@ export interface PortfolioPosition {
     | 'Other';
   investment: number; // in USD
   weight: number; // 0 to 1
-  price: number;
+  price: number; // 0 when a quote is unavailable
+  riskProxyTicker?: string; // Explicit modeling proxy; actual ticker remains unchanged
 }
 
 export interface AssetData {

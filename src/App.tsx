@@ -3,6 +3,7 @@ import { PortfolioPosition } from './types/risk';
 import {
   ASSET_DATABASE,
   buildCorrelationMatrix,
+  positionModelTicker,
   calculatePortfolioRisk,
 } from './utils/quantEngine';
 import { Header } from './components/Header';
@@ -137,7 +138,7 @@ export default function App() {
   const metrics = useMemo(() => calculatePortfolioRisk(positions), [positions]);
 
   const correlationData = useMemo(
-    () => buildCorrelationMatrix(positions.map((position) => position.ticker)),
+    () => buildCorrelationMatrix(positions.map((position) => position.ticker), positions.map(positionModelTicker)),
     [positions],
   );
 
@@ -218,14 +219,15 @@ export default function App() {
   }, [metrics, portfolioName, positions]);
 
   const handleExportCsv = useCallback(() => {
-    const headers = ['Ticker', 'Name', 'Asset Class', 'Price', 'Investment ($)', 'Weight (%)'];
+    const headers = ['Ticker', 'Name', 'Asset Class', 'Price', 'Investment ($)', 'Weight (%)', 'Risk Proxy'];
     const rows = positions.map((position) => [
       position.ticker,
       `"${position.name.replace(/"/g, '""')}"`,
       position.assetClass,
-      position.price.toFixed(2),
+      position.price > 0 ? position.price.toFixed(2) : '',
       position.investment.toFixed(2),
       (position.weight * 100).toFixed(2),
+      position.riskProxyTicker || '',
     ]);
     const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

@@ -223,3 +223,24 @@ RiskLab is currently a research and engineering project, not a production tradin
 ## Disclaimer
 
 RiskLab is an educational and software-engineering project. It does **not** provide investment advice, trading recommendations, or guarantees of future performance. Model outputs are sensitive to assumptions and should not be relied upon for real financial decisions without independent validation.
+
+### US-listed holdings directory
+
+Both holding pickers search tickers and security names from a committed Nasdaq Trader snapshot:
+`public/symbols/us-listed.json`. Sources are Nasdaq-listed and other-listed directories at
+https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt and
+https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt. The snapshot records download time
+and source file creation times. It includes US exchange-listed stocks (including ADRs) and
+ETFs; test issues, warrants, rights, preferred issues, notes and closed-end funds are excluded.
+It is a listing directory, not a live quote feed; some corporate actions or unusual issue names
+may require a refresh or filter adjustment. Refresh deliberately with `npm run refresh:symbols`
+and commit the resulting snapshot. Failed downloads preserve the existing file.
+
+Portfolios support up to 30 holdings. The original 15 assets retain their illustrative model
+assumptions. Other tickers require an explicit risk proxy from those assets. Actual security
+names/tickers remain visible, while volatility, returns, factor sensitivity, pairwise correlation
+and preset stress shocks use the proxy. Holdings sharing a proxy have effectively identical
+modeled exposure. Proxy selections are shown in the holdings table, preserved in JSON exports
+and included in the CSV's Risk Proxy column. Unavailable prices export as blank rather than a
+proxy quote. Choose another proxy in Edit Portfolio. Run `npm run test:symbols` for directory,
+search and model consistency checks.
