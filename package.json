@@ -14,6 +14,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
+    "test:history": "node --import tsx tests/historicalModels.test.ts && python3 tests/riskSnapshotAdjustments.test.py",
+    "refresh:risk-models": "python3 scripts/refresh-risk-snapshot.py",
     "test:quant": "tsx tests/quantEngine.test.ts",
     "check": "npm run lint && npm run test:quant",
     "generate:icons": "node scripts/generate-pngs.js",

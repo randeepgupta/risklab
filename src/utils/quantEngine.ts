@@ -440,6 +440,31 @@ export function projectToValidCorrelationMatrix(raw: number[][]): number[][] {
   return correlation;
 }
 
+export function positionRiskData(position: PortfolioPosition) {
+  const preset = ASSET_DATABASE[positionModelTicker(position)];
+  if (!position.historicalModel) return preset;
+  return {...preset, volatility: position.historicalModel.volatility, beta: position.historicalModel.beta,
+    expectedReturn: position.historicalModel.annualizedMeanReturn,
+    // These remain scenario assumptions, not estimates from closing prices.
+    duration: preset?.duration ?? 0, techBeta: preset?.techBeta ?? 0,
+    semiBeta: preset?.semiBeta ?? 0, vixSensitivity: preset?.vixSensitivity ?? 0};
+}
+
+export function buildPositionCorrelationMatrix(positions: PortfolioPosition[]): CorrelationMatrixData {
+  if (positions.length && positions.every(position => position.historicalModel)) {
+    const first = positions[0].historicalModel!;
+    if (!positions.every(position => position.historicalModel!.capturedAt === first.capturedAt
+      && position.historicalModel!.startDate === first.startDate && position.historicalModel!.endDate === first.endDate)) {
+      throw new Error('Historical models use inconsistent data windows. Refresh the portfolio snapshot.');
+    }
+    const matrix = positions.map(position => positions.map(other => position.historicalModel!.correlations[other.ticker]));
+    if (!matrix.every(row => row.every(Number.isFinite))) throw new Error('Historical correlations are incomplete.');
+    return {tickers: positions.map(position => position.ticker), matrix};
+  }
+  if (positions.some(position => position.historicalModel)) throw new Error('Cannot mix historical and preset risk models.');
+  return buildCorrelationMatrix(positions.map(position => position.ticker), positions.map(positionModelTicker));
+}
+
 export function positionModelTicker(position: PortfolioPosition): string {
   return ASSET_DATABASE[position.ticker] ? position.ticker :
     position.riskProxyTicker && ASSET_DATABASE[position.riskProxyTicker] ? position.riskProxyTicker : position.ticker;
@@ -568,14 +593,14 @@ export function calculatePortfolioRisk(
   const n = positions.length;
   const weights = positions.map(p => p.investment / totalValue);
   const vols = positions.map(p => {
-    const meta = ASSET_DATABASE[positionModelTicker(p)];
+    const meta = positionRiskData(p);
     return meta ? meta.volatility : 0.25;
   });
 
   // Covariance matrix: Cov(i, j) = rho(i, j) * vol_i * vol_j.
   // Pairwise estimates are projected to a PSD correlation matrix first so
   // portfolio variance and risk decomposition remain mathematically coherent.
-  const correlationMatrix = buildCorrelationMatrix(positions.map(p => p.ticker), positions.map(positionModelTicker)).matrix;
+  const correlationMatrix = buildPositionCorrelationMatrix(positions).matrix;
   const covMatrix: number[][] = [];
   for (let i = 0; i < n; i++) {
     covMatrix[i] = [];
@@ -604,8 +629,8 @@ export function calculatePortfolioRisk(
   // MCR_i = (Sigma * w)_i / portVol
   // % Risk Contribution = w_i * MCR_i / portVol
   const riskContributions = positions.map((p, i) => {
-    const marginalRisk = sigmaTimesW[i] / portVol;
-    const percentRiskContribution = (weights[i] * marginalRisk) / portVol;
+    const marginalRisk = portVol > 0 ? sigmaTimesW[i] / portVol : 0;
+    const percentRiskContribution = portVol > 0 ? (weights[i] * marginalRisk) / portVol : 0;
     const dollarRiskContribution = percentRiskContribution * (totalValue * portVol);
 
     return {
@@ -621,7 +646,7 @@ export function calculatePortfolioRisk(
 
   // Standalone weighted volatility sum
   const weightedStandaloneVol = weights.reduce((sum, w, i) => sum + w * vols[i], 0);
-  const diversificationBenefitPct = Math.max(0, ((weightedStandaloneVol - portVol) / weightedStandaloneVol) * 100);
+  const diversificationBenefitPct = weightedStandaloneVol > 0 ? Math.max(0, ((weightedStandaloneVol - portVol) / weightedStandaloneVol) * 100) : 0;
 
   // Expected return and betas
   let expectedAnnualReturn = 0;
@@ -629,7 +654,7 @@ export function calculatePortfolioRisk(
   let durationSensitivity = 0;
 
   positions.forEach((p, i) => {
-    const meta = ASSET_DATABASE[positionModelTicker(p)] || {
+    const meta = positionRiskData(p) || {
       expectedReturn: 0.1,
       beta: 1.0,
       duration: 2.5,
@@ -939,7 +964,7 @@ export function executeStressTest(
       // VIX is retained as scenario metadata for future option repricing, but is
       // not separately subtracted from spot returns because it is strongly
       // endogenous to the equity shock and would otherwise double-count panic.
-      const meta = ASSET_DATABASE[positionModelTicker(p)] || {
+      const meta = positionRiskData(p) || {
         beta: 1.0,
         duration: 2.5,
         semiBeta: 0.2,

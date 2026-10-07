@@ -1,3 +1,17 @@
+export interface HistoricalRiskModel {
+  provider: 'DoltHub';
+  source: string;
+  license: 'CC BY-SA 4.0';
+  startDate: string;
+  endDate: string;
+  capturedAt: string;
+  observations: number;
+  volatility: number;
+  beta: number;
+  annualizedMeanReturn: number;
+  correlations: Record<string, number>;
+}
+
 export interface PortfolioPosition {
   ticker: string;
   name: string;
@@ -15,6 +29,8 @@ export interface PortfolioPosition {
   investment: number; // in USD
   weight: number; // 0 to 1
   price: number; // 0 when a quote is unavailable
+  historicalModel?: HistoricalRiskModel;
+  priceAsOf?: string;
   riskProxyTicker?: string; // Explicit modeling proxy; actual ticker remains unchanged
 }
 

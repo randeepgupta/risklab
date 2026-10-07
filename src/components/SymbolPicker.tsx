@@ -2,8 +2,8 @@ import React, { useEffect, useId, useMemo, useState } from 'react';
 import { ASSET_DATABASE } from '../utils/quantEngine';
 import { ListedSymbol, loadSymbolDirectory, modeledSymbols, searchSymbols } from '../utils/symbolDirectory';
 
-export function SymbolPicker({value, name, excluded, onSelect}: {
-  value: string; name?: string; excluded: Set<string>; onSelect: (symbol: ListedSymbol) => void;
+export function SymbolPicker({value, name, excluded, onSelect, historicalTickers}: {
+  value: string; name?: string; excluded: Set<string>; historicalTickers?: Set<string>; onSelect: (symbol: ListedSymbol) => void;
 }) {
   const id = useId();
   const [symbols, setSymbols] = useState(modeledSymbols);
@@ -25,7 +25,10 @@ export function SymbolPicker({value, name, excluded, onSelect}: {
     }).catch(() => { if (mounted) {setFailed(true); setStatus('Directory unavailable. Showing built-in assets.');} });
     return () => { mounted = false; };
   }, [retry]);
-  const results = useMemo(() => searchSymbols(symbols, query, excluded), [symbols, query, excluded]);
+  const results = useMemo(() => {
+    const candidates = !query.trim() && historicalTickers ? symbols.filter(symbol => historicalTickers.has(symbol.ticker)) : symbols;
+    return searchSymbols(candidates, query, excluded);
+  }, [symbols, query, excluded, historicalTickers]);
   useEffect(() => {
     if (open) document.getElementById(`${id}-${active}`)?.scrollIntoView({block: 'nearest'});
   }, [active, id, open]);
@@ -56,6 +59,7 @@ export function SymbolPicker({value, name, excluded, onSelect}: {
           className={`cursor-pointer px-3 py-2 text-xs ${index === active ? 'bg-emerald-500/15' : 'hover:bg-slate-800'}`}>
           <span className="font-bold text-white">{symbol.ticker}</span> <span className="text-slate-500">{symbol.kind} · {symbol.exchange}</span>
           <div className="text-slate-300">{symbol.name}</div>
+          {historicalTickers && <div className={`mt-0.5 text-[10px] ${historicalTickers.has(symbol.ticker) ? 'text-emerald-400' : 'text-amber-300'}`}>{historicalTickers.has(symbol.ticker) ? 'Historical model available' : 'Outside historical snapshot'}</div>}
         </li>)}
         {results.length === 0 && <li className="px-3 py-3 text-xs text-slate-400">No matches. Try another ticker or name.</li>}
       </ul>

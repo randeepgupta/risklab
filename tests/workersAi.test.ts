@@ -110,3 +110,17 @@ for (const path of ['/api/gemini/parse-scenario', '/api/gemini/ask-copilot']) {
 }
 
 console.log('Workers AI integration and proxy context checks passed.');
+
+const historyAi: NonNullable<Env['AI']> = {async run(_model, input) {
+  const messages = input.messages as {content: string}[];
+  assert.ok(messages.some(message => message.content.includes('2026-10-05')));
+  assert.ok(!messages.some(message => message.content.includes('discard-history-correlations')));
+  return input.response_format ? {response: scenario} : {response: 'Risk estimates use the dated historical snapshot.'};
+}};
+for (const path of ['/api/gemini/parse-scenario', '/api/gemini/ask-copilot']) {
+  const result = await post(path, {prompt: 'Explain risk', question: 'Explain risk', portfolio: [{ticker: 'VOO', investment: 10000, weight: 1,
+    historicalModel: {provider: 'DoltHub', startDate: '2025-10-06', endDate: '2026-10-05', observations: 251, correlations: 'discard-history-correlations'}}]}, {ASSETS: assets, AI: historyAi});
+  assert.equal(result.status, 200);
+  assert.equal(result.data.ai.provider, 'cloudflare');
+}
+console.log('Historical AI context checks passed.');
