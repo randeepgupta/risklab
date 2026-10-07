@@ -2,6 +2,9 @@
   "name": "risklab",
   "main": "dist/server/index.js",
   "compatibility_date": "2026-10-06",
+  "ai": {
+    "binding": "AI"
+  },
   "assets": {
     "directory": "dist/client",
     "binding": "ASSETS",
