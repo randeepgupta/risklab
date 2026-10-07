@@ -247,6 +247,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
               <button
                 type="button"
                 onClick={onUseSample}
+                title="Generate a random $250,000 portfolio with 4–7 modeled holdings"
                 className="px-4 py-3 text-sm font-semibold text-slate-300 hover:text-white rounded-lg border border-slate-700 hover:border-slate-600 hover:bg-slate-800/70 transition-colors"
               >
                 Try sample portfolio

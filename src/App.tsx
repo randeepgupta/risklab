@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PortfolioPosition } from './types/risk';
+import { createRandomSamplePortfolio, SAMPLE_PORTFOLIO_VALUE } from './utils/samplePortfolio';
 import {
   ASSET_DATABASE,
   buildCorrelationMatrix,
@@ -152,10 +153,11 @@ export default function App() {
   };
 
   const handleUseSample = () => {
-    setPositions(MVP_PORTFOLIO);
-    setSetupSeedPositions(MVP_PORTFOLIO);
-    setSetupInitialValue(250000);
-    setPortfolioName(PRESET_NAMES.mvp);
+    const sample = createRandomSamplePortfolio();
+    setPositions(sample);
+    setSetupSeedPositions(sample);
+    setSetupInitialValue(SAMPLE_PORTFOLIO_VALUE);
+    setPortfolioName('Random sample portfolio');
     setActiveTab('risk');
     setPortfolioReady(true);
   };
