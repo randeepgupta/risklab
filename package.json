@@ -19,7 +19,9 @@
     "generate:icons": "node scripts/generate-pngs.js",
     "build:cloudflare": "vite build --outDir dist/client && esbuild worker.ts --bundle --platform=browser --format=esm --conditions=browser --target=es2022 --outfile=dist/server/index.js",
     "deploy:cloudflare": "npm run build:cloudflare && npx wrangler deploy",
-    "test:ai": "node --import tsx tests/workersAi.test.ts"
+    "test:ai": "node --import tsx tests/workersAi.test.ts",
+    "refresh:symbols": "node scripts/update-symbol-directory.mjs",
+    "test:symbols": "node --import tsx tests/symbolDirectory.test.ts"
   },
   "keywords": [
     "portfolio-risk",

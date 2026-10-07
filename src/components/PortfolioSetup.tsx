@@ -2,11 +2,16 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, ArrowRight, Plus, Trash2 } from 'lucide-react';
 import { PortfolioPosition } from '../types/risk';
 import { ASSET_DATABASE } from '../utils/quantEngine';
+import { SymbolPicker, RiskProxyPicker } from './SymbolPicker';
+import { ListedSymbol, createListedPosition } from '../utils/symbolDirectory';
 
 type AllocationRow = {
   id: number;
   ticker: string;
   allocation: string;
+  name?: string;
+  symbol?: ListedSymbol;
+  riskProxyTicker?: string;
 };
 
 interface PortfolioSetupProps {
@@ -31,6 +36,8 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
       return initialPositions.map((position) => ({
         id: nextId.current++,
         ticker: position.ticker,
+        name: position.name,
+        riskProxyTicker: position.riskProxyTicker,
         allocation: (position.weight * 100).toFixed(1).replace(/\.0$/, ''),
       }));
     }
@@ -44,6 +51,8 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
     setRows(initialPositions.map((position) => ({
       id: nextId.current++,
       ticker: position.ticker,
+      name: position.name,
+      riskProxyTicker: position.riskProxyTicker,
       allocation: (position.weight * 100).toFixed(1).replace(/\.0$/, ''),
     })));
   }, [initialPositions, initialPortfolioValue]);
@@ -57,25 +66,25 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
   const uniqueTickers = new Set(rows.map((row) => row.ticker));
   const allocationsValid = rows.every((row) => {
     const value = Number.parseFloat(row.allocation);
-    return row.ticker && Number.isFinite(value) && value > 0 && value <= 100;
+    return row.ticker && (ASSET_DATABASE[row.ticker] || ASSET_DATABASE[row.riskProxyTicker || '']) && Number.isFinite(value) && value > 0 && value <= 100;
   });
   const isValid =
-    rows.length > 0 &&
+    rows.length > 0 && rows.length <= 30 &&
     Number.isFinite(parsedPortfolioValue) &&
     parsedPortfolioValue > 0 &&
     Math.abs(allocationTotal - 100) < 0.05 &&
     uniqueTickers.size === rows.length &&
     allocationsValid;
 
-  const updateRow = (id: number, field: 'ticker' | 'allocation', value: string) => {
+  const updateRow = (id: number, field: 'ticker' | 'allocation' | 'riskProxyTicker', value: string) => {
     setRows((current) => current.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
   };
 
   const addRow = () => {
     const used = new Set(rows.map((row) => row.ticker));
     const nextTicker = supportedTickers.find((ticker) => !used.has(ticker));
-    if (!nextTicker) return;
-    setRows((current) => [...current, { id: nextId.current++, ticker: nextTicker, allocation: '' }]);
+    if (rows.length >= 30) return;
+    setRows((current) => [...current, { id: nextId.current++, ticker: nextTicker || '', allocation: '' }]);
   };
 
   const removeRow = (id: number) => {
@@ -86,16 +95,9 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
     if (!isValid) return;
 
     const positions: PortfolioPosition[] = rows.map((row) => {
-      const meta = ASSET_DATABASE[row.ticker];
       const weight = Number.parseFloat(row.allocation) / 100;
-      return {
-        ticker: row.ticker,
-        name: meta.name,
-        assetClass: meta.assetClass,
-        investment: parsedPortfolioValue * weight,
-        weight,
-        price: meta.price,
-      };
+      const symbol = row.symbol || {ticker: row.ticker, name: row.name || ASSET_DATABASE[row.ticker]?.name || row.ticker, kind: 'Stock' as const, exchange: ''};
+      return createListedPosition(symbol, parsedPortfolioValue * weight, weight, row.riskProxyTicker);
     });
 
     onAnalyze(positions, parsedPortfolioValue);
@@ -130,7 +132,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
           </p>
         </section>
 
-        <section className="mt-10 sm:mt-12 max-w-3xl mx-auto rounded-2xl border border-slate-800 bg-slate-900/55 shadow-2xl shadow-black/20 overflow-hidden">
+        <section className="mt-10 sm:mt-12 max-w-3xl mx-auto rounded-2xl border border-slate-800 bg-slate-900/55 shadow-2xl shadow-black/20">
           <div className="px-5 sm:px-7 py-5 border-b border-slate-800">
             <h2 className="font-bold text-white">Build your portfolio</h2>
             <p className="text-xs text-slate-400 mt-1">Enter a total value and make sure your allocations add up to 100%.</p>
@@ -164,21 +166,16 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
 
               <div className="space-y-2.5">
                 {rows.map((row) => {
-                  const usedByOthers = new Set(rows.filter((candidate) => candidate.id !== row.id).map((candidate) => candidate.ticker));
+                  const usedByOthers = new Set<string>(rows.filter((candidate) => candidate.id !== row.id).map((candidate) => candidate.ticker));
                   return (
                     <div key={row.id} className="grid grid-cols-[1fr_120px_32px] gap-3 items-center">
-                      <select
-                        aria-label="Portfolio holding"
-                        value={row.ticker}
-                        onChange={(event) => updateRow(row.id, 'ticker', event.target.value)}
-                        className="min-w-0 rounded-lg border border-slate-700 bg-slate-950/70 px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
-                      >
-                        {supportedTickers.map((ticker) => (
-                          <option key={ticker} value={ticker} disabled={usedByOthers.has(ticker)}>
-                            {ticker} — {ASSET_DATABASE[ticker].name}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="min-w-0">
+                        <SymbolPicker value={row.ticker} name={row.name} excluded={usedByOthers}
+                          onSelect={symbol => setRows(current => current.map(candidate => candidate.id === row.id
+                            ? {...candidate, ticker: symbol.ticker, name: symbol.name, symbol, riskProxyTicker: ''} : candidate))} />
+                        <RiskProxyPicker ticker={row.ticker} value={row.riskProxyTicker || ''}
+                          onChange={value => updateRow(row.id, 'riskProxyTicker', value)} />
+                      </div>
 
                       <div className="relative">
                         <input
@@ -211,7 +208,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
               <button
                 type="button"
                 onClick={addRow}
-                disabled={rows.length >= supportedTickers.length}
+                disabled={rows.length >= 30}
                 className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 disabled:text-slate-600 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -259,7 +256,8 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
         </section>
 
         <p className="mt-5 text-center text-[11px] text-slate-600">
-          v0.1 currently supports {supportedTickers.length} modeled assets. Broader ticker support and CSV import are planned for the market-data phase.
+          Search US-listed stocks and ETFs by ticker or name. Up to 30 holdings per portfolio.
+          New tickers require a risk proxy; all analysis uses modeled assumptions, not live market data.
         </p>
       </main>
     </div>

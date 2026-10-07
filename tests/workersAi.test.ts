@@ -91,4 +91,22 @@ assert.equal((await post('/api/gemini/parse-scenario', {prompt: 'x', extra: 'x'.
 assert.equal(calls, 2, 'Invalid requests must not incur inference calls');
 const health = await worker.fetch(new Request('https://risklab.test/api/health'), env);
 assert.equal((await health.json() as any).aiConfigured, true);
-console.log('Workers AI integration checks passed.');
+
+
+// Proxy assumptions must survive request normalization and reach both AI prompts.
+const proxyAi: NonNullable<Env['AI']> = {async run(_model, input) {
+  const messages = input.messages as {role: string; content: string}[];
+  assert.ok(messages.some(message => message.content.includes('SPY')));
+  assert.ok(messages.some(message => message.content.includes('VOO')));
+  assert.ok(messages[0].content.includes('proxy assumptions'));
+  assert.ok(messages.some(message => message.content.includes('riskProxyTicker') || message.content.includes('modeled using SPY')));
+  return input.response_format ? {response: scenario} : {response: 'VOO uses SPY proxy assumptions.'};
+}};
+const proxyPortfolio = [{ticker: 'VOO', riskProxyTicker: 'SPY', investment: 10000, weight: 1}];
+for (const path of ['/api/gemini/parse-scenario', '/api/gemini/ask-copilot']) {
+  const result = await post(path, {prompt: 'Explain risk', question: 'Explain risk', portfolio: proxyPortfolio}, {ASSETS: assets, AI: proxyAi});
+  assert.equal(result.status, 200);
+  assert.equal(result.data.ai.provider, 'cloudflare');
+}
+
+console.log('Workers AI integration and proxy context checks passed.');

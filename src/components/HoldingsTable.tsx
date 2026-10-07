@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { PortfolioPosition } from '../types/risk';
 import { ASSET_DATABASE } from '../utils/quantEngine';
+import { SymbolPicker, RiskProxyPicker } from './SymbolPicker';
+import { ListedSymbol, createListedPosition } from '../utils/symbolDirectory';
 
 interface HoldingsTableProps {
   positions: PortfolioPosition[];
@@ -13,7 +15,9 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
   onUpdatePositions,
 }) => {
   const [isAdding, setIsAdding] = useState(false);
-  const [newTicker, setNewTicker] = useState('AAPL');
+  const [newTicker, setNewTicker] = useState('');
+  const [newSymbol, setNewSymbol] = useState<ListedSymbol | null>(null);
+  const [riskProxyTicker, setRiskProxyTicker] = useState('');
   const [newInvestment, setNewInvestment] = useState('25000');
 
   const [editingTicker, setEditingTicker] = useState<string | null>(null);
@@ -21,34 +25,14 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
 
   const totalValue = positions.reduce((sum, p) => sum + p.investment, 0);
 
-  const availableTickers = Object.keys(ASSET_DATABASE).filter(
-    t => !positions.some(p => p.ticker === t)
-  );
+  const usedTickers = new Set<string>(positions.map(position => position.ticker));
 
   const handleAddPosition = (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(newInvestment);
-    if (isNaN(amount) || amount <= 0) return;
+    if (!Number.isFinite(amount) || amount <= 0 || !newSymbol || usedTickers.has(newTicker) || positions.length >= 30 || !(ASSET_DATABASE[newTicker] || ASSET_DATABASE[riskProxyTicker])) return;
 
-    const meta = ASSET_DATABASE[newTicker] || {
-      name: newTicker,
-      assetClass: 'Other',
-      price: 100,
-      volatility: 0.25,
-      beta: 1.0,
-    };
-
-    const newPositions = [
-      ...positions,
-      {
-        ticker: newTicker,
-        name: meta.name,
-        assetClass: meta.assetClass,
-        investment: amount,
-        weight: 0, // recalculated below
-        price: meta.price,
-      },
-    ];
+    const newPositions = [...positions, createListedPosition(newSymbol, amount, 0, riskProxyTicker)];
 
     const newTotal = newPositions.reduce((sum, p) => sum + p.investment, 0);
     const updated = newPositions.map(p => ({
@@ -58,9 +42,7 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
 
     onUpdatePositions(updated);
     setIsAdding(false);
-    if (availableTickers.length > 1) {
-      setNewTicker(availableTickers.find(t => t !== newTicker) || 'AAPL');
-    }
+    setNewTicker(''); setNewSymbol(null); setRiskProxyTicker('');
   };
 
   const handleRemovePosition = (ticker: string) => {
@@ -81,7 +63,7 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
 
   const handleSaveEdit = (ticker: string) => {
     const amount = parseFloat(editingAmount);
-    if (isNaN(amount) || amount <= 0) return;
+    if (!Number.isFinite(amount) || amount <= 0) return;
 
     const updatedPositions = positions.map(p => {
       if (p.ticker === ticker) {
@@ -101,7 +83,7 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
   };
 
   return (
-    <div className="bg-slate-900/60 rounded-xl border border-slate-800 overflow-hidden shadow-sm">
+    <div className="bg-slate-900/60 rounded-xl border border-slate-800 shadow-sm">
       <div className="px-5 py-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
@@ -119,25 +101,20 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
           <button
             type="button"
             onClick={() => setIsAdding(true)}
+            disabled={positions.length >= 30}
             className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center space-x-1.5 transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Asset</span>
           </button>
         ) : (
-          <form onSubmit={handleAddPosition} className="flex items-center space-x-2">
-            <select
-              aria-label="Select asset to add"
-              value={newTicker}
-              onChange={e => setNewTicker(e.target.value)}
-              className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            >
-              {availableTickers.map(t => (
-                <option key={t} value={t}>
-                  {t} - {ASSET_DATABASE[t]?.name}
-                </option>
-              ))}
-            </select>
+          <form onSubmit={handleAddPosition} className="flex flex-wrap items-start gap-2 w-full">
+            <div className="min-w-0 flex-1 basis-64">
+              <SymbolPicker value={newTicker} excluded={usedTickers} onSelect={symbol => {
+                setNewTicker(symbol.ticker); setNewSymbol(symbol); setRiskProxyTicker('');
+              }} />
+              <RiskProxyPicker ticker={newTicker} value={riskProxyTicker} onChange={setRiskProxyTicker} />
+            </div>
 
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-400 text-xs">$</span>
@@ -153,6 +130,7 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
 
             <button
               type="submit"
+              disabled={!newSymbol || !(ASSET_DATABASE[newTicker] || ASSET_DATABASE[riskProxyTicker]) || !Number.isFinite(Number(newInvestment)) || Number(newInvestment) <= 0}
               className="p-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded transition-colors"
               title="Confirm Add"
             >
@@ -183,27 +161,23 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
           </thead>
           <tbody className="divide-y divide-slate-800/50 text-slate-300">
             {positions.map(pos => {
-              const meta = ASSET_DATABASE[pos.ticker] || {
-                volatility: 0.25,
-                beta: 1.0,
-                assetClass: 'Other',
-              };
               const weightPct = totalValue > 0 ? (pos.investment / totalValue) * 100 : 0;
               const isEditing = editingTicker === pos.ticker;
 
               return (
                 <tr key={pos.ticker} className="hover:bg-slate-800/30 transition-colors">
                   <td className="py-3 px-4">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex flex-wrap items-start gap-2 w-full">
                       <span className="font-bold text-white font-mono-nums">{pos.ticker}</span>
                       <span className="text-slate-400 truncate max-w-[140px] sm:max-w-[200px]" title={pos.name}>
                         {pos.name}
                       </span>
                     </div>
+                    {pos.riskProxyTicker && <p className="mt-1 text-[11px] text-amber-300">Modeled using {pos.riskProxyTicker} · proxy assumptions</p>}
                   </td>
                   <td className="py-3 px-4">
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700/60">
-                      {meta.assetClass}
+                      {pos.assetClass}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right font-mono-nums">
