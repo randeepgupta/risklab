@@ -16,7 +16,9 @@
     "lint": "tsc --noEmit",
     "test:quant": "tsx tests/quantEngine.test.ts",
     "check": "npm run lint && npm run test:quant",
-    "generate:icons": "node scripts/generate-pngs.js"
+    "generate:icons": "node scripts/generate-pngs.js",
+    "build:cloudflare": "vite build --outDir dist/client && esbuild worker.ts --bundle --platform=browser --format=esm --conditions=browser --target=es2022 --outfile=dist/server/index.js",
+    "deploy:cloudflare": "npm run build:cloudflare && npx wrangler deploy"
   },
   "keywords": [
     "portfolio-risk",

@@ -7,3 +7,7 @@ coverage/
 .env*
 !.env.example
 .idea/
+
+# Cloudflare local state and secrets
+.wrangler/
+.dev.vars*

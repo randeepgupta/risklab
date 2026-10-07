@@ -1,3 +1,9 @@
+## Deploy to Cloudflare
+
+RiskLab can run as one Cloudflare Worker serving the React app and `/api/*` endpoints. The quantitative engine continues to run in the browser; no database is required for the current app.
+
+See [Cloudflare deployment guide](docs/cloudflare-deployment.md) for GitHub auto-deploy settings and local deployment instructions. The existing Express development and Node deployment commands remain available.
+
 # RiskLab
 
 **AI-assisted quantitative portfolio risk analysis, stress testing, and Monte Carlo simulation.**
