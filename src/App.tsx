@@ -402,6 +402,9 @@ export default function App() {
             <MonteCarloView
               initialValue={metrics.totalValue}
               expectedReturn={metrics.expectedAnnualReturn}
+              returnAssumptionSource={positions.every(position => !!position.historicalModel)
+                ? 'Portfolio-weighted historical average; carried forward as a model assumption'
+                : 'Portfolio-weighted preset return assumptions'}
               volatility={metrics.annualizedVolatility}
             />
           </div>

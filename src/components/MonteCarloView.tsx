@@ -1,27 +1,38 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
 import { MonteCarloResult } from '../types/risk';
+import {annualizedOutcomeReturn, modeledReturnRange} from '../utils/simulationOutcomes';
 import { runMonteCarloSimulation } from '../utils/quantEngine';
 
 interface MonteCarloViewProps {
   initialValue: number;
   expectedReturn: number;
   volatility: number;
+  returnAssumptionSource?: string;
 }
 
 export const MonteCarloView: React.FC<MonteCarloViewProps> = ({
   initialValue,
   expectedReturn,
   volatility,
+  returnAssumptionSource = 'Portfolio-weighted model assumptions',
 }) => {
   const [horizonYears, setHorizonYears] = useState<number>(10);
   const [simCount, setSimCount] = useState<number>(2500);
   const [runId, setRunId] = useState<number>(1);
+  const [returnPeriod, setReturnPeriod] = useState<'year' | 'month'>('year');
+  const returnRange = modeledReturnRange(expectedReturn, volatility, returnPeriod === 'year' ? 1 : 1 / 12);
+  const signedReturn = (value: number) => `${value > 0 ? '+' : ''}${(value * 100).toFixed(1)}%`;
 
   const mcResult: MonteCarloResult = useMemo(
     () => runMonteCarloSimulation(initialValue, expectedReturn, volatility, horizonYears, simCount),
     [initialValue, expectedReturn, volatility, horizonYears, simCount, runId],
   );
+
+  const outcomeReturn = (endingValue: number) => {
+    const rate = annualizedOutcomeReturn(initialValue, endingValue, horizonYears);
+    return rate === null ? 'N/A' : `${(rate * 100).toFixed(1)}%`;
+  };
 
   const width = 800;
   const height = 360;
@@ -90,17 +101,60 @@ export const MonteCarloView: React.FC<MonteCarloViewProps> = ({
         </div>
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <section aria-label="Simulation assumptions" className="bg-slate-900/60 rounded-xl border border-slate-800 p-5">
+        <h3 className="text-base font-bold text-white">Inputs used for every simulated outcome</h3>
+        <dl className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+          <div><dt className="text-xs text-slate-400">Starting portfolio</dt><dd className="mt-1 font-bold text-white font-mono-nums">${Math.round(initialValue).toLocaleString()}</dd></div>
+          <div><dt className="text-xs text-slate-400">Average annual return assumption</dt><dd className="mt-1 font-bold text-emerald-300 font-mono-nums">{(expectedReturn * 100).toFixed(1)}%</dd><dd className="mt-1 text-[11px] text-slate-500">{returnAssumptionSource}</dd></div>
+          <div><dt className="text-xs text-slate-400">Annual volatility</dt><dd className="mt-1 font-bold text-white font-mono-nums">{(volatility * 100).toFixed(1)}%</dd><dd className="mt-1 text-[11px] text-slate-500">Controls the spread of possible returns</dd></div>
+          <div><dt className="text-xs text-slate-400">Simulation settings</dt><dd className="mt-1 font-bold text-white">{horizonYears} years · {simCount.toLocaleString()} paths</dd><dd className="mt-1 text-[11px] text-slate-500">Monthly steps, compounded returns</dd></div>
+        </dl>
+        <p className="mt-4 text-xs text-slate-400 leading-relaxed">Strong and weak outcomes use these same inputs. Random monthly market gains and losses produce different endings. The model holds return and volatility constant, with no contributions or withdrawals, taxes, fees, or inflation adjustment.</p>
+        <p className="mt-2 text-xs text-slate-400 leading-relaxed">The annualized return below each outcome is the equivalent compound growth rate from your starting value to that ending value. It is calculated from the simulation result; individual years can have very different returns.</p>
+      </section>
+
+      <section aria-label="Understanding returns" className="bg-slate-900/60 rounded-xl border border-slate-800 p-5">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h3 className="text-base font-bold text-white">Annual growth. Monthly ups and downs.</h3>
+            <p className="mt-2 text-sm text-slate-300">The {(expectedReturn * 100).toFixed(1)}% return assumption is <strong className="text-white">per year, not per month</strong>. Each simulated month gets a different return; gains and losses compound over time.</p>
+          </div>
+          <div role="group" aria-label="Return period" className="flex shrink-0 gap-1 rounded-lg bg-slate-950 p-1">
+            {(['year', 'month'] as const).map(period => <button key={period} type="button" aria-pressed={returnPeriod === period} onClick={() => setReturnPeriod(period)} className={`rounded-md px-3 py-2 text-xs font-semibold ${returnPeriod === period ? 'bg-sky-500/20 text-sky-200' : 'text-slate-400 hover:text-white'}`}>One {period}</button>)}
+          </div>
+        </div>
+        <p className="mt-5 text-xs text-slate-400">Possible return over <strong className="text-slate-200">one {returnPeriod}</strong>, using your portfolio’s assumptions</p>
+        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+          {[{label: 'Lower end', value: returnRange.low, color: 'text-rose-300'}, {label: 'Middle result', value: returnRange.median, color: 'text-white'}, {label: 'Upper end', value: returnRange.high, color: 'text-emerald-300'}].map(item => <div key={item.label}><p className="text-[11px] text-slate-400">{item.label}</p><p className={`mt-1 text-xl sm:text-2xl font-bold font-mono-nums ${item.color}`}>{signedReturn(item.value)}</p></div>)}
+        </div>
+        <div aria-hidden="true" className="mt-3 flex h-3 overflow-hidden rounded-full"><div className="w-[5%] bg-rose-500/50" /><div className="w-[90%] bg-gradient-to-r from-rose-400/40 via-sky-400/60 to-emerald-400/40" /><div className="w-[5%] bg-emerald-500/50" /></div>
+        <div className="mt-2 flex justify-between text-[10px] sm:text-xs text-slate-400"><span>5% below</span><span>90% of modeled outcomes</span><span>5% above</span></div>
+        <p className="mt-4 text-xs text-slate-400 leading-relaxed">This is a probability band, not a minimum or maximum. Returns near the middle are more common; larger gains and losses are rarer. A positive growth assumption still allows losing months and years.</p>
+        <p className="mt-2 text-xs text-sky-200/80">Switch to “One month” to see short-term swings. A gain of 6% in one month does not mean 6% every month.</p>
+      </section>
+
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
+          <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Strong outcome</span>
+          <div className="text-2xl font-black text-emerald-300 font-mono-nums mt-2">${Math.round(mcResult.terminalStats.p95Best).toLocaleString()}</div>
+          <p className="mt-2 text-sm font-semibold text-emerald-300">{outcomeReturn(mcResult.terminalStats.p95Best)} annualized return</p>
+          <p className="mt-1 text-[11px] text-slate-400">95th percentile: about 5% of simulated endings are higher. This is not the maximum possible outcome.</p>
+        </div>
         <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
           <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Typical modeled outcome</span>
           <div className="text-2xl font-black text-white font-mono-nums mt-2">${Math.round(mcResult.terminalStats.median).toLocaleString()}</div>
+          <p className="mt-2 text-sm font-semibold text-slate-200">{outcomeReturn(mcResult.terminalStats.median)} annualized return</p>
           <p className="mt-1 text-[11px] text-slate-400">Half the simulations finish above this value and half below it.</p>
         </div>
         <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
           <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Weak outcome</span>
           <div className="text-2xl font-black text-rose-300 font-mono-nums mt-2">${Math.round(mcResult.terminalStats.p5Worst).toLocaleString()}</div>
-          <p className="mt-1 text-[11px] text-slate-400">Only about 5% of simulated endings are below this value.</p>
+          <p className="mt-2 text-sm font-semibold text-rose-300">{outcomeReturn(mcResult.terminalStats.p5Worst)} annualized return</p>
+          <p className="mt-1 text-[11px] text-slate-400">5th percentile: only about 5% of simulated endings are below this value.</p>
         </div>
+      </section>
+
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
           <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Chance of ending below today</span>
           <div className="text-2xl font-black text-amber-300 font-mono-nums mt-2">{(mcResult.terminalStats.probOfLoss * 100).toFixed(1)}%</div>
