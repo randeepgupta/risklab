@@ -1,3 +1,4 @@
+import {Explanation} from './Explanation';
 import React, { useState } from 'react';
 import {
   ShieldCheck,
@@ -127,9 +128,9 @@ The AI explanation service is not available right now. RiskLab will not invent a
                 Advanced lab: can I reduce my downside?
               </h2>
             </div>
-            <p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
+            <p className="mt-1 text-xs text-slate-400">Illustrative strategies · No live option prices</p><Explanation label="About this lab"><p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
               This optional lab explores ways investors sometimes pay to reduce losses. It is intentionally more technical than the core RiskLab experience and is illustrative only — real hedges require live option prices and careful sizing.
-            </p>
+            </p></Explanation>
           </div>
 
           <div className="flex items-center space-x-2 text-xs font-mono-nums">
@@ -168,9 +169,7 @@ The AI explanation service is not available right now. RiskLab will not invent a
                   <h4 className="text-sm font-bold text-white mt-2 leading-tight">
                     {strat.name}
                   </h4>
-                  <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
-                    {strat.rationale}
-                  </p>
+                  <Explanation label="Why this strategy?">{strat.rationale}</Explanation>
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-1 text-xs font-mono-nums">

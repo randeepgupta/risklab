@@ -1,3 +1,4 @@
+import {Explanation} from './Explanation';
 import React, { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { PortfolioPosition } from '../types/risk';
@@ -93,9 +94,9 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
               {positions.length} assets
             </span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <Explanation label="Editing holdings"><p className="text-xs text-slate-400 mt-0.5">
             Your current holdings. Change an amount or add an asset and RiskLab will recalculate the analysis.
-          </p>
+          </p></Explanation>
         </div>
 
         {!isAdding ? (

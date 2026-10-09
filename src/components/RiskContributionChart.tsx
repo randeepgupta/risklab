@@ -1,3 +1,4 @@
+import {Explanation} from './Explanation';
 import React, { useState } from 'react';
 import { RiskContribution } from '../types/risk';
 import { AlertCircle, ChevronDown } from 'lucide-react';
@@ -17,9 +18,9 @@ export const RiskContributionChart: React.FC<RiskContributionChartProps> = ({ co
     <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 shadow-sm">
       <div className="pb-4 border-b border-slate-800">
         <h3 className="text-base font-bold text-white">What is driving your risk?</h3>
-        <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+        <Explanation label="How to read this chart"><p className="text-xs text-slate-400 mt-1 leading-relaxed">
           A holding can be a small part of your money but a large part of your portfolio&apos;s ups and downs. Compare how much you own with how much risk it contributes.
-        </p>
+        </p></Explanation>
       </div>
 
       <div className="space-y-4 pt-4">

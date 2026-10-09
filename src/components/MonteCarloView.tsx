@@ -68,10 +68,10 @@ export const MonteCarloView: React.FC<MonteCarloViewProps> = ({
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">Future</p>
             <h2 className="mt-1 text-2xl sm:text-3xl font-black text-white tracking-tight">What could my portfolio become?</h2>
             <p className="mt-2 text-sm text-slate-400 leading-relaxed">
-              Instead of assuming the same return every year, RiskLab runs thousands of different market paths — good years, bad years, and recoveries — to show a range of possible outcomes.
+              Explore possible outcomes from thousands of simulated market paths.
             </p>
             <div className="mt-3 rounded-lg border border-sky-500/15 bg-sky-500/5 px-3 py-2 text-xs text-sky-200/80">
-              This is not a forecast. The current model assumes you make no additional contributions during the period.
+              Simulation, not a forecast · No additional contributions
             </div>
           </div>
 
@@ -105,19 +105,19 @@ export const MonteCarloView: React.FC<MonteCarloViewProps> = ({
           <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Strong outcome</span>
           <div className="text-2xl font-black text-emerald-300 font-mono-nums mt-2">${Math.round(mcResult.terminalStats.p95Best).toLocaleString()}</div>
           <p className="mt-2 text-sm font-semibold text-emerald-300">{outcomeReturn(mcResult.terminalStats.p95Best)} annualized return</p>
-          <p className="mt-1 text-[11px] text-slate-400">95th percentile: about 5% of simulated endings are higher. This is not the maximum possible outcome.</p>
+          <details className="mt-2 group"><summary className="flex cursor-pointer items-center gap-1 text-[11px] text-slate-400 hover:text-slate-200"><ChevronDown className="h-3 w-3 group-open:rotate-180" />What does this mean?</summary><p className="mt-1 text-[11px] text-slate-400">95th percentile: about 5% of simulated endings are higher. This is not the maximum possible outcome.</p></details>
         </div>
         <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
           <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Typical modeled outcome</span>
           <div className="text-2xl font-black text-white font-mono-nums mt-2">${Math.round(mcResult.terminalStats.median).toLocaleString()}</div>
           <p className="mt-2 text-sm font-semibold text-slate-200">{outcomeReturn(mcResult.terminalStats.median)} annualized return</p>
-          <p className="mt-1 text-[11px] text-slate-400">Half the simulations finish above this value and half below it.</p>
+          <details className="mt-2 group"><summary className="flex cursor-pointer items-center gap-1 text-[11px] text-slate-400 hover:text-slate-200"><ChevronDown className="h-3 w-3 group-open:rotate-180" />What does this mean?</summary><p className="mt-1 text-[11px] text-slate-400">Half the simulations finish above this value and half below it.</p></details>
         </div>
         <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
           <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Weak outcome</span>
           <div className="text-2xl font-black text-rose-300 font-mono-nums mt-2">${Math.round(mcResult.terminalStats.p5Worst).toLocaleString()}</div>
           <p className="mt-2 text-sm font-semibold text-rose-300">{outcomeReturn(mcResult.terminalStats.p5Worst)} annualized return</p>
-          <p className="mt-1 text-[11px] text-slate-400">5th percentile: only about 5% of simulated endings are below this value.</p>
+          <details className="mt-2 group"><summary className="flex cursor-pointer items-center gap-1 text-[11px] text-slate-400 hover:text-slate-200"><ChevronDown className="h-3 w-3 group-open:rotate-180" />What does this mean?</summary><p className="mt-1 text-[11px] text-slate-400">5th percentile: only about 5% of simulated endings are below this value.</p></details>
         </div>
       </section>
 
@@ -125,26 +125,31 @@ export const MonteCarloView: React.FC<MonteCarloViewProps> = ({
         <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
           <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Chance of ending below today</span>
           <div className="text-2xl font-black text-amber-300 font-mono-nums mt-2">{(mcResult.terminalStats.probOfLoss * 100).toFixed(1)}%</div>
-          <p className="mt-1 text-[11px] text-slate-400">Share of simulations that end below your starting portfolio value.</p>
+          <details className="mt-2 group"><summary className="flex cursor-pointer items-center gap-1 text-[11px] text-slate-400 hover:text-slate-200"><ChevronDown className="h-3 w-3 group-open:rotate-180" />What does this mean?</summary><p className="mt-1 text-[11px] text-slate-400">Share of simulations that end below your starting portfolio value.</p></details>
         </div>
         <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
           <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Chance of doubling</span>
           <div className="text-2xl font-black text-emerald-300 font-mono-nums mt-2">{(mcResult.terminalStats.probOfDoubling * 100).toFixed(1)}%</div>
-          <p className="mt-1 text-[11px] text-slate-400">Share of simulations that finish above twice your starting value.</p>
+          <details className="mt-2 group"><summary className="flex cursor-pointer items-center gap-1 text-[11px] text-slate-400 hover:text-slate-200"><ChevronDown className="h-3 w-3 group-open:rotate-180" />What does this mean?</summary><p className="mt-1 text-[11px] text-slate-400">Share of simulations that finish above twice your starting value.</p></details>
         </div>
       </section>
 
       <section aria-label="Simulation assumptions" className="bg-slate-900/60 rounded-xl border border-slate-800 p-5">
-        <h3 className="text-base font-bold text-white">Inputs used for every simulated outcome</h3>
-        <div className="mt-4 rounded-lg border border-sky-500/20 bg-sky-500/5 p-4">
+        <div>
           <div className="flex items-center justify-between gap-3"><label htmlFor="future-annual-return" className="text-sm font-semibold text-white">Choose annual compound growth</label><output htmlFor="future-annual-return" className="text-xl font-bold text-sky-200 font-mono-nums">{(expectedReturn * 100).toFixed(2)}% per year</output></div>
-          <input id="future-annual-return" type="range" min="-10" max="25" step="0.01" value={expectedReturn * 100} onChange={event => setExpectedReturn(Number(event.target.value) / 100)} aria-describedby="future-return-help" className="mt-4 w-full accent-sky-400" />
+          <input id="future-annual-return" type="range" min="-10" max="25" step="0.01" value={expectedReturn * 100} onChange={event => setExpectedReturn(Number(event.target.value) / 100)} aria-describedby="future-return-note" className="mt-4 w-full accent-sky-400" />
           <div className="flex justify-between text-[11px] text-slate-500"><span>−10% per year</span><span>25% per year</span></div>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><p aria-live="polite" className="text-xs font-semibold text-sky-200">{benchmarkDifferenceLabel(expectedReturn)}</p><button type="button" onClick={() => setExpectedReturn(DEFAULT_FUTURE_ANNUAL_RETURN)} className="rounded-md border border-sky-500/30 px-3 py-1.5 text-xs text-sky-200 hover:bg-sky-500/10">Reset to SPY benchmark</button></div>
+          <p id="future-return-note" className="mt-3 text-[11px] text-slate-400">Historical SPY reference · {SPY_RETURN_BENCHMARK.asOf} · Not a forecast</p>
+          <details className="mt-3 group">
+            <summary className="flex cursor-pointer items-center gap-1.5 text-xs text-sky-300 hover:text-sky-100"><ChevronDown className="h-3.5 w-3.5 group-open:rotate-180" />About the SPY benchmark</summary>
           <p id="future-return-help" className="mt-3 text-xs text-slate-300 leading-relaxed">Starts at SPY’s historical 10-year annualized total return: {(SPY_RETURN_BENCHMARK.annualReturn * 100).toFixed(2)}% per year, as of {SPY_RETURN_BENCHMARK.asOf}, with dividends reinvested. This describes one past decade, not every 10-year period, and is not a forecast for your portfolio.</p>
           <p className="mt-2 text-[11px] text-slate-400">Reference period: {SPY_RETURN_BENCHMARK.period}. Before personal taxes, net of fund fees. <a href={SPY_RETURN_BENCHMARK.source} target="_blank" rel="noreferrer" className="text-sky-300 underline">Source: State Street SPY performance</a></p>
           <p className="mt-2 text-xs text-slate-400">This sets the center of simulated long-term compound growth. Monthly gains and losses still vary randomly, using your portfolio’s volatility. Your holdings’ recent returns are not projected forward. The slider limits are growth assumptions, not limits on individual simulated returns.</p>
+          </details>
         </div>
+        <details className="mt-4 group border-t border-slate-800 pt-3">
+          <summary className="flex cursor-pointer items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200"><ChevronDown className="h-3.5 w-3.5 group-open:rotate-180" />Simulation settings and assumptions</summary>
         <dl className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
           <div><dt className="text-xs text-slate-400">Starting portfolio</dt><dd className="mt-1 font-bold text-white font-mono-nums">${Math.round(initialValue).toLocaleString()}</dd></div>
           <div><dt className="text-xs text-slate-400">Annual compound growth assumption</dt><dd className="mt-1 font-bold text-emerald-300 font-mono-nums">{(expectedReturn * 100).toFixed(2)}%</dd><dd className="mt-1 text-[11px] text-slate-500">Editable assumption anchored to a dated SPY benchmark</dd></div>
@@ -154,9 +159,12 @@ export const MonteCarloView: React.FC<MonteCarloViewProps> = ({
         <p className="mt-4 text-xs text-slate-400 leading-relaxed">Strong and weak outcomes use these same inputs. Random monthly market gains and losses produce different endings. The model holds return and volatility constant, with no contributions or withdrawals, taxes, fees, or inflation adjustment.</p>
         <p className="mt-2 text-xs text-slate-400 leading-relaxed">The annualized return below each outcome is the equivalent compound growth rate from your starting value to that ending value. It is calculated from the simulation result; individual years can have very different returns.</p>
         <p className="mt-2 text-xs text-slate-400 leading-relaxed">The typical outcome’s compound annual return should be close to your selected rate; a finite number of random simulations can place it slightly above or below. Strong and weak outcomes reflect the same growth assumption with different market paths.</p>
+        </details>
       </section>
 
-      <section aria-label="Understanding returns" className="bg-slate-900/60 rounded-xl border border-slate-800 p-5">
+      <details aria-label="Understanding returns" className="group bg-slate-900/60 rounded-xl border border-slate-800 p-5">
+        <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white"><ChevronDown className="h-4 w-4 group-open:rotate-180" />How can annual growth include losing months?</summary>
+        <div className="mt-4">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <h3 className="text-base font-bold text-white">Annual growth. Monthly ups and downs.</h3>
@@ -174,7 +182,8 @@ export const MonteCarloView: React.FC<MonteCarloViewProps> = ({
         <div className="mt-2 flex justify-between text-[10px] sm:text-xs text-slate-400"><span>5% below</span><span>90% of modeled outcomes</span><span>5% above</span></div>
         <p className="mt-4 text-xs text-slate-400 leading-relaxed">This is a probability band, not a minimum or maximum. Returns near the middle are more common; larger gains and losses are rarer. A positive growth assumption still allows losing months and years.</p>
         <p className="mt-2 text-xs text-sky-200/80">Switch to “One month” to see short-term swings. A gain of 6% in one month does not mean 6% every month.</p>
-      </section>
+        </div>
+      </details>
 
       <section className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 shadow-sm">
         <div className="pb-4 border-b border-slate-800">

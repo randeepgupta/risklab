@@ -38,7 +38,7 @@ export const CorrelationMatrix: React.FC<CorrelationMatrixProps> = ({ data }) =>
       <div className="pb-4 border-b border-slate-800">
         <h3 className="text-base font-bold text-white">Which investments move together?</h3>
         <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-          Your holdings {relationship}. When several investments fall at the same time, owning more tickers may not provide as much diversification as it appears.
+          Your holdings {relationship}.
         </p>
       </div>
 
@@ -63,6 +63,11 @@ export const CorrelationMatrix: React.FC<CorrelationMatrixProps> = ({ data }) =>
                 {row.map((val, j) => (
                   <div
                     key={`${i}-${j}`}
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => setHoveredCell({ t1: tickers[i], t2: tickers[j], val })}
+                    onFocus={() => setHoveredCell({ t1: tickers[i], t2: tickers[j], val })}
+                    onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setHoveredCell({ t1: tickers[i], t2: tickers[j], val }); } }}
                     onMouseEnter={() => setHoveredCell({ t1: tickers[i], t2: tickers[j], val })}
                     onMouseLeave={() => setHoveredCell(null)}
                     className={`rounded-md px-1 py-2 text-center text-[10px] font-mono-nums transition-transform hover:scale-105 ${getCellColor(val)}`}
@@ -84,7 +89,7 @@ export const CorrelationMatrix: React.FC<CorrelationMatrixProps> = ({ data }) =>
             have modeled correlation of <strong className="text-emerald-300">{hoveredCell.val.toFixed(2)}</strong>.
           </span>
         ) : (
-          <span>Hover a cell to see the relationship between two holdings.</span>
+          <span>Select a cell to compare two holdings.</span>
         )}
       </div>
 
@@ -94,7 +99,7 @@ export const CorrelationMatrix: React.FC<CorrelationMatrixProps> = ({ data }) =>
           What do these numbers mean?
         </summary>
         <p className="mt-2 leading-relaxed">
-          Correlation ranges from -1 to +1. Values near +1 mean two assets tend to move in the same direction, values near 0 mean their movements are less related, and negative values mean they often move in opposite directions. Technical notation: ρ(i, j).
+          When several investments fall at the same time, owning more tickers may not provide as much diversification as it appears. Correlation ranges from -1 to +1. Values near +1 mean two assets tend to move in the same direction, values near 0 mean their movements are less related, and negative values mean they often move in opposite directions. Technical notation: ρ(i, j).
         </p>
       </details>
     </div>
