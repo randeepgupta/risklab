@@ -64,8 +64,8 @@ export default defineConfig(() => {
               icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }],
             },
             {
-              name: 'Manage risk',
-              short_name: 'Manage risk',
+              name: 'Risk Copilot',
+              short_name: 'Risk Copilot',
               url: '/?tab=hedging',
               icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }],
             },

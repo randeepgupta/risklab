@@ -19,7 +19,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
         { key: '⌘ 1', label: 'Portfolio Overview' },
         { key: '⌘ 2', label: 'What If? Scenarios' },
         { key: '⌘ 3', label: 'Future Outcomes' },
-        { key: '⌘ 4', label: 'Manage risk' },
+        { key: '⌘ 4', label: 'Copilot' },
       ],
     },
     {
