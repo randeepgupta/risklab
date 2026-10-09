@@ -24,7 +24,8 @@
     "test:ai": "node --import tsx tests/workersAi.test.ts",
     "refresh:symbols": "node scripts/update-symbol-directory.mjs",
     "test:symbols": "node --import tsx tests/symbolDirectory.test.ts",
-    "test:sample": "node --import tsx tests/samplePortfolio.test.ts"
+    "test:sample": "node --import tsx tests/samplePortfolio.test.ts",
+    "test:future": "node --import tsx tests/simulationOutcomes.test.tsx"
   },
   "keywords": [
     "portfolio-risk",

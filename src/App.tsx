@@ -401,7 +401,11 @@ export default function App() {
           <div className="animate-fadeIn">
             <MonteCarloView
               initialValue={metrics.totalValue}
-              expectedReturn={metrics.expectedAnnualReturn}
+              volatilitySource={positions.every(position => !!position.historicalModel)
+                ? 'Estimated from historical prices and correlations'
+                : positions.some(position => !!position.historicalModel)
+                  ? 'Combined historical and preset risk estimates'
+                  : 'Estimated from preset volatility and correlations'}
               volatility={metrics.annualizedVolatility}
             />
           </div>
