@@ -1,3 +1,4 @@
+import {Explanation} from './Explanation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, ArrowRight, Plus, Trash2 } from 'lucide-react';
 import { PortfolioPosition } from '../types/risk';
@@ -133,8 +134,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
             Understand how your portfolio behaves before the market tests it.
           </h1>
           <p className="mt-5 text-base sm:text-lg text-slate-400 leading-relaxed max-w-2xl mx-auto">
-            Add your holdings and allocation. RiskLab will analyze concentration, volatility, correlation,
-            downside risk, stress scenarios, and long-term outcomes.
+            Add your holdings to explore risk and possible outcomes.
           </p>
         </section>
 
@@ -150,8 +150,8 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
                 <input type="checkbox" checked={historicalMode} onChange={event => onHistoricalModeChange(event.target.checked)} />
                 Use historical risk models
               </label>
-              <p className="mt-2 text-slate-400">{snapshotAsOf ? `${historicalTickers.size.toLocaleString()} holdings covered · Public data through ${snapshotAsOf}. Loaded once, reused for portfolio calculations. No token needed.` : 'Loading public historical snapshot…'}</p>
-              <p className="mt-1 text-slate-500">Uncheck to use preset assumptions and modeling proxies. Historical coverage is smaller than the listing directory.</p>
+              <p className="mt-2 text-slate-400">{snapshotAsOf ? `${historicalTickers.size.toLocaleString()} holdings covered · Data through ${snapshotAsOf}` : 'Loading public historical snapshot…'}</p>
+              <Explanation label="About historical models">Loaded once and reused; no API token needed. Uncheck to use preset assumptions and modeling proxies. Historical coverage is smaller than the listing directory.</Explanation>
               {modelError && <p role="alert" className="mt-2 text-rose-300">{modelError} {!snapshotAsOf && <button type="button" className="ml-2 underline" onClick={onRetrySnapshot}>Retry snapshot</button>}</p>}
             </div>
             <div>
@@ -169,7 +169,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
                   className="w-full rounded-lg border border-slate-700 bg-slate-950/70 pl-7 pr-3 py-2.5 text-sm text-white font-mono-nums focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/50"
                 />
               </div>
-              <p className="mt-1.5 text-[11px] text-slate-500">Used for dollar-denominated VaR, stress loss, and simulations.</p>
+              <Explanation label="Why portfolio value matters">Used for dollar-denominated risk estimates, stress losses, and simulations.</Explanation>
             </div>
 
             <div>

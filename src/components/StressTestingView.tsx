@@ -1,3 +1,4 @@
+import {Explanation} from './Explanation';
 import React, { useMemo, useReducer, useState } from 'react';
 import { AlertCircle, ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
 import { PortfolioPosition, StressScenario, AiResponseSource } from '../types/risk';
@@ -92,9 +93,9 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
       <section className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-400">What if?</p>
         <h2 className="mt-1 text-2xl sm:text-3xl font-black text-white tracking-tight">What happens if markets change?</h2>
-        <p className="mt-2 max-w-3xl text-sm text-slate-400 leading-relaxed">
+        <p className="mt-2 text-xs text-slate-400">Explore a scenario, not a prediction.</p><Explanation label="About stress testing"><p className="mt-2 max-w-3xl text-sm text-slate-400 leading-relaxed">
           Stress testing asks a simple question: <strong className="text-slate-300">“If this bad thing happened, what might it do to my portfolio?”</strong> It is not a prediction — it is a way to understand vulnerability before a real downturn arrives.
-        </p>
+        </p></Explanation>
 
         <form onSubmit={handleAiScenario} className="mt-5 flex flex-col sm:flex-row gap-2.5">
           <div className="flex-1">
@@ -142,7 +143,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
             {aiSource && <p className="mb-2 text-sm font-semibold text-slate-200" role="status">
               {aiSource.label}{aiSource.provider === 'fallback' && aiSource.reason === 'unavailable' ? ' · AI unavailable right now' : ''}
             </p>}
-            {aiSource?.label !== 'Scenario service unavailable' && <strong className="text-emerald-300">Why the model expects this impact: </strong>}{aiResultExplanation}
+            {aiSource?.label === 'Scenario service unavailable' ? <p role="alert">{aiResultExplanation}</p> : <Explanation label="Why this impact?">{aiResultExplanation}</Explanation>}
           </div>
         )}
       </section>
@@ -152,7 +153,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
           <div>
             <span className="text-xs px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-300 font-semibold border border-rose-500/20">Estimated portfolio impact</span>
             <h3 className="mt-2 text-xl font-bold text-white">{scenarioForCalculation.name}</h3>
-            <p className="mt-1 max-w-3xl text-xs text-slate-400 leading-relaxed">{scenarioForCalculation.description}</p>
+            <Explanation label="Scenario assumptions">{scenarioForCalculation.description}</Explanation>
           </div>
         </div>
 
@@ -187,7 +188,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
 
       <section className="bg-slate-900/60 rounded-xl border border-slate-800 p-5">
         <h3 className="text-base font-bold text-white">How would each holding change?</h3>
-        <p className="mt-1 text-xs text-slate-400">Each amount is the estimated change for that holding. Bars show its share of losses before any offsetting gains.</p>
+        <Explanation label="How to read these impacts">Each amount is the estimated change for that holding. Bars show its share of losses before any offsetting gains.</Explanation>
         <div className="mt-4 space-y-3">
           {sortedLosses.slice(0, 6).map(attr => {
             const pct = grossLoss > 0 ? Math.max(0, attr.dollarLoss) / grossLoss * 100 : 0;

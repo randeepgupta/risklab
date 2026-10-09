@@ -1,3 +1,4 @@
+import {Explanation} from './Explanation';
 import React from 'react';
 import { AlertTriangle, ArrowRight, Layers3, ShieldCheck, TrendingDown } from 'lucide-react';
 import { PortfolioPosition, PortfolioRiskMetrics } from '../types/risk';
@@ -46,7 +47,7 @@ export const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({
             What should you know about this portfolio?
           </h1>
           <p className="mt-2 max-w-3xl text-sm text-slate-400 leading-relaxed">
-            RiskLab translates the model into plain English first. You can open the technical metrics when you want the math behind the answer.
+            Your risk at a glance.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -74,9 +75,9 @@ export const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({
             <AlertTriangle className={`w-4 h-4 ${risk.tone}`} />
           </div>
           <div className={`mt-3 text-3xl font-black ${risk.tone}`}>{risk.label}</div>
-          <p className="mt-2 text-xs leading-relaxed text-slate-400">
+          <Explanation><p className="mt-2 text-xs leading-relaxed text-slate-400">
             Based on modeled portfolio volatility of {(metrics.annualizedVolatility * 100).toFixed(1)}%. Higher means a bumpier ride, not necessarily a worse investment.
-          </p>
+          </p></Explanation>
         </article>
 
         <article className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
@@ -85,13 +86,13 @@ export const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({
             <TrendingDown className="w-4 h-4 text-amber-400" />
           </div>
           <div className="mt-3 text-3xl font-black text-white font-mono-nums">{topRisk?.ticker ?? '—'}</div>
-          <p className="mt-2 text-xs leading-relaxed text-slate-400">
+          <Explanation><p className="mt-2 text-xs leading-relaxed text-slate-400">
             {topRisk ? (
               <>
                 {topPosition?.name ?? topRisk.ticker} is {((topRisk.weight || 0) * 100).toFixed(1)}% of your money but contributes about {(topRisk.percentRiskContribution * 100).toFixed(1)}% of modeled portfolio risk.
               </>
             ) : 'Add holdings to see what drives portfolio risk.'}
-          </p>
+          </p></Explanation>
         </article>
 
         <article className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
@@ -100,9 +101,9 @@ export const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({
             <Layers3 className="w-4 h-4 text-sky-400" />
           </div>
           <div className="mt-3 text-3xl font-black text-white">{diversification.label}</div>
-          <p className="mt-2 text-xs leading-relaxed text-slate-400">
+          <Explanation><p className="mt-2 text-xs leading-relaxed text-slate-400">
             {diversification.detail} The model estimates a {metrics.diversificationBenefitPct.toFixed(1)}% reduction in volatility versus holding the assets independently.
-          </p>
+          </p></Explanation>
         </article>
 
         <article className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
@@ -113,9 +114,9 @@ export const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({
           <div className="mt-3 text-3xl font-black text-rose-300 font-mono-nums">
             -${Math.round(badDayLoss).toLocaleString()}
           </div>
-          <p className="mt-2 text-xs leading-relaxed text-slate-400">
+          <Explanation><p className="mt-2 text-xs leading-relaxed text-slate-400">
             Under the current normal-return model, only about 1% of trading days would be expected to lose more than roughly {badDayPct.toFixed(1)}%. This is a model estimate, not a guarantee.
-          </p>
+          </p></Explanation>
         </article>
       </div>
     </section>
