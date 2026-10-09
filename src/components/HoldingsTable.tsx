@@ -20,7 +20,7 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
   const [newTicker, setNewTicker] = useState('');
   const [newSymbol, setNewSymbol] = useState<ListedSymbol | null>(null);
   const [riskProxyTicker, setRiskProxyTicker] = useState('');
-  const [newInvestment, setNewInvestment] = useState('25000');
+  const [newInvestment, setNewInvestment] = useState('');
 
   const [editingTicker, setEditingTicker] = useState<string | null>(null);
   const [editingAmount, setEditingAmount] = useState<string>('');
@@ -102,7 +102,10 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
         {!isAdding ? (
           <button
             type="button"
-            onClick={() => setIsAdding(true)}
+            onClick={() => {
+              setNewTicker(''); setNewSymbol(null); setRiskProxyTicker(''); setNewInvestment('');
+              setIsAdding(true);
+            }}
             disabled={positions.length >= 30}
             className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center space-x-1.5 transition-colors"
           >
@@ -126,7 +129,7 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
                 aria-label="Investment amount"
                 value={newInvestment}
                 onChange={e => setNewInvestment(e.target.value)}
-                placeholder="25000"
+                placeholder="Amount"
                 className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded pl-5 pr-2 py-1.5 w-28 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono-nums"
               />
             </div>
