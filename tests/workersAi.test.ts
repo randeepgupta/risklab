@@ -66,16 +66,34 @@ for (const response of ['not JSON', {}, {...scenario, factorShocks: {equityShock
 }
 
 const quotaEnv = {...env, AI: {run: async () => {throw new Error('quota exceeded: private provider details');}}};
-for (const path of ['/api/gemini/parse-scenario', '/api/gemini/ask-copilot']) {
-  const fallback = await post(path, {prompt: '2008 crash', question: 'Explain risk', portfolio,
-    riskMetrics: {totalValue: 10000, riskContributions: [null]}}, quotaEnv);
-  assert.equal(fallback.status, 200);
-  assert.equal(fallback.data.ai.provider, 'fallback');
-  assert.equal(fallback.data.ai.reason, 'unavailable');
-  assert.ok(!JSON.stringify(fallback.data).includes('private provider details'));
+const scenarioFallback = await post('/api/gemini/parse-scenario', {prompt: '2008 crash'}, quotaEnv);
+assert.equal(scenarioFallback.status, 200);
+assert.equal(scenarioFallback.data.ai.provider, 'fallback');
+
+for (const [failureEnv, reason] of [
+  [quotaEnv, 'quota_exceeded'],
+  [{...env, AI: {run: async () => ({response: ''})}}, 'service_error'],
+  [{...env, AI: {run: async () => {throw new Error('AI response timed out');}}}, 'timeout'],
+  [{ASSETS: assets}, 'not_configured'],
+] as const) {
+  const unavailable = await post('/api/gemini/ask-copilot', {question: 'Explain risk'}, failureEnv);
+  assert.equal(unavailable.status, 503);
+  assert.equal(unavailable.data.code, 'AI_UNAVAILABLE');
+  assert.equal(unavailable.data.reason, reason);
+  assert.equal(unavailable.data.answer, undefined, 'No summary without consent');
+  assert.ok(!JSON.stringify(unavailable.data).includes('private provider details'));
 }
-assert.equal((await post('/api/gemini/ask-copilot', {question: 'Risk?'}, {...env,
-  AI: {run: async () => ({response: ''})}})).data.ai.provider, 'fallback');
+for (const fallbackEnv of [env, quotaEnv, {ASSETS: assets}]) {
+  const summary = await post('/api/gemini/ask-copilot', {question: 'Explain risk', mode: 'rule_based',
+    riskMetrics: {totalValue: 10000, riskContributions: [null]}}, fallbackEnv);
+  assert.equal(summary.status, 200);
+  assert.equal(summary.data.ai.provider, 'fallback');
+  assert.equal(summary.data.ai.reason, 'requested');
+  assert.ok(summary.data.answer.includes('10,000'));
+}
+assert.equal(calls, 2, 'Explicit summary must bypass AI inference');
+assert.equal((await post('/api/gemini/ask-copilot', {question: 'Risk?', mode: 'invalid'}, env)).status, 400);
+assert.equal((await post('/api/gemini/ask-copilot', {question: ' ', mode: 'rule_based'}, env)).status, 400);
 
 const boundedEnv = {...env, AI: {run: async () => ({response: {...scenario,
   factorShocks: {...scenario.factorShocks, equityShockPct: -999, rateChangeBps: 9999}}})}};

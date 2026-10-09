@@ -37,60 +37,66 @@ export const HedgingLabView: React.FC<HedgingLabViewProps> = ({
     if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
   }, [messages, isLoadingCopilot]);
 
-  const handleSendMessage = async (queryText?: string) => {
+  const [fallbackOffer, setFallbackOffer] = useState<{question: string; reason?: string; cached?: AiCopilotMessage} | null>(null);
+  const [requestError, setRequestError] = useState('');
+  const [loadingMode, setLoadingMode] = useState<'ai' | 'rule_based'>('ai');
+
+  const handleSendMessage = async (queryText?: string, mode: 'ai' | 'rule_based' = 'ai', appendUser = true) => {
     const text = queryText || inputQuery;
     if (!text.trim() || isLoadingCopilot) return;
-
     if (queryText) copilotRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'});
-
-    const userMsg: AiCopilotMessage = {
-      id: 'user_' + Date.now(),
-      sender: 'user',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      text,
-    };
-
-    setMessages(prev => [...prev, userMsg]);
-    setInputQuery('');
+    if (appendUser) {
+      setMessages(prev => [...prev, {id: 'user_' + Date.now(), sender: 'user',
+        timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}), text}]);
+      setInputQuery('');
+    }
+    setFallbackOffer(null);
+    setRequestError('');
+    setLoadingMode(mode);
     setIsLoadingCopilot(true);
-
     try {
       const res = await fetch('/api/gemini/ask-copilot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: text,
-          portfolio: positions,
-          riskMetrics: metrics,
-        }),
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({question: text, portfolio: positions, riskMetrics: metrics, mode}),
       });
-
-      if (!res.ok) throw new Error('API request failed');
       const data = await res.json();
-
-      const botMsg: AiCopilotMessage = {
-        id: 'bot_' + Date.now(),
-        sender: 'assistant',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        text: data.answer || 'No response generated.',
-        ai: data.ai ?? {provider: 'fallback', label: 'Legacy copilot service'},
-      };
-
+      if (!res.ok) {
+        if (res.status === 400 || res.status === 413) {
+          setRequestError(res.status === 413 ? 'This request is too large. Please shorten your question.' : 'Please enter a question between 1 and 2,000 characters.');
+          return;
+        }
+        if (mode === 'ai') {
+          setFallbackOffer({question: text, reason: data.reason});
+          return;
+        }
+        throw new Error('Summary unavailable');
+      }
+      if (typeof data.answer !== 'string' || !data.answer.trim()) throw new Error('Empty answer');
+      const botMsg: AiCopilotMessage = {id: 'bot_' + Date.now(), sender: 'assistant',
+        timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}),
+        text: data.answer, ai: data.ai};
+      // Older deployments may still send fallback automatically. Wait for consent to display it.
+      if (mode === 'ai' && data.ai?.provider === 'fallback') {
+        setFallbackOffer({question: text, cached: botMsg});
+        return;
+      }
       setMessages(prev => [...prev, botMsg]);
-    } catch (err) {
-      console.error('Copilot error:', err);
-      // Fallback
-      const fallbackMsg: AiCopilotMessage = {
-        id: 'bot_' + Date.now(),
-        sender: 'assistant',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        text: `### Copilot unavailable
-
-The AI explanation service is not available right now. RiskLab will not invent a portfolio-specific answer. You can still use the deterministic risk metrics, stress scenarios, and the sector and asset-group breakdown below.`,
-      };
-      setMessages(prev => [...prev, fallbackMsg]);
+    } catch {
+      if (mode === 'ai') setFallbackOffer({question: text});
+      else setRequestError('The rule-based summary is unavailable. Please try again.');
     } finally {
       setIsLoadingCopilot(false);
+    }
+  };
+
+  const acceptFallback = () => {
+    if (!fallbackOffer || isLoadingCopilot) return;
+    if (fallbackOffer.cached) {
+      const summary = {...fallbackOffer.cached, ai: {provider: 'fallback' as const, reason: 'requested' as const, label: 'Rule-based summary'}};
+      setMessages(prev => [...prev, summary]);
+      setFallbackOffer(null);
+    } else {
+      void handleSendMessage(fallbackOffer.question, 'rule_based', false);
     }
   };
 
@@ -118,7 +124,7 @@ The AI explanation service is not available right now. RiskLab will not invent a
         </div>
 
         {/* Message Feed */}
-        <div ref={feedRef} className="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
+        <div ref={feedRef} className="min-h-0 flex-1 overflow-y-auto py-4 space-y-4 pr-1">
           {messages.map(msg => {
             const isUser = msg.sender === 'user';
             return (
@@ -161,11 +167,24 @@ The AI explanation service is not available right now. RiskLab will not invent a
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               </div>
               <span className="font-mono-nums animate-pulse">
-                RiskLab Copilot analyzing portfolio factor exposures...
+                {loadingMode === 'ai' ? 'AI is reviewing your portfolio…' : 'Preparing rule-based summary…'}
               </span>
             </div>
           )}
         </div>
+
+        {fallbackOffer && <div role="alert" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-slate-200">
+          <p className="font-semibold">AI is not available. Would you like a rule-based summary?</p>
+          {fallbackOffer.reason === 'quota_exceeded' && <p className="mt-1 text-slate-400">The AI service reported a usage limit.</p>}
+          {fallbackOffer.reason === 'timeout' && <p className="mt-1 text-slate-400">The AI service took too long to respond.</p>}
+          {fallbackOffer.reason === 'not_configured' && <p className="mt-1 text-slate-400">AI is not configured on this deployment.</p>}
+          <div className="mt-2 flex flex-wrap gap-3">
+            <button type="button" onClick={acceptFallback} className="font-semibold text-emerald-300">Use rule-based summary</button>
+            <button type="button" onClick={() => handleSendMessage(fallbackOffer.question, 'ai', false)} className="text-sky-300">Retry AI</button>
+            <button type="button" onClick={() => setFallbackOffer(null)} className="text-slate-400">Not now</button>
+          </div>
+        </div>}
+        {requestError && <p role="alert" className="py-2 text-xs text-amber-300">{requestError}</p>}
 
         {/* Quick prompt pills */}
         <div className="flex flex-wrap items-center gap-1.5 pt-2 pb-2 border-t border-slate-800/80 text-[11px]">

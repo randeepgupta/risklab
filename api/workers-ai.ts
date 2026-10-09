@@ -60,3 +60,12 @@ export async function generateAi(env: Env, system: string, user: string, json: b
     if (timer) clearTimeout(timer);
   }
 }
+
+// Return a bounded reason without exposing provider response details.
+export function copilotUnavailable(error?: unknown) {
+  const message = error instanceof Error ? error.message.toLowerCase() : '';
+  const reason = !error ? 'not_configured'
+    : /quota|rate.limit|429|limit exceeded/.test(message) ? 'quota_exceeded'
+    : /timed out|timeout/.test(message) ? 'timeout' : 'service_error';
+  return {code: 'AI_UNAVAILABLE', error: 'AI is not available right now.', reason};
+}

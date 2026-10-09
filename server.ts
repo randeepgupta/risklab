@@ -1,3 +1,4 @@
+import {copilotUnavailable} from './api/workers-ai';
 import {buildSectorExposure} from './src/utils/sectorExposure';
 import express from 'express';
 import http from 'http';
@@ -201,14 +202,18 @@ You MUST respond with valid JSON matching the following structure:
 // AI Risk Copilot conversational endpoint
 app.post('/api/gemini/ask-copilot', async (req, res) => {
   try {
-    const { question, portfolio, riskMetrics, currentScenario } = req.body;
-    if (!question || typeof question !== 'string') {
-      return res.status(400).json({ error: 'Question is required' });
+    const { question, portfolio, riskMetrics, currentScenario, mode } = req.body;
+    if (typeof question !== 'string' || !question.trim() || question.length > 2000) {
+      return res.status(400).json({ error: 'Enter a question between 1 and 2,000 characters.' });
     }
 
-    const ai = getGeminiClient();
-    if (!ai) {
-      // Deterministic portfolio-specific response if Gemini is not configured.
+    if (mode !== undefined && mode !== 'ai' && mode !== 'rule_based') {
+      return res.status(400).json({error: 'Invalid Copilot mode.'});
+    }
+    const ai = mode === 'rule_based' ? null : getGeminiClient();
+    if (!ai && mode !== 'rule_based') return res.status(503).json(copilotUnavailable());
+    if (mode === 'rule_based') {
+      // A deterministic summary is produced only when explicitly requested.
       const totalVal = Number.isFinite(riskMetrics?.totalValue)
         ? `$${Math.round(riskMetrics.totalValue).toLocaleString()}`
         : 'Unavailable';
@@ -219,7 +224,7 @@ app.post('/api/gemini/ask-copilot', async (req, res) => {
         ? `$${Math.round(riskMetrics.var95_1d).toLocaleString()}`
         : 'Unavailable';
       const topRisk = Array.isArray(riskMetrics?.riskContributions)
-        ? [...riskMetrics.riskContributions]
+        ? riskMetrics.riskContributions.filter((item: any) => item && typeof item.ticker === 'string')
             .sort((a: any, b: any) => Math.abs(b.percentRiskContribution || 0) - Math.abs(a.percentRiskContribution || 0))
             .slice(0, 2)
             .map((item: any) => `${item.ticker} (${((item.percentRiskContribution || 0) * 100).toFixed(1)}% of modeled volatility risk)`)
@@ -227,6 +232,7 @@ app.post('/api/gemini/ask-copilot', async (req, res) => {
         : '';
 
       return res.json({
+        ai: {provider: 'fallback', reason: 'requested', label: 'Rule-based summary'},
         answer: `### RiskLab Quantitative Copilot
 
 Based on your active **${totalVal}** portfolio:
@@ -264,12 +270,13 @@ Treat hedge outputs as illustrative unless live option-chain data and a tradable
       },
     });
 
-    return res.json({
-      answer: response.text || 'Unable to generate analysis at this time.',
-    });
+    if (!response.text?.trim()) throw new Error('AI returned an empty answer');
+    return res.json({answer: response.text.slice(0, 12000),
+      ai: {provider: 'gemini', model: 'gemini-3.8-flash', label: 'Gemini · Google AI'}});
   } catch (error: any) {
-    console.error('Error in ask-copilot:', error);
-    return res.status(500).json({ error: error.message || 'Failed to query Risk Copilot' });
+    const unavailable = copilotUnavailable(error);
+    console.error('Copilot AI request failed:', unavailable.reason);
+    return res.status(503).json(unavailable);
   }
 });
 
