@@ -1,7 +1,7 @@
 {
   "name": "RiskLab Desktop — Financial Risk & Scenario Engine",
   "short_name": "RiskLab",
-  "description": "Desktop financial risk engine, Monte Carlo simulation, VaR/CVaR, and options hedging.",
+  "description": "Desktop financial risk engine, Monte Carlo simulation, VaR/CVaR, and risk-management education.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b0f19",
@@ -51,8 +51,8 @@
       "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Options Hedging Lab",
-      "short_name": "Hedging Lab",
+      "name": "Manage risk",
+      "short_name": "Manage risk",
       "url": "/?tab=hedging",
       "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
     }

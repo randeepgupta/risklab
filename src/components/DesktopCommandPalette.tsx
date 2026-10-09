@@ -94,8 +94,8 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
     {
       id: 'tab-hedging',
       category: 'Analysis Views',
-      label: 'Advanced Lab',
-      description: 'Optional technical tools for hedging and AI-assisted analysis',
+      label: 'Manage risk',
+      description: 'Explore risk-management categories and their tradeoffs',
       icon: <Sparkles className="w-4 h-4 text-cyan-400" />,
       shortcut: '⌘4',
       action: () => {

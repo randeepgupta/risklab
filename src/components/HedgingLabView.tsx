@@ -1,27 +1,37 @@
 import {Explanation} from './Explanation';
 import React, { useState } from 'react';
-import {
-  ShieldCheck,
-  Sparkles,
-  Send,
-  HelpCircle,
-  TrendingDown,
-  Percent,
-  DollarSign,
-  Layers,
-  ArrowRight,
-  Bot,
-  User,
-  CheckCircle2,
-  RefreshCw,
-} from 'lucide-react';
-import {
-  PortfolioPosition,
-  PortfolioRiskMetrics,
-  HedgingStrategy,
-  AiCopilotMessage,
-} from '../types/risk';
-import { calculateHedgingStrategies } from '../utils/quantEngine';
+import {ShieldCheck, Layers, PieChart, Wallet, RefreshCw, Bot, User, Send, ChevronDown} from 'lucide-react';
+import {PortfolioPosition, PortfolioRiskMetrics, AiCopilotMessage} from '../types/risk';
+
+const MarkdownReply = React.lazy(() => import('./MarkdownReply').then(module => ({default: module.MarkdownReply})));
+
+const RISK_CATEGORIES = [
+  {title: 'Spread your investments', icon: Layers, summary: 'Reduce reliance on one company, sector, or market.',
+    how: 'Diversification spreads exposure across investments that do not all move together. Check fund holdings too: several ETFs may own the same companies.',
+    tradeoff: 'Diversification cannot prevent losses when markets fall broadly.',
+    question: 'Explain diversification and overlapping holdings in my portfolio. Distinguish what the available data shows from what needs fund holdings data.',
+    source: 'https://www.investor.gov/introduction-investing/getting-started/asset-allocation'},
+  {title: 'Limit concentration', icon: PieChart, summary: 'Keep one position from dominating your risk.',
+    how: 'Review both allocation and risk contribution. A small allocation to a volatile holding can contribute a large share of portfolio risk.',
+    tradeoff: 'Reducing exposure may limit gains; selling may incur taxes. New contributions can also change the mix without selling.',
+    question: 'Which holdings contribute the most modeled risk relative to their allocation? Explain the concentration tradeoffs without recommending trades.',
+    source: 'https://syndication.finra.org/content/concentrate-concentration-risk-0'},
+  {title: 'Balance asset types', icon: ShieldCheck, summary: 'Explore a mix of stocks, bonds, and cash.',
+    how: 'An allocation across different asset types can change the portfolio’s exposure to market movements. The suitable mix depends on goals, time horizon, and risk tolerance.',
+    tradeoff: 'Bonds can lose value from interest-rate or credit changes. Stocks and bonds can fall together; lower-risk assets may offer less growth.',
+    question: 'Explain the risk tradeoffs of stocks, bonds, and cash for a portfolio like mine. Do not assume any allocation guarantees protection.',
+    source: 'https://www.investor.gov/additional-resources/general-resources/publications-research/info-sheets/beginners-guide-asset'},
+  {title: 'Keep a cash buffer', icon: Wallet, summary: 'Separate near-term spending from market risk.',
+    how: 'Money reserved for near-term expenses can reduce the need to sell investments during a downturn. Cash protects liquidity; it does not offset losses in other holdings.',
+    tradeoff: 'Inflation can erode purchasing power, and cash may miss market gains. Cash products differ in liquidity and protection.',
+    question: 'Explain how a cash buffer can reduce forced selling, and its inflation and opportunity-cost tradeoffs. Do not prescribe a cash percentage.',
+    source: 'https://www.investor.gov/additional-resources/general-resources/publications-research/info-sheets/beginners-guide-asset'},
+  {title: 'Rebalance over time', icon: RefreshCw, summary: 'Bring a drifting portfolio back to your chosen mix.',
+    how: 'Compare current allocations with your intended targets. Rebalancing can use new contributions or changes to existing holdings.',
+    tradeoff: 'Selling may trigger taxes and trading costs. Rebalancing manages exposure; it does not guarantee higher returns.',
+    question: 'Explain how rebalancing manages risk and how new contributions can help. I have not supplied target allocations, so do not invent them.',
+    source: 'https://www.investor.gov/introduction-investing/getting-started/asset-allocation'},
+];
 
 interface HedgingLabViewProps {
   positions: PortfolioPosition[];
@@ -32,11 +42,7 @@ export const HedgingLabView: React.FC<HedgingLabViewProps> = ({
   positions,
   metrics,
 }) => {
-  const hedgingStrategies: HedgingStrategy[] = React.useMemo(() => {
-    return calculateHedgingStrategies(metrics.totalValue, metrics.annualizedVolatility);
-  }, [metrics.totalValue, metrics.annualizedVolatility]);
-
-  const [selectedStrategyId, setSelectedStrategyId] = useState<string>('collar_90_110');
+  const [copilotOpen, setCopilotOpen] = useState(false);
 
   // AI Copilot Chat state
   const [messages, setMessages] = useState<AiCopilotMessage[]>([
@@ -44,22 +50,12 @@ export const HedgingLabView: React.FC<HedgingLabViewProps> = ({
       id: 'welcome',
       sender: 'assistant',
       timestamp: 'Just now',
-      text: `Hello! I am your **RiskLab Quantitative Copilot**.
-
-I analyze your active **$${metrics.totalValue.toLocaleString()}** portfolio (annualized volatility **${(
-        metrics.annualizedVolatility * 100
-      ).toFixed(1)}%**, 1-day 95% VaR **-$${Math.round(
-        metrics.var95_1d
-      ).toLocaleString()}**).
-
-You can ask me "what if" stress questions, or ask how to hedge specific drawdowns.`,
+      text: 'Ask about your portfolio’s risk or the tradeoffs behind these categories. I explain the model; I do not execute trades or guarantee protection.',
     },
   ]);
 
   const [inputQuery, setInputQuery] = useState<string>('');
   const [isLoadingCopilot, setIsLoadingCopilot] = useState<boolean>(false);
-
-  const selectedStrategy = hedgingStrategies.find(s => s.id === selectedStrategyId) || hedgingStrategies[0];
 
   const handleSendMessage = async (queryText?: string) => {
     const text = queryText || inputQuery;
@@ -72,6 +68,7 @@ You can ask me "what if" stress questions, or ask how to hedge specific drawdown
       text,
     };
 
+    setCopilotOpen(true);
     setMessages(prev => [...prev, userMsg]);
     setInputQuery('');
     setIsLoadingCopilot(true);
@@ -108,7 +105,7 @@ You can ask me "what if" stress questions, or ask how to hedge specific drawdown
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         text: `### Copilot unavailable
 
-The AI explanation service is not available right now. RiskLab will not invent a portfolio-specific answer. You can still use the deterministic risk metrics, stress scenarios, and illustrative hedge calculations shown in this Advanced lab.`,
+The AI explanation service is not available right now. RiskLab will not invent a portfolio-specific answer. You can still use the deterministic risk metrics, stress scenarios, and the educational risk-management categories on this page.`,
       };
       setMessages(prev => [...prev, fallbackMsg]);
     } finally {
@@ -118,161 +115,30 @@ The AI explanation service is not available right now. RiskLab will not invent a
 
   return (
     <div className="space-y-6">
-      {/* 1. Header & Strategy Selector */}
-      <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-slate-800">
-          <div>
-            <div className="flex items-center space-x-2">
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
-              <h2 className="text-lg font-bold text-white">
-                Advanced lab: can I reduce my downside?
-              </h2>
+      <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">Manage risk</p>
+        <h2 className="mt-1 text-2xl font-bold text-white">How could I reduce my risk?</h2>
+        <p className="mt-2 text-sm text-slate-400">Explore the approaches and their tradeoffs.</p>
+        <Explanation label="Risk reduction and hedging">These categories manage exposure, concentration, and liquidity. A direct hedge uses an offsetting position to address a particular risk. None of these approaches guarantees a portfolio value or prevents every loss.</Explanation>
+      </section>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {RISK_CATEGORIES.map(category => <article key={category.title} className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+          <div className="flex items-center gap-2"><category.icon className="h-5 w-5 text-emerald-400" /><h3 className="text-base font-bold text-white">{category.title}</h3></div>
+          <p className="mt-2 text-sm text-slate-400">{category.summary}</p>
+          <Explanation label="How it helps and tradeoffs">
+            <p><strong className="text-slate-200">How it helps:</strong> {category.how}</p>
+            <p className="mt-2"><strong className="text-slate-200">Tradeoff:</strong> {category.tradeoff}</p>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <a href={category.source} target="_blank" rel="noreferrer" className="text-sky-300 underline">Learn more</a>
+              <button type="button" disabled={isLoadingCopilot} onClick={() => handleSendMessage(category.question)} className="rounded-md border border-emerald-500/30 px-3 py-2 text-emerald-300 hover:bg-emerald-500/10 disabled:opacity-50">Ask about my portfolio</button>
             </div>
-            <p className="mt-1 text-xs text-slate-400">Illustrative strategies · No live option prices</p><Explanation label="About this lab"><p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              This optional lab explores ways investors sometimes pay to reduce losses. It is intentionally more technical than the core RiskLab experience and is illustrative only — real hedges require live option prices and careful sizing.
-            </p></Explanation>
-          </div>
-
-          <div className="flex items-center space-x-2 text-xs font-mono-nums">
-            <span className="text-slate-400">Underlying Volatility:</span>
-            <span className="font-bold text-amber-400">{(metrics.annualizedVolatility * 100).toFixed(1)}%</span>
-            <span className="text-slate-600">•</span>
-            <span className="text-slate-400">Model RF Assumption:</span>
-            <span className="text-slate-200">4.2%</span>
-          </div>
-        </div>
-
-        {/* Strategy Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-          {hedgingStrategies.map(strat => {
-            const isSelected = selectedStrategyId === strat.id;
-
-            return (
-              <div
-                key={strat.id}
-                onClick={() => setSelectedStrategyId(strat.id)}
-                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
-                  isSelected
-                    ? 'bg-slate-800/80 border-emerald-500/60 ring-1 ring-emerald-500/30 shadow-sm shadow-emerald-500/10'
-                    : 'bg-slate-950/40 border-slate-800 hover:border-slate-700'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-mono-nums px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold">
-                      {strat.strategyType.replace('_', ' ')}
-                    </span>
-                    {isSelected && (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    )}
-                  </div>
-                  <h4 className="text-sm font-bold text-white mt-2 leading-tight">
-                    {strat.name}
-                  </h4>
-                  <Explanation label="Why this strategy?">{strat.rationale}</Explanation>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-1 text-xs font-mono-nums">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Upfront Cost:</span>
-                    <span className={strat.costDollar <= 0 ? 'text-emerald-400 font-bold' : 'text-slate-200 font-semibold'}>
-                      {strat.costDollar < 0
-                        ? `$${Math.round(Math.abs(strat.costDollar)).toLocaleString()} credit (${Math.abs(strat.costPct).toFixed(1)}%)`
-                        : strat.costDollar === 0
-                          ? '$0'
-                          : `$${Math.round(strat.costDollar).toLocaleString()} (${strat.costPct.toFixed(1)}%)`}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Synthetic Floor*:</span>
-                    <span className="text-rose-400 font-semibold">
-                      {strat.protectionFloorDollar !== undefined
-                        ? `$${Math.round(strat.protectionFloorDollar).toLocaleString()}`
-                        : 'None'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Selected Strategy Deep Dive */}
-        {selectedStrategy && (
-          <div className="mt-5 p-4 rounded-xl bg-slate-950/70 border border-slate-800">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800/80">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <span className="text-emerald-400">Selected Hedge Architecture:</span>
-                <span>{selectedStrategy.name}</span>
-              </h4>
-              <span className="text-xs font-mono-nums text-slate-400">
-                Horizon: {selectedStrategy.expiryMonths} Months • Theoretical portfolio-level model
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 text-xs">
-              <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800/60">
-                <div className="text-slate-400 font-semibold uppercase text-[10px]">1. Hedge Premium Cost</div>
-                <div className="text-lg font-bold text-white font-mono-nums mt-1">
-                  {selectedStrategy.costDollar < 0
-                    ? `$${Math.round(Math.abs(selectedStrategy.costDollar)).toLocaleString()} credit`
-                    : `$${Math.round(selectedStrategy.costDollar).toLocaleString()}`}
-                  <span className="text-xs text-slate-400 font-normal ml-1">
-                    ({selectedStrategy.costPct.toFixed(1)}% of capital)
-                  </span>
-                </div>
-                <div className="text-[11px] text-slate-400 mt-1">
-                  {selectedStrategy.annualizedCostPct < 0
-                    ? `Annualized modeled credit: ~${Math.abs(selectedStrategy.annualizedCostPct).toFixed(1)}%/yr`
-                    : `Annualized modeled carry: ~${selectedStrategy.annualizedCostPct.toFixed(1)}%/yr`}
-                </div>
-              </div>
-
-              <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800/60">
-                <div className="text-slate-400 font-semibold uppercase text-[10px]">2. Synthetic Downside Floor*</div>
-                <div className="text-lg font-bold text-emerald-400 font-mono-nums mt-1">
-                  {selectedStrategy.protectionFloorDollar !== undefined
-                    ? `$${Math.round(selectedStrategy.protectionFloorDollar).toLocaleString()}`
-                    : 'No fixed floor'}
-                </div>
-                <div className="text-[11px] text-slate-400 mt-1">
-                  {selectedStrategy.protectionFloorDollar !== undefined
-                    ? 'Strike-level payoff floor before premium, and only for the modeled synthetic underlying; a real proxy hedge can diverge because of basis risk.'
-                    : 'This strategy reduces exposure but does not guarantee a minimum portfolio value.'}
-                </div>
-              </div>
-
-              <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800/60">
-                <div className="text-slate-400 font-semibold uppercase text-[10px]">3. Opportunity Cost</div>
-                <div className="text-lg font-bold text-amber-400 font-mono-nums mt-1">
-                  {selectedStrategy.maxUpsideCapPct ? `Capped at +${selectedStrategy.maxUpsideCapPct}%` : 'Unlimited Upside'}
-                </div>
-                <div className="text-[11px] text-slate-400 mt-1">
-                  {selectedStrategy.maxUpsideCapPct ? 'Upside above cap is surrendered to finance put' : '100% of bull market upside retained'}
-                </div>
-              </div>
-            </div>
-
-            {/* Trade-offs list */}
-            <div className="mt-3 pt-3 border-t border-slate-800/60">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                Key Strategic Trade-Offs:
-              </span>
-              <ul className="mt-1.5 space-y-1 text-xs text-slate-300">
-                {selectedStrategy.tradeOffs.map((to, i) => (
-                  <li key={i} className="flex items-start space-x-2">
-                    <span className="text-emerald-400 mt-0.5">•</span>
-                    <span>{to}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
+          </Explanation>
+        </article>)}
       </div>
 
-      {/* 2. Conversational AI Risk Copilot */}
-      <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 shadow-sm flex flex-col h-[520px]">
+      <details open={copilotOpen} onToggle={event => setCopilotOpen(event.currentTarget.open)} className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+        <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-white"><ChevronDown className="h-4 w-4" />Ask RiskLab Copilot</summary>
+      <div className="mt-4 flex flex-col h-[520px]">
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <div className="flex items-center space-x-2">
             <div className="h-7 w-7 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
@@ -283,7 +149,7 @@ The AI explanation service is not available right now. RiskLab will not invent a
                 RiskLab Conversational Copilot
               </h3>
               <p className="text-[11px] text-slate-400">
-                Ask qualitative or quantitative portfolio risk & hedging questions.
+                Ask about portfolio risk and tradeoffs.
               </p>
             </div>
           </div>
@@ -312,14 +178,14 @@ The AI explanation service is not available right now. RiskLab will not invent a
                   className={`max-w-[85%] sm:max-w-[75%] rounded-xl px-4 py-3 border ${
                     isUser
                       ? 'bg-emerald-600 text-white border-emerald-500'
-                      : 'bg-slate-950/80 text-slate-200 border-slate-800/80 whitespace-pre-wrap font-mono-nums'
+                      : 'bg-slate-950/80 text-slate-200 border-slate-800/80 min-w-0'
                   }`}
                 >
                   <div className="text-[10px] text-slate-400 mb-1 opacity-75">{msg.timestamp}</div>
                   {msg.ai && <div className="mb-2 text-sm font-semibold text-emerald-300">
                     {msg.ai.label}{msg.ai.provider === 'fallback' && msg.ai.reason === 'unavailable' ? ' · AI unavailable right now' : ''}
                   </div>}
-                  <div>{msg.text}</div>
+                  {isUser ? <div className="whitespace-pre-wrap">{msg.text}</div> : <React.Suspense fallback={<p className="text-slate-400">Formatting response…</p>}><MarkdownReply text={msg.text} /></React.Suspense>}
                 </div>
                 {isUser && (
                   <div className="h-7 w-7 rounded bg-slate-800 text-slate-300 border border-slate-700 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -354,17 +220,17 @@ The AI explanation service is not available right now. RiskLab will not invent a
           </button>
           <button
             type="button"
-            onClick={() => handleSendMessage("I don't want to lose more than 20% in that scenario. What hedge could reduce my downside?")}
+            onClick={() => handleSendMessage("What are the tradeoffs of reducing concentration in my portfolio?")}
             className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700/60"
           >
-            &ldquo;I don&apos;t want to lose &gt;20%. What hedge works?&rdquo;
+            &ldquo;How can I manage concentration?&rdquo;
           </button>
           <button
             type="button"
-            onClick={() => handleSendMessage('Why does NVDA contribute so much more risk than SPY even with half the money?')}
+            onClick={() => handleSendMessage('Which holding contributes the most modeled risk, and why?')}
             className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700/60"
           >
-            &ldquo;Why does NVDA dominate risk over SPY?&rdquo;
+            &ldquo;What drives my portfolio risk?&rdquo;
           </button>
         </div>
 
@@ -395,6 +261,7 @@ The AI explanation service is not available right now. RiskLab will not invent a
           </button>
         </form>
       </div>
+      </details>
     </div>
   );
 };
