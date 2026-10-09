@@ -217,8 +217,8 @@ export interface AiCopilotMessage {
 }
 
 export interface AiResponseSource {
-  provider: 'cloudflare' | 'fallback';
+  provider: 'cloudflare' | 'gemini' | 'fallback';
   model?: string;
   label: string;
-  reason?: 'not_configured' | 'unavailable';
+  reason?: 'not_configured' | 'unavailable' | 'requested';
 }

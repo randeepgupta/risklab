@@ -15,7 +15,7 @@ export const MonteCarloView: React.FC<MonteCarloViewProps> = ({
   volatility,
   volatilitySource = 'Portfolio risk model',
 }) => {
-  const [expectedReturn, setExpectedReturn] = useState(DEFAULT_FUTURE_ANNUAL_RETURN);
+  const [expectedReturn, setExpectedReturn] = useState<number>(DEFAULT_FUTURE_ANNUAL_RETURN);
   const [horizonYears, setHorizonYears] = useState<number>(10);
   const [simCount, setSimCount] = useState<number>(2500);
   const [runId, setRunId] = useState<number>(1);

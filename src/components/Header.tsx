@@ -35,7 +35,7 @@ const tabs = [
   { id: 'risk' as const, label: 'Overview', icon: BarChart3 },
   { id: 'stress' as const, label: 'What If?', icon: ShieldAlert },
   { id: 'monte-carlo' as const, label: 'Future', icon: TrendingUp },
-  { id: 'hedging' as const, label: 'Advanced', icon: Sparkles },
+  { id: 'hedging' as const, label: 'Copilot', icon: Sparkles },
 ];
 
 export const Header: React.FC<HeaderProps> = ({
