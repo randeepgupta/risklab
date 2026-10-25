@@ -188,7 +188,7 @@ export const MonteCarloView: React.FC<MonteCarloViewProps> = ({
       <section className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 shadow-sm">
         <div className="pb-4 border-b border-slate-800">
           <h3 className="text-base font-bold text-white">Range of simulated outcomes</h3>
-          <p className="mt-1 text-xs text-slate-400">The darker band contains the middle 50% of simulations. The lighter band contains 90% of simulations.</p>
+          <p className="mt-1 text-xs text-slate-400">At each year, the darker band shows the middle 50% of simulated values and the lighter band shows 90%. A path can move outside these bands during the projection.</p>
         </div>
 
         <div className="pt-4 overflow-x-auto">

@@ -1,123 +1,64 @@
-import type { StressScenario } from '../types/risk';
+import type { ScenarioDriver, ScenarioDrivers, StressScenario } from '../types/risk';
+import { SCENARIO_DRIVER_LIMITS } from './measuredScenario';
 
-export type ScenarioFactors = NonNullable<StressScenario['factorShocks']>;
-export type EditableFactor = Exclude<keyof ScenarioFactors, 'vixSpikePct'>;
-
-// Match the bounds used by the scenario API. Volatility is context, not spot P&L.
-export const FACTOR_LIMITS: Record<EditableFactor, { min: number; max: number }> = {
-  equityShockPct: { min: -80, max: 50 },
-  rateChangeBps: { min: -1000, max: 1000 },
-  techShockPct: { min: -90, max: 100 },
-  semiShockPct: { min: -95, max: 100 },
-};
-
-const NEUTRAL_FACTORS: ScenarioFactors = {
-  equityShockPct: 0,
-  rateChangeBps: 0,
-  techShockPct: 0,
-  semiShockPct: 0,
-  vixSpikePct: 0,
-};
+export type EditableFactor = ScenarioDriver;
+export const FACTOR_LIMITS = SCENARIO_DRIVER_LIMITS;
 
 export interface ScenarioControlsState {
-  // The selected template is immutable and only used for reset / baseline values.
   source: StressScenario;
-  factors: ScenarioFactors;
-  usingFactors: boolean;
-  // Only explicit user edits belong here, never automatically inferred zeroes.
+  factors: ScenarioDrivers;
   tickerOverrides: Record<string, number>;
   edited: boolean;
 }
-
 export type ScenarioControlsAction =
   | { type: 'load'; scenario: StressScenario }
-  | { type: 'factor'; key: EditableFactor; value: number }
+  | { type: 'factor'; key: ScenarioDriver; value: number }
+  | { type: 'toggle-factor'; key: ScenarioDriver; enabled: boolean }
   | { type: 'ticker'; ticker: string; value: number }
   | { type: 'reset-ticker'; ticker: string }
   | { type: 'use-factors' }
   | { type: 'reset' };
 
 export function createScenarioControls(source: StressScenario): ScenarioControlsState {
-  const copy: StressScenario = {
-    ...source,
-    tickerShocks: { ...source.tickerShocks },
-    ...(source.factorShocks ? { factorShocks: { ...source.factorShocks } } : {}),
-  };
-  return {
-    source: copy,
-    factors: { ...NEUTRAL_FACTORS, ...copy.factorShocks },
-    usingFactors: false,
-    tickerOverrides: {},
-    edited: false,
-  };
+  const copy = { ...source, drivers: { ...source.drivers }, tickerShocks: { ...source.tickerShocks } };
+  return { source: copy, factors: { ...copy.drivers }, tickerOverrides: { ...copy.tickerShocks }, edited: false };
 }
 
-export function scenarioControlsReducer(
-  state: ScenarioControlsState,
-  action: ScenarioControlsAction,
-): ScenarioControlsState {
+export function scenarioControlsReducer(state: ScenarioControlsState, action: ScenarioControlsAction): ScenarioControlsState {
   switch (action.type) {
-    case 'load':
-      return createScenarioControls(action.scenario);
-    case 'reset':
-      return createScenarioControls(state.source);
+    case 'load': return createScenarioControls(action.scenario);
+    case 'reset': return createScenarioControls(state.source);
     case 'factor': {
-      if (!Number.isFinite(action.value)) return state;
-      const limits = FACTOR_LIMITS[action.key];
-      const value = Math.max(limits.min, Math.min(limits.max, action.value));
-      return {
-        ...state,
-        factors: { ...state.factors, [action.key]: value },
-        // Replace fixed preset shocks on the first market edit. Explicit user
-        // overrides are preserved and visibly marked in the holdings controls.
-        usingFactors: true,
-        edited: true,
-      };
+      const { min, max } = FACTOR_LIMITS[action.key];
+      if (!Number.isFinite(action.value) || action.value < min || action.value > max) return state;
+      return { ...state, factors: { ...state.factors, [action.key]: action.value }, edited: true };
+    }
+    case 'toggle-factor': {
+      const factors = { ...state.factors };
+      if (action.enabled) factors[action.key] = 0;
+      else delete factors[action.key];
+      return { ...state, factors, edited: true };
     }
     case 'ticker': {
       const ticker = action.ticker.trim().toUpperCase();
-      if (!/^[A-Z0-9.\-]{1,10}$/.test(ticker) || !Number.isFinite(action.value)) return state;
-      return {
-        ...state,
-        tickerOverrides: {
-          ...state.tickerOverrides,
-          [ticker]: Math.max(-1, Math.min(3, action.value)),
-        },
-        edited: true,
-      };
+      if (!/^[A-Z0-9.\-]{1,10}$/.test(ticker) || !Number.isFinite(action.value) || action.value < -1 || action.value > 3) return state;
+      return { ...state, tickerOverrides: { ...state.tickerOverrides, [ticker]: action.value }, edited: true };
     }
     case 'reset-ticker': {
-      const ticker = action.ticker.trim().toUpperCase();
-      if (!Object.prototype.hasOwnProperty.call(state.tickerOverrides, ticker)) return state;
       const tickerOverrides = { ...state.tickerOverrides };
-      delete tickerOverrides[ticker];
-      return {
-        ...state,
-        tickerOverrides,
-        edited: state.usingFactors || Object.keys(tickerOverrides).length > 0,
-      };
+      delete tickerOverrides[action.ticker.toUpperCase()];
+      return { ...state, tickerOverrides, edited: true };
     }
-    case 'use-factors':
-      return { ...state, usingFactors: true, tickerOverrides: {}, edited: true };
-    default:
-      return state;
+    case 'use-factors': return { ...state, tickerOverrides: {}, edited: true };
+    default: return state;
   }
 }
 
-// This is the one scenario both the inputs and calculation render from.
-// No effect copies the selected template back over a user's slider movement.
 export function scenarioFromControls(state: ScenarioControlsState): StressScenario {
   if (!state.edited) return state.source;
   return {
-    ...state.source,
-    id: `${state.source.id}-edited`,
-    name: `Custom: ${state.source.name}`,
-    description: 'Using your edited assumptions. Estimates update as you adjust the controls.',
-    category: 'custom',
-    factorShocks: state.usingFactors ? state.factors : state.source.factorShocks,
-    tickerShocks: {
-      ...(state.usingFactors ? {} : state.source.tickerShocks),
-      ...state.tickerOverrides,
-    },
+    ...state.source, id: `${state.source.id}-edited`, name: `Custom: ${state.source.name}`,
+    description: 'Using your edited market changes and explicit holding overrides.', category: 'custom',
+    drivers: { ...state.factors }, tickerShocks: { ...state.tickerOverrides },
   };
 }

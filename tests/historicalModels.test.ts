@@ -26,6 +26,7 @@ assert.throws(()=>calibrateHistoricalModels({SPY:spy,TEST:twice.map((p,i)=>i===2
 const position=(ticker:string):PortfolioPosition=>({ticker,name:ticker,assetClass:'Other',investment:50000,weight:.5,price:0,historicalModel:models[ticker]});
 const positions=[position('SPY'),position('TEST')];
 const metrics=calculatePortfolioRisk(positions);
+assert.equal(Object.hasOwn(metrics,'durationSensitivity'),false,'historical portfolios must not export preset rate duration');
 assert.ok(Math.abs(metrics.portfolioBeta-1.5)<1e-10);
 assert.ok(Math.abs(metrics.annualizedVolatility-models.SPY.volatility*1.5)<1e-10);
 assert.deepEqual(buildPositionCorrelationMatrix(positions).tickers,['SPY','TEST']);
@@ -33,7 +34,7 @@ assert.ok(Math.abs(metrics.riskContributions.reduce((sum,r)=>sum+r.percentRiskCo
 const flatMetrics=calculatePortfolioRisk([position('FLAT')]);
 assert.equal(flatMetrics.annualizedVolatility,0);
 assert.ok(flatMetrics.riskContributions.every(r=>Number.isFinite(r.percentRiskContribution)));
-const stress=executeStressTest([position('TEST')],{id:'x',name:'x',description:'',category:'custom',tickerShocks:{},factorShocks:{equityShockPct:-10,rateChangeBps:0,vixSpikePct:0,techShockPct:-10,semiShockPct:-10}});
+const stress=executeStressTest([position('TEST')],{id:'x',name:'x',description:'',category:'custom',tickerShocks:{},drivers:{market:-10}});
 assert.ok(Math.abs(stress.attributions[0].shockPct+.2)<1e-10);
 const snapshot:RiskSnapshot={capturedAt:'now',asOf:spy.at(-1)!.date,dates:spy.map(p=>p.date),symbols:{SPY:{values:spy.map(p=>p.adjClose),price:123,priceAsOf:spy.at(-1)!.date},TEST:{values:twice.map(p=>p.adjClose),price:234,priceAsOf:twice.at(-1)!.date}}};
 const updated=applyHistoricalSnapshot([{...position('TEST'),riskProxyTicker:'SPY'}],snapshot);
@@ -70,6 +71,30 @@ for (const [ticker,symbol] of Object.entries(committed.symbols)) {
   const metrics=calculatePortfolioRisk(calibrated);
   assert.ok(Number.isFinite(metrics.annualizedVolatility)&&metrics.annualizedVolatility>=0,ticker);
   assert.ok(Number.isFinite(metrics.portfolioBeta),ticker);
+}
+assert.equal(committed.treasuryYields?.series,'DGS10');
+assert.equal(committed.treasuryYields?.units,'percent');
+assert.equal(committed.treasuryYields?.values.length,committed.dates.length);
+for (const ticker of ['SPY','QQQM','SMH','IEF','AVGO']) {
+  const [holding]=applyHistoricalSnapshot([{ticker,name:ticker,assetClass:'Other',investment:100000,weight:1,price:0}],committed);
+  assert.ok(holding.historicalModel?.scenarioModel, `${ticker}: committed data supplies measured sensitivities`);
+  const drivers = ticker==='IEF' ? {treasury10y:100} : ticker==='AVGO' ? {semiconductors:-20} : {market:-20};
+  const result=executeStressTest([holding],{id:'committed',name:'Committed check',description:'',category:'custom',drivers,tickerShocks:{}});
+  assert.ok(Number.isFinite(result.percentLoss));
+  if (ticker==='SPY') assert.ok(Math.abs(result.percentLoss-20)<1e-8,'SPY must follow its own explicit market shock');
+  if (ticker==='IEF') assert.ok(result.dollarLoss>0,'measured Treasury response must replace zero duration fallback');
+  if (ticker==='AVGO') assert.ok(result.dollarLoss>0,'measured semiconductor response must replace zero sector fallback');
+}
+const quality=committed.dataQuality as any;
+assert.equal(quality.analysisCutoff,committed.asOf);
+assert.ok(Object.keys(quality.quarantined).length>0);
+for (const ticker of Object.keys(quality.quarantined)) {
+  assert.equal(committed.exclusions?.[ticker],'unverified_extreme_return');
+  assert.equal(committed.symbols[ticker],undefined);
+}
+for (const [ticker,symbol] of Object.entries(committed.symbols)) {
+  const observations=symbol.values.filter((value):value is number=>value!==null);
+  for(let i=1;i<observations.length;i++) assert.ok(Math.abs(observations[i]/observations[i-1]-1)<quality.extremeReturnThreshold,`${ticker}: extreme unverified interval must not enter models`);
 }
 console.log(`Committed public snapshot checks passed (${Object.keys(committed.symbols).length} holdings).`);
 

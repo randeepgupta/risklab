@@ -21,17 +21,18 @@ The Worker name must match `name` in `wrangler.json`. Select Deploy. Cloudflare 
 
 The Wrangler configuration declares an `AI` binding. Cloudflare deploys it with the Worker, so no Gemini API key or browser-side credential is required. RiskLab uses `@cf/meta/llama-3.3-70b-instruct-fp8-fast` through `env.AI.run()`.
 
-- What If submits the narrative and bounded portfolio context to the model in JSON-schema mode. All five factor shocks are checked and clamped before the deterministic risk engine calculates outcomes.
-- The copilot receives bounded holdings and modeled risk metrics, then returns an explanation. It has no live price feed, news access, or trading tools.
-- Each result identifies Cloudflare AI or a rule-based fallback. Inference errors, quota exhaustion, empty answers, and malformed scenario JSON use the labeled fallback. A failed browser/API request leaves the previous scenario unchanged.
-- Requests are limited to 50 KB, prompt/question text to 2,000 characters, and inference output to 1,200 tokens for scenarios or 800 for explanations. The response timeout is 25 seconds; it does not guarantee cancellation of in-flight inference.
-- The Free Workers plan includes a daily Workers AI allocation (currently 10,000 neurons across the account). On Free, exhausted quota makes AI requests fail; RiskLab uses its fallback. On a paid plan, usage over the included allocation can incur charges. This app does not implement an account-wide spend cap or persistent abuse-rate limiting.
+- What If uses the same explicit numeric-shock parser as local development. It does not call Workers AI or consume inference tokens. Ambiguous inputs receive a clarification error; no fixed selloff fallback is calculated.
+- The copilot receives bounded holdings and modeled risk metrics, then returns an explanation. It has no live price feed, news access, or trading tools. AI failures are labeled unavailable; an opt-in deterministic summary remains available.
+- AI requests are limited to 50 KB, question text to 2,000 characters, and explanation output to 800 tokens. The response timeout is 25 seconds; it does not guarantee cancellation of in-flight inference.
+- Workers AI quotas and billing depend on the configured account plan. The app does not implement an account-wide spend cap or persistent abuse-rate limiting.
 
-Check `/api/health` after deployment: `aiConfigured: true` means the binding exists, not that an inference has succeeded. Submit a unique What If prompt and confirm the result says **Llama 3.3 · Cloudflare AI**, then ask a copilot question in **Advanced**. A **Rule-based fallback** result indicates an unconfigured or unavailable provider, not successful AI.
+Check `/api/health` after deployment: `aiConfigured: true` means the binding exists,
+not that an inference has succeeded. Try a numeric What If prompt and an ambiguous
+prompt to verify the parser, then ask a copilot question and check its source label.
 
 If Cloudflare asks you to enable Workers AI or accept model/service terms, complete that in your own account. No plan upgrade is required for this model's free allocation. Avoid enabling a paid plan unless desired.
 
-Run `npm run test:ai` for mocked integration checks. Those tests do not prove live provider access or model quality. The Express local-development server retains its legacy Gemini/fallback implementation; use the Worker preview to test Cloudflare AI.
+Run `npm run test:ai` for mocked integration checks. Those tests do not prove live provider access or model quality. Express uses the same scenario parser, and retains Gemini for local copilot explanations. Use the Worker preview to test Cloudflare AI.
 
 Sources: https://developers.cloudflare.com/workers-ai/configuration/bindings/, https://developers.cloudflare.com/workers-ai/features/json-mode/, https://developers.cloudflare.com/workers-ai/models/llama-3.3-70b-instruct-fp8-fast/, and https://developers.cloudflare.com/workers-ai/platform/pricing/.
 
@@ -54,7 +55,7 @@ npx wrangler dev
 
 - Open `/api/health`; expect JSON with `status: "ok"`.
 - Build or load a sample portfolio and inspect risk metrics.
-- Run a preset scenario and a natural-language scenario; confirm the AI source label.
+- Run an explicit numeric scenario and an ambiguous request; confirm the latter asks for clarification.
 - Open the copilot and verify an AI response, or a clearly labeled fallback if quota is exhausted.
 - Refresh the page and check install/PWA assets.
 - Request an unknown `/api/` path; expect JSON with HTTP 404.

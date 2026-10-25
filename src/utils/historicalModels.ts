@@ -1,11 +1,12 @@
 import type { HistoricalRiskModel } from '../types/risk';
+import {calibrateScenarioModel, type DailyYield} from './measuredScenario';
 export interface DailyPrice {date: string; adjClose: number; close: number}
 const mean = (values: number[]) => values.reduce((sum, value) => sum + value, 0) / values.length;
 function covariance(a: number[], b: number[]) {
   const ma = mean(a), mb = mean(b);
   return a.reduce((sum, value, i) => sum + (value - ma) * (b[i] - mb), 0) / (a.length - 1);
 }
-export function calibrateHistoricalModels(series: Record<string, DailyPrice[]>, tickers: string[], capturedAt: string): Record<string, HistoricalRiskModel> {
+export function calibrateHistoricalModels(series: Record<string, DailyPrice[]>, tickers: string[], capturedAt: string, treasuryYields?: DailyYield[]): Record<string, HistoricalRiskModel> {
   const allTickers = [...new Set([...tickers, 'SPY'])];
   const returns: Record<string, Map<string, number>> = {};
   for (const ticker of allTickers) {
@@ -32,8 +33,11 @@ export function calibrateHistoricalModels(series: Record<string, DailyPrice[]>, 
   if (variances.SPY <= 1e-15) throw new Error('Benchmark history has no usable variation.');
   return Object.fromEntries(tickers.map(ticker => {
     const variance = variances[ticker];
+    let scenario: Pick<HistoricalRiskModel, 'scenarioModel'|'scenarioUnavailableReason'>;
+    try {scenario={scenarioModel:calibrateScenarioModel(series,ticker,treasuryYields)};}
+    catch(error) {scenario={scenarioUnavailableReason:error instanceof Error?error.message:'Historical scenario response unavailable.'};}
     return [ticker, {provider: 'DoltHub', source: 'https://www.dolthub.com/repositories/post-no-preference/stocks', license: 'CC BY-SA 4.0', startDate: intervals[0].slice(0, 10), endDate: intervals.at(-1)!.slice(11),
-      capturedAt, observations: intervals.length, volatility: Math.sqrt(variance * 252),
+      ...scenario, capturedAt, observations: intervals.length, volatility: Math.sqrt(variance * 252),
       beta: covariance(values[ticker], values.SPY) / variances.SPY,
       annualizedMeanReturn: mean(values[ticker]) * 252,
       correlations: Object.fromEntries(tickers.map(other => [other, ticker === other ? 1 : variance <= 1e-15 || variances[other] <= 1e-15 ? 0

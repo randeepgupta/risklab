@@ -21,7 +21,7 @@ from unittest.mock import patch
 with tempfile.TemporaryDirectory() as temp:
     directory = pathlib.Path(temp)/'symbols.json'
     directory.write_text(json.dumps({'symbols':[{'ticker':'ZZZZ'},{'ticker':'A'},{'ticker':'ZZZZ'}]}))
-    assert module.load_tickers(directory) == ['A','SPY','ZZZZ']
+    assert module.load_tickers(directory) == ['A','QQQM','SMH','SPY','ZZZZ']
 # API row caps cannot silently cut off large daily downloads.
 with patch.object(module, 'PAGE_SIZE', 2), patch.object(module, 'query', side_effect=[[{'x':1},{'x':2}],[{'x':3}]]) as request:
     assert module.paged_query('SELECT x FROM prices', 'x') == [{'x':1},{'x':2},{'x':3}]
@@ -75,24 +75,32 @@ print('Aggregate completeness and benchmark interval checks passed.')
 with tempfile.TemporaryDirectory() as temp:
     directory = pathlib.Path(temp)/'directory.json'
     target = pathlib.Path(temp)/'historical-snapshot.json'
-    covered = ['SPY']+[f'T{i}' for i in range(160)]
-    directory.write_text(json.dumps({'capturedAt':'test', 'symbols':[{'ticker':t} for t in covered+['NEW','MISSING','STALE','INVALID']]}))
+    covered = sorted(module.REQUIRED_REFERENCES)+[f'T{i}' for i in range(160)]
+    directory.write_text(json.dumps({'capturedAt':'test', 'symbols':[{'ticker':t} for t in covered+['NEW','MISSING','STALE','INVALID','SPIKE']]}))
     def fake_query(sql, **kwargs):
-        return [{'date':'2026-10-23'}] if 'SELECT date FROM' in sql else [{'count':0}] if 'COUNT(*)' in sql else []
+        if 'DOLT_HASHOF' in sql: return [{'revision':'0'*32}]
+        if 'SELECT date FROM' in sql: return [{'date':'2026-10-23'}]
+        if 'MAX(ex_date)' in sql: return [{'latest':'2026-10-23'}]
+        return [{'count':0}] if 'COUNT(*)' in sql else []
+    def fake_treasury(dates):
+        return {'series':'DGS10','source':'fixture','units':'percent','values':[4+i*.0001 for i in range(len(dates))]}
     def fake_day(day):
         rows = [{'date':str(day), 'act_symbol':t, 'close':100+(day.toordinal()%9)} for t in covered]
-        rows += [{'date':str(day), 'act_symbol':'INVALID', 'close':0}]
+        rows += [{'date':str(day), 'act_symbol':'INVALID', 'close':0}, {'date':str(day),'act_symbol':'SPIKE','close':1000 if str(day)=='2026-02-02' else 100}]
         if str(day) > '2026-09-01': rows += [{'date':str(day),'act_symbol':'NEW','close':100}]
         if str(day) < '2026-10-01': rows += [{'date':str(day),'act_symbol':'STALE','close':100}]
         return rows
     argv = ['refresh','--directory',str(directory),'--output',str(target),'--workers','1']
-    with patch.object(sys, 'argv', argv), patch.object(module, 'query', side_effect=fake_query), patch.object(module, 'download_day', side_effect=fake_day):
+    with patch.object(sys, 'argv', argv), patch.object(module, 'query', side_effect=fake_query), patch.object(module, 'download_day', side_effect=fake_day), patch.object(module, 'load_treasury_yields', side_effect=fake_treasury):
         with patch('builtins.print'):
             module.main()
     manifest = json.loads(target.read_text())
-    assert manifest['coverage']['covered'] == 161
-    assert manifest['coverage']['requested'] == 165
-    assert manifest['exclusions'] == {'NEW':'insufficient_history','MISSING':'no_source_history','STALE':'stale_history','INVALID':'invalid_price'}
+    assert manifest['coverage']['covered'] == 163
+    assert manifest['coverage']['requested'] == 168
+    assert manifest['exclusions'] == {'NEW':'insufficient_history','MISSING':'no_source_history','STALE':'stale_history','INVALID':'invalid_price','SPIKE':'unverified_extreme_return'}
+    assert manifest['dataQuality']['quarantined']['SPIKE']['return'] == 9
+    assert manifest['sourceRevision'] == '0'*32
+    assert manifest['treasuryYields']['units'] == 'percent'
     previous = target.read_bytes()
     with patch.object(sys, 'argv', argv), patch.object(module, 'query', side_effect=OSError('source down')):
         try:
@@ -105,7 +113,7 @@ with tempfile.TemporaryDirectory() as temp:
     inflated = {**manifest, 'coverage':{**manifest['coverage'], 'covered':1000}}
     target.write_text(json.dumps(inflated))
     previous = target.read_bytes()
-    with patch.object(sys, 'argv', argv), patch.object(module, 'query', side_effect=fake_query), patch.object(module, 'download_day', side_effect=fake_day):
+    with patch.object(sys, 'argv', argv), patch.object(module, 'query', side_effect=fake_query), patch.object(module, 'download_day', side_effect=fake_day), patch.object(module, 'load_treasury_yields', side_effect=fake_treasury):
         try:
             with patch('builtins.print'):
                 module.main()
@@ -133,3 +141,69 @@ assert dividends == {('GOOD','2026-01-02'):1.25}
 assert splits == {('GOOD','2026-01-02'):2}
 assert invalid == {'BAD_DIV','BAD_SPLIT'}
 print('Invalid corporate-action isolation checks passed.')
+
+# A new master revision must never reuse a response cached for an older commit.
+import io, urllib.parse
+with tempfile.TemporaryDirectory() as temp:
+    calls = []
+    def public_response(url, **kwargs):
+        calls.append(url)
+        return io.StringIO(json.dumps({'query_execution_status':'Success','rows':[{'value':len(calls)}]}))
+    with patch.object(module.tempfile,'gettempdir',return_value=temp), patch.object(module.urllib.request,'urlopen',side_effect=public_response), patch.object(module,'SOURCE_REVISION','a'*32):
+        assert module.query('SELECT close FROM ohlcv') == [{'value':1}]
+        assert module.query('SELECT close FROM ohlcv') == [{'value':1}]
+        module.SOURCE_REVISION = 'b'*32
+        assert module.query('SELECT close FROM ohlcv') == [{'value':2}]
+        assert len(calls) == 2
+        assert "AS OF '"+'b'*32+"'" in urllib.parse.parse_qs(urllib.parse.urlparse(calls[-1]).query)['q'][0]
+print('Immutable-revision cache isolation checks passed.')
+
+# Observed action dates are conservative screening inputs, never a claimed
+# completeness watermark. A lagged feed caps the analysis date; a missing feed fails.
+cutoff, lag = module.analysis_cutoff('2026-10-23', {'dividend':'2026-10-16','split':'2026-10-16'})
+assert cutoff == '2026-10-16' and lag == {'dividend':5,'split':5}
+assert module.analysis_cutoff('2026-10-23', {'dividend':'2026-10-23','split':'2026-10-23'})[0] == '2026-10-23'
+try:
+    module.analysis_cutoff('2026-10-23', {'dividend':None,'split':'2026-10-23'})
+    raise AssertionError('Missing corporate-action feeds must fail')
+except ValueError:
+    pass
+
+# These two issuer-confirmed reverse splits must not become +5,000% daily gains.
+splits = {}
+reviewed = module.apply_split_overrides(splits, '2026-10-01', '2026-10-23')
+assert all(row['source'].startswith('https://') for row in reviewed)
+assert splits[('AMTD','2026-10-19')] == 1/60
+assert splits[('DKI','2026-10-22')] == 1/50
+for ticker,date,before,after in [('AMTD','2026-10-19',.4979,28.5),('DKI','2026-10-22',.0399,2.25)]:
+    values = module.adjusted_index(ticker, [('2026-10-16',before),(date,after)], {}, splits)
+    assert not module.extreme_returns(values)
+try:
+    module.apply_split_overrides({('AMTD','2026-10-19'):2}, '2026-10-01','2026-10-23')
+    raise AssertionError('Contradictory source adjustments must fail')
+except ValueError:
+    pass
+raw = {'2026-01-01':100,'2026-01-02':200}
+assert module.extreme_returns(raw)[0]['return'] == 1
+assert raw['2026-01-02'] == 200, 'genuine extreme moves must be reviewed, never silently capped'
+print('Corporate-action lag, reviewed overrides, and quarantine checks passed.')
+
+# Treasury yields retain percent units and nulls; no interpolation across holidays.
+dates = [(module.dt.date(2026,1,1)+module.dt.timedelta(days=i)).isoformat() for i in range(130)]
+text = 'observation_date,DGS10\n'+'\n'.join(f"{date},{'' if i==20 else 4+i*.001}" for i,date in enumerate(dates))
+yields = module.parse_treasury_csv(text, dates, 'fixture')
+assert yields['values'][20] is None and yields['values'][0] == 4
+assert yields['units'] == 'percent' and yields['observations'] == 129
+assert len(yields['values']) == len(dates)
+for invalid in [text.replace('4.0','nan',1), 'DATE,UNKNOWN\n2026-01-01,4']:
+    try:
+        module.parse_treasury_csv(invalid, dates, 'fixture')
+        raise AssertionError('Malformed Treasury source must fail')
+    except ValueError:
+        pass
+try:
+    module.parse_treasury_csv('observation_date,DGS10\n2026-01-01,4\n', dates, 'fixture')
+    raise AssertionError('Insufficient Treasury source must fail')
+except ValueError:
+    pass
+print('Official Treasury CSV validation and alignment checks passed.')

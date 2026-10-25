@@ -2,7 +2,7 @@
 
 RiskLab can run as one Cloudflare Worker serving the React app and `/api/*` endpoints. The quantitative engine continues to run in the browser; no database is required for the current app.
 
-See [Cloudflare deployment guide](docs/cloudflare-deployment.md) for GitHub auto-deploy settings and local deployment instructions. The Cloudflare deployment uses Workers AI (Llama 3.3) for scenario interpretation and the copilot, with visibly labeled deterministic fallbacks. The existing Express development and Node deployment commands remain available.
+See [Cloudflare deployment guide](docs/cloudflare-deployment.md) for GitHub auto-deploy settings and local deployment instructions. The Cloudflare deployment uses Workers AI (Llama 3.3) for the copilot. What If parses explicit market moves without AI inference. The existing Express development and Node deployment commands remain available.
 
 # RiskLab
 
@@ -10,7 +10,7 @@ See [Cloudflare deployment guide](docs/cloudflare-deployment.md) for GitHub auto
 
 RiskLab is a full-stack TypeScript application for exploring portfolio risk through deterministic quantitative models and an AI-assisted scenario interface. The core design principle is simple:
 
-> **AI interprets the question. Deterministic code calculates the risk.**
+> **Explicit assumptions and historical data drive calculations. AI helps explain the results.**
 
 The application combines portfolio analytics, parametric VaR / Expected Shortfall, factor stress testing, Monte Carlo simulation, correlation analysis, risk attribution, and illustrative hedge modeling in a desktop-style React interface.
 
@@ -36,10 +36,10 @@ See [`docs/product-requirements.md`](docs/product-requirements.md) for the MVP p
 | Overview | Plain-English risk level, diversification, biggest risk driver, holdings, and optional advanced metrics |
 | Diversification | Plain-English view of which holdings move together, powered by the correlation model |
 | Risk metrics | 95%/99% parametric VaR and Expected Shortfall across multiple horizons |
-| What If? | Preset and natural-language market scenarios with estimated portfolio impact |
+| What If? | Explicit market and holding changes with joint historical sensitivity estimates |
 | Future | Long-term simulated outcome ranges with technical Monte Carlo details available on demand |
 | Advanced lab | Optional illustrative protective puts, put spreads, collars, beta overlays, and AI copilot |
-| AI copilot | Natural-language scenario parsing and risk explanations using Cloudflare Workers AI (hosted) or legacy Gemini (local) |
+| AI copilot | Risk explanations using Cloudflare Workers AI (hosted) or Gemini (local) |
 | Desktop/PWA UX | Installable PWA, keyboard shortcuts, exportable JSON/CSV snapshots |
 
 ## Architecture
@@ -48,9 +48,10 @@ See [`docs/product-requirements.md`](docs/product-requirements.md) for the MVP p
 flowchart LR
     UI[React / TypeScript UI] --> API[Worker / Express API]
     UI --> QE[Quant Engine]
-    API --> AI[Workers AI / Gemini Parser]
-    AI --> B[Bounded Scenario Inputs]
+    API --> B[Explicit shock parser]
     B --> QE
+    HIST[Historical returns + Treasury yields] --> QE
+    API --> AI[Workers AI / Gemini Copilot]
     QE --> R[Risk Metrics]
     QE --> S[Stress Results]
     QE --> M[Monte Carlo]
@@ -61,7 +62,7 @@ flowchart LR
     H --> UI
 ```
 
-The AI layer does **not** calculate portfolio risk. It converts narrative scenarios into structured, bounded assumptions. The deterministic engine remains the authority for portfolio mathematics.
+What If validates the magnitudes and directions supplied by the user; it asks for clarification instead of guessing crisis returns. The engine estimates holding responses from aligned historical observations. AI copilot explanations do not supply numerical scenario shocks.
 
 More detail: [`docs/architecture.md`](docs/architecture.md)
 
@@ -76,8 +77,7 @@ RiskLab currently implements:
 - Sharpe ratio
 - downside-deviation-based Sortino ratio under the stated normal model
 - parametric VaR and Expected Shortfall at 95% and 99% confidence levels
-- first-order duration sensitivity for fixed-income stress scenarios
-- hierarchical market / technology / semiconductor stress factors
+- joint historical market / Nasdaq-100 / semiconductor / 10-year Treasury sensitivities for stress scenarios
 - Black-Scholes option pricing for illustrative hedge economics
 - geometric Brownian motion for long-horizon simulation
 
@@ -127,7 +127,7 @@ still starts with portfolio setup.
 
 - Node.js 20+
 - npm or Bun
-- Optional: a Gemini API key for AI scenario parsing and the copilot
+- Optional: a Gemini API key for local copilot explanations
 
 ### Install
 
@@ -157,7 +157,7 @@ Then add your key:
 GEMINI_API_KEY=your_key_here
 ```
 
-RiskLab still runs without a Gemini key. AI endpoints fall back to deterministic, portfolio-aware behavior where available.
+RiskLab and What If run without a Gemini key. The copilot labels unavailable AI and offers an opt-in deterministic portfolio summary.
 
 ### Start development server
 
@@ -193,9 +193,9 @@ The focused test suite checks invariants that should hold regardless of portfoli
 - correlation matrix symmetry, unit diagonal, and PSD behavior
 - risk-contribution decomposition
 - VaR / Expected Shortfall ordering
-- fixed-income duration direction under rate shocks
-- ticker-specific shock precedence
-- market / technology / semiconductor factor hierarchy
+- measured Treasury yield and sector response, with aligned intervals
+- explicit ticker-shock precedence, omitted versus zero driver constraints
+- rejection of missing models, singular fits and invalid extrapolations
 - removal of unsupported hedge-floor claims
 - Black-Scholes put-call parity and option delta bounds
 
@@ -237,7 +237,7 @@ risklab/
 
 ## Roadmap
 
-The next major milestone is to replace hardcoded market assumptions with a market-data layer and support arbitrary real-world portfolio tickers. See [`docs/roadmap.md`](docs/roadmap.md).
+Historical calibration now supports thousands of covered holdings and measured scenario sensitivities. Further work includes independent data validation, historical backtesting and richer risk models. See [`docs/roadmap.md`](docs/roadmap.md).
 
 ## Important limitations
 
@@ -286,19 +286,13 @@ indexed daily closing-price records and dividend/split tables to form total-retu
 the latest available year. It checks query completeness, valid closes, source dates, minimum
 history and availability of corporate-action dates. Missing, short or stale symbols are omitted;
 failed refreshes preserve the previous snapshot. Refresh and commit the file when desired;
-there is no runtime upstream price fetch. Optional weekly local scheduling is described below. Repeated generator queries have a
-seven-day temporary cache to permit resuming downloads; remove `risklab-public-data-cache` from
-your system's temporary directory if you need to bypass it for source corrections.
+there is no runtime upstream price fetch. Optional weekly local scheduling is described below. Each refresh pins an immutable Dolt source revision before querying prices and corporate actions. Cached queries are keyed by that revision, so source corrections cannot be hidden behind old responses.
 
 For the selected holdings and SPY benchmark, RiskLab aligns identical daily return intervals,
 requires at least 126 common returns, and calculates sample variance/covariance, annualized
 volatility (252 days), correlations, beta versus SPY, and annualized arithmetic historical mean
-return. The mean supplies the existing simulation/parametric risk drift and is explicitly labeled
-as historical, not a forecast. VaR/CVaR still use the normal-distribution model; this does not
-turn them into empirical historical VaR. Rate duration and sector stress sensitivities remain
-preset assumptions where available; unknown holdings use only their measured market beta in
-factor stress tests, with zero unspecified sector/rate loadings. Closing prices alone do not
-estimate all macroeconomic transmission paths. No live quote or future return is implied.
+return. The mean supplies parametric risk drift and is explicitly labeled as historical, not a forecast. Future uses a separate user-selected growth assumption. VaR/CVaR still use the normal-distribution model; this does not
+turn them into empirical historical VaR. What If jointly fits selected SPY, QQQM and SMH returns and official FRED DGS10 Treasury yield changes to each holding's observed returns. Missing sensitivities prevent a total instead of implying zero impact. See [scenario methodology](docs/scenario-model.md) and [data-quality policy](docs/historical-data-quality.md). Linear relationships do not capture every macroeconomic transmission path. No live quote or future return is implied.
 
 The UI and JSON export preserve provider, observation count, historical window, capture time,
 correlations and last closing-price date. CSV identifies the risk mode and data-through date.
@@ -326,7 +320,7 @@ The batch scans one year of daily prices with one aggregate per day, validating 
 size against the source row count to avoid the public API's 1,000-row cap. Dividend
 and split downloads use explicit pagination below that cap. A full refresh can take several minutes
 or longer depending on source latency. Interrupted runs reuse successfully downloaded
-pages for seven days. Retry the same command to resume. No API key is required.
+pages for seven days within the same immutable source revision. A new revision downloads fresh data. Retry the same command to resume. No API key is required.
 
 ```bash
 npm run refresh:risk-models
@@ -339,16 +333,18 @@ npm run refresh:risk-models -- --output /tmp/risklab-models/historical-snapshot.
 The manifest records `coverage` counts and an `exclusions` reason for every uncovered ticker:
 `no_source_history`, `stale_history`, `insufficient_history` (fewer than 127 closes),
 `invalid_price`, `invalid_corporate_action`, `duplicate_prices`, `missing_corporate_action_price`,
-`invalid_adjusted_history`, or `insufficient_benchmark_overlap`. Some new listings or securities absent from the public dataset
+`invalid_adjusted_history`, `unverified_extreme_return`, or `insufficient_benchmark_overlap`. Some new listings or securities absent from the public dataset
 cannot have a valid own-history model yet. These remain visibly unavailable in the Lab; the batch never substitutes another security's model.
 
 Output is `public/models/historical-snapshot.json` plus content-addressed `history-*.json`
 parts with at most 500 holdings each. All parts are written before atomically replacing the
 manifest. Failed downloads, missing benchmark data, fewer than 150 covered tickers, or a
-coverage drop greater than 10% preserve the current manifest. Old parts remain safe for
+unexplained coverage drop greater than 10% preserve the current manifest. Documented extreme-return quarantines are reported separately from an unexplained source regression. Old parts remain safe for
 clients that already loaded the previous manifest; remove unreferenced parts deliberately
 before committing a refreshed snapshot. Commit the manifest and every referenced part
 together, then run `npm run test:history` and `npm run build`.
+
+The refresh also records corporate-action feed dates, a conservative cutoff policy when those feeds lag prices, reviewed split corrections, and a quarantine for unverified absolute returns of at least 50% between observations. Genuine extreme moves can be excluded pending review. The current snapshot retains October 23, 2026 prices; the Treasury series ends October 22. See [quality and provenance](docs/historical-data-quality.md).
 
 ### Weekly refresh on a local Mac
 

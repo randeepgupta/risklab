@@ -1,3 +1,4 @@
+import {estimateScenario, validateScenarioDrivers} from './measuredScenario';
 import {
   AssetData,
   PortfolioPosition,
@@ -689,7 +690,7 @@ export function calculatePortfolioRisk(
     sharpeRatio,
     sortinoRatio,
     portfolioBeta,
-    durationSensitivity,
+    ...(positions.some(position => position.historicalModel) ? {} : {durationSensitivity}),
     var95_1d: risk95_1d.varDollar,
     var95_1d_pct: risk95_1d.varPct,
     var99_1d: risk99_1d.varDollar,
@@ -825,171 +826,35 @@ export function runMonteCarloSimulation(
   };
 }
 
-// Preset Stress Scenarios
-export const PRESET_SCENARIOS: StressScenario[] = [
-  {
-    id: 'user_mvp_tech_shock',
-    name: 'Tech & Semi Rout (RiskLab MVP Scenario)',
-    description: 'Nasdaq correction with severe semiconductor & EV drawdowns: SPY -18%, QQQM -32%, NVDA -45%, TSLA -40%.',
-    category: 'preset',
-    tickerShocks: {
-      SPY: -0.18,
-      QQQM: -0.32,
-      NVDA: -0.45,
-      TSLA: -0.40,
-    },
-  },
-  {
-    id: 'ai_bubble_burst_rates_cut',
-    name: 'AI Bubble Bursts & Fed Cuts 150 bps',
-    description: 'Datacenter capex freeze causes semiconductor multiple compression, while Fed aggressively slashes rates by 150 bps to avert recession.',
-    category: 'macro_factor',
-    factorShocks: {
-      equityShockPct: -18,
-      rateChangeBps: -150,
-      vixSpikePct: 80,
-      semiShockPct: -45,
-      techShockPct: -32,
-    },
-    tickerShocks: {
-      SPY: -0.16,
-      QQQM: -0.30,
-      NVDA: -0.46,
-      TSLA: -0.35,
-      AAPL: -0.22,
-      MSFT: -0.25,
-      AMD: -0.44,
-      TSM: -0.38,
-      TLT: 0.18, // bonds rally when rates drop!
-      BND: 0.08,
-      GLD: 0.12,
-    },
-  },
-  {
-    id: '2022_stagflation_rate_hike',
-    name: '2022 Inflation & Rate Spike (+300 bps)',
-    description: 'Aggressive monetary tightening and 40-year high inflation crush growth multiples and bond durations simultaneously.',
-    category: 'preset',
-    factorShocks: {
-      equityShockPct: -22,
-      rateChangeBps: 300,
-      vixSpikePct: 50,
-      semiShockPct: -38,
-      techShockPct: -34,
-    },
-    tickerShocks: {
-      SPY: -0.19,
-      QQQM: -0.33,
-      NVDA: -0.50,
-      TSLA: -0.65,
-      AAPL: -0.27,
-      MSFT: -0.29,
-      AMD: -0.55,
-      TLT: -0.31,
-      BND: -0.13,
-      GLD: -0.01,
-      XLE: 0.45, // energy rallied in 2022
-    },
-  },
-  {
-    id: '2020_covid_flash_crash',
-    name: 'March 2020 Liquidity Shock',
-    description: 'Sudden global shutdown triggers a VIX explosion above 80 and broad panic liquidations across all risk assets.',
-    category: 'preset',
-    factorShocks: {
-      equityShockPct: -34,
-      rateChangeBps: -125,
-      vixSpikePct: 300,
-      semiShockPct: -32,
-      techShockPct: -28,
-    },
-    tickerShocks: {
-      SPY: -0.34,
-      QQQM: -0.28,
-      NVDA: -0.32,
-      TSLA: -0.42,
-      AAPL: -0.24,
-      MSFT: -0.26,
-      TLT: 0.16,
-      GLD: -0.04,
-      XLE: -0.52,
-    },
-  },
-  {
-    id: 'geopolitical_taiwan_semi_chokepoint',
-    name: 'Taiwan Strait Semiconductor Crisis',
-    description: 'Severe supply disruption in advanced packaging and wafer fabrication sends semiconductor stocks into a multi-quarter tailspin.',
-    category: 'preset',
-    factorShocks: {
-      equityShockPct: -15,
-      rateChangeBps: -50,
-      vixSpikePct: 120,
-      semiShockPct: -55,
-      techShockPct: -35,
-    },
-    tickerShocks: {
-      SPY: -0.15,
-      QQQM: -0.28,
-      NVDA: -0.55,
-      TSM: -0.65,
-      AMD: -0.50,
-      AAPL: -0.32,
-      TSLA: -0.38,
-      GLD: 0.15,
-      TLT: 0.08,
-    },
-  },
-];
-
 // Stress Test Calculation Engine
 export function executeStressTest(
   positions: PortfolioPosition[],
   scenario: StressScenario
 ): StressTestResult {
   const initialValue = positions.reduce((sum, p) => sum + p.investment, 0);
-
+  const drivers=scenario.drivers??{};
+  const selected=validateScenarioDrivers(drivers);
+  const explicit=Object.entries(scenario.tickerShocks??{});
+  if(!selected.length&&!explicit.length) throw new Error('Specify a supported benchmark/yield change or an explicit holding change. Legacy factor assumptions are unavailable.');
+  const held=new Set(positions.map(p=>p.ticker));
+  for(const [ticker,shock] of explicit) {
+    if(!held.has(ticker)) throw new Error(`${ticker} is not a portfolio holding. Use a supported benchmark driver for indirect effects.`);
+    if(!Number.isFinite(shock)||shock < -1||shock > 3) throw new Error(`${ticker}: a direct holding change must be between -100% and +300%.`);
+  }
+  const modelNotes:string[]=[];
+  const modelDiagnostics: NonNullable<StressTestResult['modelDiagnostics']> = [];
+  if(selected.length) {
+    modelNotes.push('Historical linear response to the selected benchmark and yield changes; this is a conditional estimate, not a forecast.');
+    modelNotes.push('Unspecified drivers are unconstrained, not assumed unchanged.');
+  } else modelNotes.push('Only the explicitly named holdings change; all other holdings are assumed unchanged. Indirect effects are not modeled.');
   const attributions: PositionAttribution[] = positions.map(p => {
-    let shockPct = 0;
-    if (scenario.tickerShocks[p.ticker] !== undefined) {
-      shockPct = scenario.tickerShocks[p.ticker];
-    } else if (scenario.tickerShocks[positionModelTicker(p)] !== undefined) {
-      shockPct = scenario.tickerShocks[positionModelTicker(p)];
-    } else if (scenario.factorShocks) {
-      // Translate hierarchical factor shocks into an estimated asset return.
-      // Sector shocks are treated as absolute scenario levels, so only their
-      // incremental residual versus the broader factor is added. This avoids
-      // counting the same market drawdown multiple times.
-      //
-      // Rate convention follows duration: dP/P ~= -Duration * dYield.
-      // VIX is retained as scenario metadata for future option repricing, but is
-      // not separately subtracted from spot returns because it is strongly
-      // endogenous to the equity shock and would otherwise double-count panic.
-      const meta = positionRiskData(p) || {
-        beta: 1.0,
-        duration: 2.5,
-        semiBeta: 0.2,
-        techBeta: 0.5,
-        vixSensitivity: 0.8,
-      };
-
-      const eqImpact = (meta.beta * scenario.factorShocks.equityShockPct) / 100;
-      const rateImpact = -meta.duration * (scenario.factorShocks.rateChangeBps / 10000);
-
-      const techResidualPct =
-        scenario.factorShocks.techShockPct - scenario.factorShocks.equityShockPct;
-      const semiResidualPct =
-        scenario.factorShocks.semiShockPct - scenario.factorShocks.techShockPct;
-      const techImpact = (meta.techBeta * techResidualPct) / 100;
-      const semiImpact = (meta.semiBeta * semiResidualPct) / 100;
-
-      shockPct = eqImpact + rateImpact + techImpact + semiImpact;
-      // Cap maximum loss at -98%
-      shockPct = Math.max(-0.98, Math.min(3, shockPct));
-    } else {
-      // No explicit ticker or factor shock was supplied for this asset.
-      // Do not invent a loss; leave it unchanged until the scenario defines one.
-      shockPct = 0;
-    }
+    let shockPct:number;
+    if(Object.prototype.hasOwnProperty.call(scenario.tickerShocks??{},p.ticker)) shockPct=scenario.tickerShocks[p.ticker];
+    else if(selected.length) {
+      const estimate=estimateScenario(p.ticker,p.historicalModel?.scenarioModel,drivers);
+      shockPct=estimate.shockPct;
+      modelDiagnostics.push({ticker:p.ticker,observations:estimate.observations,startDate:estimate.startDate,endDate:estimate.endDate,rSquared:estimate.rSquared,extrapolated:estimate.extrapolated});
+    } else shockPct=0;
 
     const stressedValue = Math.max(0, p.investment * (1 + shockPct));
     const dollarLoss = p.investment - stressedValue;
@@ -1004,6 +869,8 @@ export function executeStressTest(
       lossContributionPct: 0, // calculated below
     };
   });
+
+  if (modelDiagnostics.some(item => item.extrapolated)) modelNotes.push('This shock is outside the usual daily variation in the calibration window. The linear response is an extrapolation, and actual stressed relationships may differ.');
 
   const stressedTotal = attributions.reduce((sum, a) => sum + a.stressedValue, 0);
   const totalDollarLoss = initialValue - stressedTotal;
@@ -1034,6 +901,8 @@ export function executeStressTest(
     percentLoss: totalPercentLoss,
     attributions,
     topCulprit,
+    modelNotes,
+    modelDiagnostics,
   };
 }
 

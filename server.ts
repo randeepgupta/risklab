@@ -1,3 +1,4 @@
+import {parseExplicitScenario, ScenarioInputError} from './api/scenario-parser';
 import {copilotUnavailable} from './api/workers-ai';
 import {buildSectorExposure} from './src/utils/sectorExposure';
 import express from 'express';
@@ -26,53 +27,6 @@ function safeText(value: unknown, fallback: string, maxLength: number = 800): st
   return (trimmed || fallback).slice(0, maxLength);
 }
 
-function sanitizeScenarioPayload(payload: any) {
-  const factor = payload?.factorShocks ?? {};
-  const sanitizedImpacts: Record<string, { shockPct: number; reason: string }> = {};
-
-  if (payload?.assetSpecificImpacts && typeof payload.assetSpecificImpacts === 'object') {
-    for (const [rawTicker, rawImpact] of Object.entries(payload.assetSpecificImpacts)) {
-      const ticker = String(rawTicker).trim().toUpperCase();
-      if (!/^[A-Z0-9.\-]{1,10}$/.test(ticker)) continue;
-      const impact = rawImpact as any;
-      sanitizedImpacts[ticker] = {
-        shockPct: clampNumber(impact?.shockPct, -0.99, 0.99, 0),
-        reason: safeText(impact?.reason, 'Model-estimated scenario impact.', 240),
-      };
-    }
-  }
-
-  const vulnerabilities = Array.isArray(payload?.vulnerabilities)
-    ? payload.vulnerabilities
-        .slice(0, 6)
-        .map((item: unknown) => safeText(item, '', 240))
-        .filter(Boolean)
-    : [];
-
-  return {
-    scenarioName: safeText(payload?.scenarioName, 'Custom Stress Scenario', 80),
-    factorShocks: {
-      equityShockPct: clampNumber(factor.equityShockPct, -80, 50, -18),
-      rateChangeBps: clampNumber(factor.rateChangeBps, -1000, 1000, 0),
-      vixSpikePct: clampNumber(factor.vixSpikePct, 0, 500, 60),
-      semiShockPct: clampNumber(factor.semiShockPct, -95, 100, -30),
-      techShockPct: clampNumber(factor.techShockPct, -90, 100, -25),
-    },
-    macroTransmissionExplanation: safeText(
-      payload?.macroTransmissionExplanation,
-      'Scenario translated into bounded factor shocks for deterministic stress testing.',
-      1200
-    ),
-    assetSpecificImpacts: sanitizedImpacts,
-    vulnerabilities,
-    suggestedHedgeAction: safeText(
-      payload?.suggestedHedgeAction,
-      'Consider an illustrative hedge and validate any real trade with live option pricing, beta/delta sizing, and basis-risk analysis.',
-      500
-    ),
-  };
-}
-
 // Initialize Gemini client lazily
 let aiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI | null {
@@ -92,110 +46,19 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Parse natural language "What-If" scenario into quantitative market factors
+// Accept explicit measurable moves. Qualitative narratives require clarification;
+// scenario construction never asks an AI model to invent a market return.
 app.post('/api/gemini/parse-scenario', async (req, res) => {
+  const {prompt, portfolio} = req.body ?? {};
+  if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 2000) {
+    return res.status(400).json({error: 'Enter a scenario between 1 and 2,000 characters.'});
+  }
   try {
-    const { prompt, portfolio } = req.body;
-    if (!prompt || typeof prompt !== 'string') {
-      return res.status(400).json({ error: 'Prompt is required' });
-    }
-
-    const ai = getGeminiClient();
-    if (!ai) {
-      // Fallback deterministic rule-based parsing if no API key is present
-      const lower = prompt.toLowerCase();
-      let eqShock = -18;
-      let rateBps = -150;
-      let vixSpike = 60;
-      let semiShock = -45;
-      let techShock = -30;
-
-      if (lower.includes('bubble') || lower.includes('ai') || lower.includes('semi')) {
-        semiShock = -45;
-        techShock = -32;
-        eqShock = -18;
-      }
-      if (lower.includes('rate') || lower.includes('cut') || lower.includes('fed')) {
-        rateBps = lower.includes('hike') ? 150 : -150;
-      }
-      if (lower.includes('crash') || lower.includes('panic') || lower.includes('2008')) {
-        eqShock = -35;
-        vixSpike = 120;
-      }
-
-      const fallbackImpactCandidates: Record<string, { shockPct: number; reason: string }> = {
-        NVDA: { shockPct: semiShock / 100, reason: 'Rule-based semiconductor factor mapping' },
-        QQQM: { shockPct: techShock / 100, reason: 'Rule-based technology factor mapping' },
-        SPY: { shockPct: eqShock / 100, reason: 'Rule-based broad equity factor mapping' },
-        TSLA: { shockPct: Math.min(-0.1, techShock / 100), reason: 'Rule-based high-beta growth mapping' },
-      };
-      const activeTickers = Array.isArray(portfolio)
-        ? new Set(portfolio.map((p: any) => String(p?.ticker || '').toUpperCase()).filter(Boolean))
-        : null;
-      const fallbackImpacts = Object.fromEntries(
-        Object.entries(fallbackImpactCandidates).filter(([ticker]) => !activeTickers || activeTickers.has(ticker))
-      );
-
-      return res.json({
-        scenarioName: prompt.slice(0, 60),
-        factorShocks: {
-          equityShockPct: eqShock,
-          rateChangeBps: rateBps,
-          vixSpikePct: vixSpike,
-          semiShockPct: semiShock,
-          techShockPct: techShock,
-        },
-        macroTransmissionExplanation: `Rule-based fallback mapped the narrative to broad equity (${eqShock}%), technology (${techShock}%), semiconductor (${semiShock}%), rates (${rateBps} bps), and volatility (+${vixSpike}%) scenario inputs. These are bounded heuristics, not market forecasts.`,
-        assetSpecificImpacts: fallbackImpacts,
-        vulnerabilities: [
-          'High-beta and sector-concentrated holdings may experience larger losses than the broad equity shock.',
-          'Diversification can weaken during broad risk-off periods even when normal-period correlations are lower.',
-        ],
-        suggestedHedgeAction: 'Illustratively compare a protective put, 95/85 put spread, or collar. Any executable hedge should be sized to a tradable proxy using live option prices and portfolio beta/delta.',
-      });
-    }
-
-    const portfolioSummary = Array.isArray(portfolio)
-      ? portfolio.map((p: any) => `${p.ticker}: $${p.investment?.toLocaleString()} (${(p.weight * 100).toFixed(1)}%)`).join(', ')
-      : 'SPY $100K, QQQM $70K, NVDA $50K, TSLA $30K';
-
-    const systemInstruction = `You are an elite quantitative portfolio risk strategist at RiskLab.
-A user will provide a narrative "what if" macroeconomic or market stress scenario (e.g. "AI bubble bursts and Fed cuts rates 150 bps", or "Geopolitical shock spikes crude oil to $130 and causes stagflation").
-Translate this qualitative narrative into estimated quantitative factor shocks and asset price drawdowns.
-The user's active portfolio holdings are: ${portfolioSummary}.
-
-You MUST respond with valid JSON matching the following structure:
-{
-  "scenarioName": "Concise 3-6 word title for the scenario",
-  "factorShocks": {
-    "equityShockPct": number (e.g. -20 for 20% drop),
-    "rateChangeBps": number (e.g. -150 for 150 bps cut, or +100 for 100 bps hike),
-    "vixSpikePct": number (e.g. 75 for 75% spike in VIX),
-    "semiShockPct": number (e.g. -45 for 45% drop in semiconductor equities),
-    "techShockPct": number (e.g. -30 for 30% drop in broad tech)
-  },
-  "macroTransmissionExplanation": "A 2-3 sentence rigorous explanation of how this shock cascades through the financial system.",
-  "assetSpecificImpacts": {
-    "TICKER": { "shockPct": number between -0.99 and +0.99, "reason": "1-sentence driver" }
-  },
-  "vulnerabilities": ["Specific vulnerability 1", "Specific vulnerability 2"],
-  "suggestedHedgeAction": "1-2 sentence recommendation on optimal options hedging strategy (protective put, put spread, or collar)."
-}`;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: `Scenario: "${prompt}"\nPortfolio: ${portfolioSummary}`,
-      config: {
-        systemInstruction,
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const parsed = JSON.parse(response.text?.trim() || '{}');
-    return res.json(sanitizeScenarioPayload(parsed));
-  } catch (error: any) {
-    console.error('Error in parse-scenario:', error);
-    return res.status(500).json({ error: error.message || 'Failed to parse scenario' });
+    return res.json(parseExplicitScenario(prompt, portfolio));
+  } catch (error) {
+    if (error instanceof ScenarioInputError) return res.status(422).json({code: error.code, error: error.message});
+    console.error('Explicit scenario parsing failed.');
+    return res.status(500).json({error: 'Scenario service unavailable. Please retry.'});
   }
 });
 

@@ -458,7 +458,9 @@ export default function App() {
         {positions[0]?.historicalModel && <details className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-xs text-slate-300">
           <summary className="cursor-pointer font-semibold text-emerald-300">Historical risk · Data through {positions[0].historicalModel.endDate} · About this model</summary>
           <p className="mt-1">{positions[0].historicalModel.startDate} to {positions[0].historicalModel.endDate} · {positions[0].historicalModel.observations} matched daily returns · SPY benchmark · Prices as of {positions[0].priceAsOf}</p>
-          <p className="mt-1 text-slate-400">Volatility, correlations and beta use split/dividend-adjusted history. Advanced risk metrics use the historical annualized mean; Future uses a separately selected growth assumption. Neither is a forecast. VaR and simulations retain distribution assumptions; rate and sector stress inputs remain illustrative.</p>
+          <p className="mt-1 text-slate-400">Volatility, correlations and beta use split/dividend-adjusted history. Advanced risk metrics use the historical annualized mean; Future uses a separately selected growth assumption. Neither is a forecast. VaR and simulations retain distribution assumptions. What If estimates joint historical responses to your specified market and 10-year Treasury yield moves; large shocks extrapolate beyond observed daily changes.</p>
+          <p className="mt-1 text-slate-400">The batch quarantines unexplained extreme returns and uses an earlier cutoff when corporate-action feeds lag prices. Public-source errors can remain; the as-of date and coverage may change after quality checks.</p>
+          <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank" rel="noreferrer" className="mt-1 block text-emerald-400 underline">Treasury yields: Federal Reserve H.15 / FRED DGS10</a>
           <a href="https://www.dolthub.com/repositories/post-no-preference/stocks" target="_blank" rel="noreferrer" className="text-emerald-400 underline">Data: post-no-preference/stocks · CC BY-SA 4.0 · RiskLab adjusted snapshot</a>
         </details>}
       </main>

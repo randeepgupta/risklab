@@ -35,10 +35,12 @@ const matrix = buildCorrelationMatrix([proxy.ticker, qqq.ticker], [proxy, qqq].m
 assert.deepEqual(matrix.matrix, buildCorrelationMatrix(['SPY','QQQM']).matrix);
 assert.deepEqual(matrix.tickers, ['VOO','QQQM']);
 const scenario = {id: 'test', name: 'Proxy shock', description: '', category: 'custom' as const, tickerShocks: {SPY: -0.2}};
-assert.equal(executeStressTest([proxy], scenario).attributions[0].shockPct, -0.2);
-assert.equal(executeStressTest([proxy], {...scenario, tickerShocks: {SPY: -0.2, VOO: -0.3}}).attributions[0].shockPct, -0.3);
-const factorScenario = {...scenario, tickerShocks: {}, factorShocks: {equityShockPct: -20, rateChangeBps: 100, vixSpikePct: 0, semiShockPct: -20, techShockPct: -20}};
-assert.equal(executeStressTest([proxy], factorScenario).percentLoss, executeStressTest([spy], factorScenario).percentLoss);
+assert.throws(()=>executeStressTest([proxy], scenario),/not a portfolio holding/,'a proxy ticker must not receive a direct shock intended for a different security');
+assert.equal(executeStressTest([proxy], {...scenario, tickerShocks: {VOO: -0.3}}).attributions[0].shockPct, -0.3);
+const measuredScenario = {...scenario, tickerShocks: {}, drivers:{market:-20}};
+assert.throws(()=>executeStressTest([proxy], measuredScenario),/measured historical scenario response/,'a risk proxy is not measured scenario coverage');
+assert.throws(()=>executeStressTest([spy], {...scenario,tickerShocks:{},factorShocks:{equityShockPct:-20,rateChangeBps:100,vixSpikePct:0,semiShockPct:-20,techShockPct:-20}}),/Legacy factor assumptions/);
+
 const sameProxy = calculatePortfolioRisk([proxy, spy]);
 assert.ok(Math.abs(sameProxy.annualizedVolatility - ASSET_DATABASE.SPY.volatility) < 1e-5, 'same proxy cannot create diversification');
 console.log(`Symbol directory and proxy tests passed (${symbols.length.toLocaleString()} listings).`);

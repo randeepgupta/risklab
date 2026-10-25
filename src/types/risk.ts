@@ -1,3 +1,18 @@
+export type ScenarioDriver = 'market' | 'technology' | 'semiconductors' | 'treasury10y';
+// Equity benchmark moves are percentage points; Treasury yield changes are bps.
+export type ScenarioDrivers = Partial<Record<ScenarioDriver, number>>;
+export interface HistoricalScenarioModel {
+  driverOrder: ScenarioDriver[];
+  covariance: number[][];
+  assetCovariances: number[];
+  assetVariance: number;
+  observations: number;
+  startDate: string;
+  endDate: string;
+  returnUnits: 'percentage_points';
+  treasuryUnits: 'basis_points';
+}
+
 export interface HistoricalRiskModel {
   provider: 'DoltHub';
   source: string;
@@ -10,6 +25,8 @@ export interface HistoricalRiskModel {
   beta: number;
   annualizedMeanReturn: number;
   correlations: Record<string, number>;
+  scenarioModel?: HistoricalScenarioModel;
+  scenarioUnavailableReason?: string;
 }
 
 export interface PortfolioPosition {
@@ -67,7 +84,7 @@ export interface PortfolioRiskMetrics {
   sharpeRatio: number; // assuming risk-free rate
   sortinoRatio: number;
   portfolioBeta: number;
-  durationSensitivity: number;
+  durationSensitivity?: number; // Legacy illustrative portfolios only; unavailable for historical models.
   
   // Value at Risk (Parametric & Historical)
   var95_1d: number;
@@ -144,6 +161,7 @@ export interface StressScenario {
   name: string;
   description: string;
   category: 'preset' | 'macro_factor' | 'custom' | 'ai_generated';
+  drivers?: ScenarioDrivers;
   tickerShocks: Record<string, number>; // e.g. { SPY: -0.18, QQQM: -0.32, NVDA: -0.45, TSLA: -0.40 }
   factorShocks?: {
     equityShockPct: number; // e.g. -20
@@ -172,6 +190,8 @@ export interface StressTestResult {
   percentLoss: number;
   attributions: PositionAttribution[];
   topCulprit: PositionAttribution;
+  modelNotes?: string[];
+  modelDiagnostics?: {ticker:string;observations:number;startDate:string;endDate:string;rSquared:number;extrapolated:boolean}[];
 }
 
 export interface HedgingStrategy {
@@ -194,7 +214,9 @@ export interface HedgingStrategy {
 export interface AiScenarioParseResponse {
   ai?: AiResponseSource;
   scenarioName: string;
-  factorShocks: {
+  drivers: ScenarioDrivers;
+  tickerShocks: Record<string, number>;
+  factorShocks?: {
     equityShockPct: number;
     rateChangeBps: number;
     vixSpikePct: number;
@@ -217,7 +239,7 @@ export interface AiCopilotMessage {
 }
 
 export interface AiResponseSource {
-  provider: 'cloudflare' | 'gemini' | 'fallback';
+  provider: 'cloudflare' | 'gemini' | 'fallback' | 'deterministic';
   model?: string;
   label: string;
   reason?: 'not_configured' | 'unavailable' | 'requested';

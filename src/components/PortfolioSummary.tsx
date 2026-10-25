@@ -102,7 +102,7 @@ export const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({
           </div>
           <div className="mt-3 text-3xl font-black text-white">{diversification.label}</div>
           <Explanation><p className="mt-2 text-xs leading-relaxed text-slate-400">
-            {diversification.detail} The model estimates a {metrics.diversificationBenefitPct.toFixed(1)}% reduction in volatility versus holding the assets independently.
+            {diversification.detail} The model estimates a {metrics.diversificationBenefitPct.toFixed(1)}% reduction in volatility versus the same holdings moving perfectly together.
           </p></Explanation>
         </article>
 

@@ -19,14 +19,14 @@ export const RiskContributionChart: React.FC<RiskContributionChartProps> = ({ co
       <div className="pb-4 border-b border-slate-800">
         <h3 className="text-base font-bold text-white">What is driving your risk?</h3>
         <Explanation label="How to read this chart"><p className="text-xs text-slate-400 mt-1 leading-relaxed">
-          A holding can be a small part of your money but a large part of your portfolio&apos;s ups and downs. Compare how much you own with how much risk it contributes.
+          A holding can be a small part of your money but a large part of your portfolio&apos;s ups and downs. Compare how much you own with how much risk it contributes. Negative contributions offset risk elsewhere; positive contributions can exceed 100%.
         </p></Explanation>
       </div>
 
       <div className="space-y-4 pt-4">
         {sorted.map(item => {
           const weightPct = item.weight * 100;
-          const riskContribPct = Math.max(0, item.percentRiskContribution * 100);
+          const riskContribPct = item.percentRiskContribution * 100;
           const isRiskHeavy = riskContribPct > weightPct * 1.25;
 
           return (
@@ -52,7 +52,7 @@ export const RiskContributionChart: React.FC<RiskContributionChartProps> = ({ co
                 </div>
                 <div className="text-xs text-slate-400">
                   {weightPct.toFixed(1)}% of money <span className="text-slate-600 mx-1">→</span>{' '}
-                  <span className="text-amber-300 font-semibold">{riskContribPct.toFixed(1)}% of risk</span>
+                  <span className="text-amber-300 font-semibold">{riskContribPct.toFixed(1)}% of risk{riskContribPct < 0 ? ' (offset)' : ''}</span>
                 </div>
               </div>
 
@@ -67,8 +67,8 @@ export const RiskContributionChart: React.FC<RiskContributionChartProps> = ({ co
                   <span className="w-16">Risk</span>
                   <div className="flex-1 bg-slate-800/80 rounded-full h-2 overflow-hidden">
                     <div
-                      className={`h-full rounded-full ${isRiskHeavy ? 'bg-amber-400' : 'bg-emerald-400'}`}
-                      style={{ width: `${Math.min(100, riskContribPct)}%` }}
+                      className={`h-full rounded-full ${riskContribPct < 0 ? 'bg-sky-400' : isRiskHeavy ? 'bg-amber-400' : 'bg-emerald-400'}`}
+                      style={{ width: `${Math.min(100, Math.abs(riskContribPct))}%` }}
                     />
                   </div>
                 </div>

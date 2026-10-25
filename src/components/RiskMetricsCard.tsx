@@ -204,15 +204,12 @@ export const RiskMetricsCard: React.FC<RiskMetricsCardProps> = ({ metrics }) => 
             <div className="text-xl font-bold text-amber-400 font-mono-nums">
               {metrics.portfolioBeta.toFixed(2)}x
             </div>
-            <div className="text-[10px] text-slate-500 font-mono-nums">
-              Rate sensitivity: {metrics.durationSensitivity.toFixed(1)}y
-            </div>
           </div>
         </div>
         <div className="text-[10px] text-slate-500 pt-1 border-t border-slate-800/60 flex items-center justify-between">
-          <span>Model Return Assumption:</span>
+          <span>Annualized historical mean:</span>
           <span className="font-mono-nums text-emerald-400 font-semibold">
-            +{(metrics.expectedAnnualReturn * 100).toFixed(1)}% / yr
+            {metrics.expectedAnnualReturn > 0 ? '+' : ''}{(metrics.expectedAnnualReturn * 100).toFixed(1)}% / yr
           </span>
         </div>
       </div>

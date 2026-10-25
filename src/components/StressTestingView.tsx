@@ -17,14 +17,13 @@ interface StressTestingViewProps {
 
 const EXAMPLE_PROMPTS = [
   'What if the stock market falls 20%?',
-  'Technology stocks fall 30% and the Fed cuts interest rates',
-  'What if interest rates rise by 2 percentage points?',
-  'A semiconductor supply crisis sends chip stocks down 40%',
+  'Technology stocks fall 30%',
+  'The 10-year Treasury yield rises by 2 percentage points',
 ];
 
 const EMPTY_SCENARIO: StressScenario = {
   id: 'unsubmitted', name: '', description: '', category: 'custom', tickerShocks: {},
-  factorShocks: {equityShockPct: 0, rateChangeBps: 0, techShockPct: 0, semiShockPct: 0, vixSpikePct: 0},
+  drivers: {},
 };
 
 export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions }) => {
@@ -43,10 +42,12 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
   const [aiSource, setAiSource] = useState<AiResponseSource | null>(null);
   const scenarioForCalculation = useMemo(() => scenarioFromControls(controls), [controls]);
 
-  const stressResult = useMemo(
-    () => executeStressTest(positions, scenarioForCalculation),
-    [positions, scenarioForCalculation],
-  );
+  const calculation = useMemo(() => {
+    if (!hasResult) return {result: null, error: null};
+    try { return {result: executeStressTest(positions, scenarioForCalculation), error: null}; }
+    catch (error) { return {result: null, error: error instanceof Error ? error.message : 'Historical scenario estimates are unavailable.'}; }
+  }, [hasResult, positions, scenarioForCalculation]);
+  const stressResult = calculation.result;
 
   const handleAiScenario = async (event?: React.FormEvent) => {
     event?.preventDefault();
@@ -59,45 +60,44 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: aiPrompt, portfolio: positions }),
       });
-      if (!response.ok) throw new Error('Scenario service unavailable');
       const data = await response.json();
-      if (!data.factorShocks) throw new Error('Scenario assumptions unavailable');
-      const factorShocks = data.factorShocks;
-      setAiSource(data.ai ?? {provider: 'fallback', label: 'Legacy scenario service'});
+      if (!response.ok) throw new Error(data.error || 'Scenario service unavailable. Please try again.');
+      if (!data.drivers || !data.tickerShocks) throw new Error('Scenario assumptions unavailable');
+      setAiSource(data.ai ?? {provider: 'fallback', label: 'Explicit scenario assumptions'});
       setAiResultExplanation(data.macroTransmissionExplanation ?? null);
       dispatch({ type: 'load', scenario: {
         id: `ai_${Date.now()}`,
         name: data.scenarioName || aiPrompt,
         description: data.macroTransmissionExplanation || 'Custom market scenario translated from your description.',
         category: data.ai?.provider === 'cloudflare' ? 'ai_generated' : 'custom',
-        tickerShocks: {},
-        factorShocks,
+        tickerShocks: data.tickerShocks,
+        drivers: data.drivers,
       } });
       setHasResult(true);
     } catch (error) {
       console.error('Error parsing scenario', error);
-      setScenarioError(hasResult ? 'We couldn’t build that scenario. Your current results are unchanged. Please try again.' : 'We couldn’t build that scenario. Please try again.');
+      setScenarioError((error instanceof Error ? error.message : 'We couldn’t interpret that scenario.') + (hasResult ? ' Previous results remain below.' : ''));
     } finally {
       setIsAiLoading(false);
     }
   };
 
-  const hasLoss = stressResult.dollarLoss > 0;
-  const hasGain = stressResult.dollarLoss < 0;
+  const hasLoss = (stressResult?.dollarLoss ?? 0) > 0;
+  const hasGain = (stressResult?.dollarLoss ?? 0) < 0;
   const impactColor = hasLoss ? 'text-rose-300' : hasGain ? 'text-emerald-300' : 'text-slate-200';
   const impactSign = hasLoss ? '-' : hasGain ? '+' : '';
-  const grossLoss = stressResult.attributions.reduce((sum, attr) => sum + Math.max(0, attr.dollarLoss), 0);
+  const grossLoss = stressResult?.attributions.reduce((sum, attr) => sum + Math.max(0, attr.dollarLoss), 0) ?? 0;
   const manualCount = positions.filter(position =>
     Object.prototype.hasOwnProperty.call(controls.tickerOverrides, position.ticker),
   ).length;
   const allManual = positions.length > 0 && manualCount === positions.length;
   const factorControls: { key: EditableFactor; label: string; suffix: string }[] = [
-    { key: 'equityShockPct', label: 'Stock market', suffix: '%' },
-    { key: 'rateChangeBps', label: 'Interest rates', suffix: ' bps' },
-    { key: 'techShockPct', label: 'Technology', suffix: '%' },
-    { key: 'semiShockPct', label: 'Semiconductors', suffix: '%' },
+    { key: 'market', label: 'Stock market (SPY)', suffix: '%' },
+    { key: 'treasury10y', label: '10-year Treasury yield', suffix: ' bps' },
+    { key: 'technology', label: 'Technology (QQQM)', suffix: '%' },
+    { key: 'semiconductors', label: 'Semiconductors (SMH)', suffix: '%' },
   ];
-  const sortedLosses = [...stressResult.attributions].sort((a, b) => b.dollarLoss - a.dollarLoss);
+  const sortedLosses = [...(stressResult?.attributions ?? [])].sort((a, b) => grossLoss > 0 ? b.dollarLoss - a.dollarLoss : Math.abs(b.dollarLoss) - Math.abs(a.dollarLoss));
 
   const scenarioLabel = controls.edited ? 'Your adjusted scenario' : scenarioForCalculation.name;
   const explanation = !controls.edited && aiResultExplanation ? aiResultExplanation : scenarioForCalculation.description;
@@ -107,7 +107,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-400">What if?</p>
         <h2 className="mt-1 text-2xl sm:text-3xl font-black text-white tracking-tight">What happens if markets change?</h2>
-        <p className="mt-2 text-sm text-slate-400">Describe a market change to see what it could mean for your portfolio.</p>
+        <p className="mt-2 text-sm text-slate-400">Enter a specific market change. Historical relationships estimate how your holdings might respond.</p>
       </header>
       <section className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 sm:p-6 shadow-sm">
         <form onSubmit={handleAiScenario} className="space-y-4">
@@ -121,7 +121,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
               maxLength={2000}
               value={aiPrompt}
               onChange={event => setAiPrompt(event.target.value)}
-              placeholder="e.g. AI stocks fall sharply and the Fed cuts interest rates"
+              placeholder="e.g. The stock market falls 20%"
               className="mt-1.5 w-full resize-y bg-slate-950 border border-slate-700/80 rounded-lg px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             />
           </div>
@@ -146,7 +146,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
         {showExamples && <div id="scenario-examples" className="mt-4 border-t border-slate-800 pt-4">
           <p className="mb-3 text-xs text-slate-400">Choose an example to put it in the field, then edit it or see its impact.</p>
           <div className="grid gap-2 sm:grid-cols-2">
-            {EXAMPLE_PROMPTS.map(prompt => <button key={prompt} type="button" disabled={isAiLoading}
+            {[...EXAMPLE_PROMPTS, `Only ${positions[0]?.ticker ?? 'SPY'} falls 10%, all other holdings unchanged`].map(prompt => <button key={prompt} type="button" disabled={isAiLoading}
               onClick={() => {setAiPrompt(prompt); setShowExamples(false); promptRef.current?.focus();}}
               className="rounded-lg border border-slate-700/70 bg-slate-950/40 px-3 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 disabled:opacity-50">
               {prompt}
@@ -155,11 +155,16 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
         </div>}
         {isAiLoading && <p role="status" className="mt-3 text-xs text-slate-400">{hasResult ? 'Building your scenario. Previous results remain below until it’s ready.' : 'Building your scenario…'}</p>}
         {scenarioError && <p role="alert" className="mt-3 text-xs text-amber-300">{scenarioError}</p>}
-        <p className="mt-4 text-xs text-slate-500">These are modeled estimates, not predictions.</p>
+        <p className="mt-4 text-xs text-slate-500">Include a size and direction, such as “technology stocks fall 20%.” These are conditional stress estimates, not forecasts.</p>
       </section>
 
       {hasResult && <>
-        <div className="min-w-0 space-y-6" aria-label="Scenario results" aria-busy={isAiLoading}>
+        {calculation.error && <div role="alert" className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 text-sm text-amber-200">
+          <h3 className="font-semibold">This scenario cannot be estimated reliably</h3>
+          <p className="mt-2">{calculation.error}</p>
+          <p className="mt-2 text-xs text-slate-400">Adjust the assumptions below or set an explicit change for any holding without a model.</p>
+        </div>}
+        {stressResult && <div className="min-w-0 space-y-6" aria-label="Scenario results" aria-busy={isAiLoading}>
           <section className="bg-slate-900/70 rounded-xl border border-slate-800 p-6 shadow-sm">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 pb-5 border-b border-slate-800">
               <div>
@@ -190,7 +195,21 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
             <div className="border-t border-slate-800 pt-5" aria-label="Why this impact?">
               <h4 className="text-base font-bold text-white">Why this impact?</h4>
               <p className="mt-2 text-sm leading-relaxed text-slate-300">{explanation}</p>
-              {aiSource && !controls.edited && <p className="mt-3 text-xs text-slate-500">{aiSource.label}{aiSource.provider === 'fallback' && aiSource.reason === 'unavailable' ? ' · AI unavailable right now' : ''}</p>}
+              {aiSource && !controls.edited && <p className="mt-3 text-xs text-slate-500">{aiSource.label}</p>}
+              <ul className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300" aria-label="Effective scenario assumptions">
+                {factorControls.filter(({key}) => scenarioForCalculation.drivers?.[key] !== undefined).map(({key,label,suffix}) =>
+                  <li key={key} className="rounded border border-slate-700 bg-slate-950/50 px-2 py-1">{label}: {scenarioForCalculation.drivers![key]! > 0 ? '+' : ''}{scenarioForCalculation.drivers![key]}{suffix}</li>)}
+                {Object.entries(scenarioForCalculation.tickerShocks).map(([ticker,shock]) =>
+                  <li key={ticker} className="rounded border border-amber-500/20 bg-amber-500/5 px-2 py-1">{ticker} override: {shock > 0 ? '+' : ''}{(shock * 100).toFixed(1)}%</li>)}
+              </ul>
+              {stressResult.modelNotes?.map(note => <p key={note} className="mt-3 text-xs leading-relaxed text-slate-400">{note}</p>)}
+              {!!stressResult.modelDiagnostics?.length && <details className="mt-3 text-xs text-slate-400">
+                <summary className="cursor-pointer text-emerald-300">Historical model details</summary>
+                <p className="mt-2">Fit measures how much daily variation these drivers explained in the historical window. It does not measure prediction accuracy.</p>
+                <ul className="mt-2 space-y-1">
+                  {stressResult.modelDiagnostics.map(model => <li key={model.ticker}><strong className="text-slate-300">{model.ticker}</strong>: {model.observations} matched returns, {model.startDate} to {model.endDate}; {(model.rSquared * 100).toFixed(0)}% explained variation.</li>)}
+                </ul>
+              </details>}
               <div className="mt-4 flex items-start gap-2 rounded-lg bg-slate-950/50 p-3 text-xs leading-relaxed text-slate-300">
                 <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
                 <p>
@@ -205,7 +224,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
           <section className="bg-slate-900/60 rounded-xl border border-slate-800 p-5">
             <h3 className="text-base font-bold text-white">How would each holding change?</h3>
             <Explanation label="How to read these impacts">Each amount is the estimated change for that holding. Bars show its share of losses before any offsetting gains.</Explanation>
-            {sortedLosses.length > 6 && <p className="mt-2 text-xs text-slate-500">Showing 6 of {sortedLosses.length} holdings, ordered by modeled loss.</p>}
+            {sortedLosses.length > 6 && <p className="mt-2 text-xs text-slate-500">Showing 6 of {sortedLosses.length} holdings, ordered by {grossLoss > 0 ? 'modeled loss' : 'size of change'}.</p>}
             <div className="mt-4 space-y-3">
               {sortedLosses.slice(0, 6).map(attr => {
                 const pct = grossLoss > 0 ? Math.max(0, attr.dollarLoss) / grossLoss * 100 : 0;
@@ -224,13 +243,13 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
             </div>
           </section>
 
-        </div>
+        </div>}
 
         <details className="group bg-slate-900/50 rounded-xl border border-slate-800 p-5">
           <summary className="cursor-pointer list-none flex items-center justify-between gap-3">
             <div>
               <div className="text-sm font-bold text-white">Advanced scenario controls</div>
-              <div className="text-xs text-slate-400 mt-0.5">Adjust market, interest-rate, technology, and individual-asset shocks manually.</div>
+              <div className="text-xs text-slate-400 mt-0.5">Choose which market moves to specify, or override individual holdings.</div>
             </div>
             <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform" />
           </summary>
@@ -254,18 +273,22 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
             <div className="space-y-4 min-w-0">
               <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-400">Broad market assumptions</h4>
               <p className="text-xs text-slate-400 leading-relaxed" id="market-controls-help">
-                Editing a market slider updates the scenario for every holding without a manual override.
-                Holdings marked Manual keep your value until you reset them. 100 bps means a 1 percentage-point interest-rate change.
+                Checked drivers are explicit constraints. Unchecked drivers are left to historical relationships; they are not held at zero. Holding overrides take precedence. 100 bps is a 1 percentage-point yield change.
               </p>
               {factorControls.map(({ key, label, suffix }) => {
-                const value = controls.factors[key];
+                const active = controls.factors[key] !== undefined;
+                const value = controls.factors[key] ?? 0;
                 const { min, max } = FACTOR_LIMITS[key];
                 const id = `scenario-${key}`;
                 return (
                   <div key={key}>
                     <div className="flex justify-between text-xs text-slate-300 mb-1">
-                      <label htmlFor={id}>{label}</label>
-                      <output htmlFor={id} className="font-mono-nums text-slate-200">{value > 0 ? '+' : ''}{value}{suffix}</output>
+                      <label className="flex items-center gap-2" htmlFor={`${id}-enabled`}>
+                        <input id={`${id}-enabled`} type="checkbox" checked={active}
+                          onChange={event => dispatch({type: 'toggle-factor', key, enabled: event.currentTarget.checked})} />
+                        {label}
+                      </label>
+                      <output htmlFor={id} className="font-mono-nums text-slate-200">{active ? `${value > 0 ? '+' : ''}${value}${suffix}` : 'Unspecified'}</output>
                     </div>
                     <input
                       id={id}
@@ -274,23 +297,21 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
                       max={max}
                       step="any"
                       value={value}
+                      disabled={!active}
+                      aria-label={label}
                       aria-valuetext={`${value}${suffix}`}
                       aria-describedby="market-controls-help"
                       onChange={event => {
                         const raw = Number(event.currentTarget.value);
-                        const value = key === 'rateChangeBps' ? Math.round(raw) : Math.round(raw * 10) / 10;
+                        const value = key === 'treasury10y' ? Math.round(raw) : Math.round(raw * 10) / 10;
                         dispatch({ type: 'factor', key, value });
                       }}
-                      className="risklab-scenario-slider text-emerald-400"
+                      className="risklab-scenario-slider text-emerald-400 disabled:opacity-25"
                       style={{ '--slider-fill': `${(value - min) / (max - min) * 100}%` } as React.CSSProperties}
                     />
                   </div>
                 );
               })}
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Volatility context: +{controls.factors.vixSpikePct}%. This is background information only;
-                it does not change this price-impact estimate, so it is not an adjustable slider.
-              </p>
               {allManual && (
                 <p role="status" className="text-xs text-amber-300 leading-relaxed">
                   All holdings are manually set. Choose &ldquo;Use market assumptions for all&rdquo; to let market sliders change the result.
@@ -303,22 +324,21 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
                 <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-400">Individual holdings</h4>
                 <button
                   type="button"
+                  disabled={!Object.keys(controls.factors).length}
                   onClick={() => dispatch({ type: 'use-factors' })}
                   className="text-xs text-emerald-300 hover:text-emerald-200 disabled:opacity-40"
                 >Use market assumptions for all</button>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
-                These values show what the calculation actually uses. Change one to override just that holding.
+                Change one to override that holding. “Unavailable” means no estimate exists; moving its slider sets your own assumption.
               </p>
               {positions.map(position => {
-                const attribution = stressResult.attributions.find(item => item.ticker === position.ticker);
-                const shock = attribution?.shockPct ?? 0;
+                const attribution = stressResult?.attributions.find(item => item.ticker === position.ticker);
+                const shock = controls.tickerOverrides[position.ticker] ?? attribution?.shockPct;
+                const available = shock !== undefined;
                 const manual = Object.prototype.hasOwnProperty.call(controls.tickerOverrides, position.ticker);
-                const fixedByPreset = !controls.usingFactors && controls.source.tickerShocks[position.ticker] !== undefined;
                 const id = `scenario-holding-${position.ticker}`;
-                const value = shock * 100;
-                // The existing engine bounds factor returns at [-98%, +300%].
-                // Include the displayed estimate rather than clipping the thumb.
+                const value = (shock ?? 0) * 100;
                 const min = Math.min(-100, value);
                 const max = Math.max(300, value);
                 return (
@@ -327,18 +347,19 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
                       <div className="flex items-center gap-2">
                         <label htmlFor={id}>{position.ticker}</label>
                         <span className={`text-[10px] rounded px-1.5 py-0.5 ${manual ? 'bg-amber-400/10 text-amber-300' : 'bg-slate-800 text-slate-400'}`}>
-                          {manual ? 'Manual' : fixedByPreset ? 'Preset' : 'Model estimate'}
+                          {manual ? 'Explicit override' : available ? 'Historical estimate' : 'Unavailable'}
                         </span>
                         {manual && (
                           <button
                             type="button"
-                            aria-label={`Reset ${position.ticker} to scenario estimate`}
+                            aria-label={`Remove ${position.ticker} override`}
                             onClick={() => dispatch({ type: 'reset-ticker', ticker: position.ticker })}
                             className="text-emerald-300 hover:text-emerald-200"
-                          >Reset</button>
+                          >Remove override</button>
                         )}
                       </div>
-                      <output htmlFor={id} className="font-mono-nums">{value > 0 ? '+' : ''}{value.toFixed(1)}%</output>
+                      {!available && <button type="button" className="text-emerald-300" onClick={() => dispatch({type:'ticker',ticker:position.ticker,value:0})}>Set unchanged</button>}
+                      <output htmlFor={id} className="font-mono-nums">{available ? `${value > 0 ? '+' : ''}${value.toFixed(1)}%` : 'Set a change'}</output>
                     </div>
                     <input
                       id={id}
@@ -347,7 +368,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
                       max={max}
                       step="any"
                       value={value}
-                      aria-valuetext={`${value.toFixed(1)} percent, ${manual ? 'manual override' : fixedByPreset ? 'preset' : 'model estimate'}`}
+                      aria-valuetext={available ? `${value.toFixed(1)} percent, ${manual ? 'explicit override' : 'historical estimate'}` : 'No model estimate; move to set an explicit change'}
                       onChange={event => dispatch({
                         type: 'ticker',
                         ticker: position.ticker,
@@ -363,8 +384,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
           </fieldset>
 
           <p className="mt-5 pt-4 border-t border-slate-800 text-xs text-slate-500 leading-relaxed">
-            Market sliders use modeled sensitivities, not live market data. Manual holding values override
-            that model for the selected ticker. Reset scenario restores the assumptions from your submitted scenario.
+            Market estimates use aligned daily total returns and Treasury yield changes from the historical snapshot. Large moves extrapolate beyond the observed data. Reset scenario restores your submitted assumptions.
           </p>
         </details>
       </>}
