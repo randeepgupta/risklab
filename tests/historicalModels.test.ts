@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 import {calibrateHistoricalModels, type DailyPrice} from '../src/utils/historicalModels';
 import {calculatePortfolioRisk, buildPositionCorrelationMatrix, executeStressTest} from '../src/utils/quantEngine';
 import {applyHistoricalSnapshot, loadRiskSnapshot, type RiskSnapshot} from '../src/utils/riskSnapshot';
@@ -43,7 +44,24 @@ assert.throws(()=>buildPositionCorrelationMatrix([position('SPY'),{...position('
 console.log('Historical model calibration and engine checks passed.');
 
 const committed:RiskSnapshot=JSON.parse(readFileSync(new URL('../public/models/historical-snapshot.json',import.meta.url),'utf8'));
+for (const part of committed.parts || []) {
+  const content = readFileSync(new URL(`../public/models/${part}`, import.meta.url), 'utf8');
+  assert.equal(part, `history-${createHash('sha256').update(content).digest('hex').slice(0,16)}.json`);
+  assert.ok(Buffer.byteLength(content) < 5 * 1024 * 1024, 'part must fit the PWA cache limit');
+  const symbols = JSON.parse(content);
+  assert.ok(Object.keys(symbols).length <= 500);
+  Object.assign(committed.symbols, symbols);
+}
 assert.ok(Object.keys(committed.symbols).length>=150);
+if (committed.coverage) {
+  const directory = JSON.parse(readFileSync(new URL('../public/symbols/us-listed.json', import.meta.url), 'utf8'));
+  const requested = new Set<string>(['SPY', ...directory.symbols.map((symbol: {ticker: string}) => symbol.ticker)]);
+  assert.equal(committed.coverage.requested, requested.size);
+  assert.equal(committed.coverage.covered, Object.keys(committed.symbols).length);
+  assert.equal(committed.coverage.excluded, Object.keys(committed.exclusions || {}).length);
+  for (const ticker of requested) assert.notEqual(Boolean(committed.symbols[ticker]), Boolean(committed.exclusions?.[ticker]), `${ticker}: exactly one coverage outcome`);
+  for (const ticker of ['A','AA']) assert.ok(committed.symbols[ticker], `${ticker}: beyond the old allowlist`);
+}
 for (const ticker of ['SPY','VOO','VTI','VXUS','SCHD','META','QQQM']) assert.ok(committed.symbols[ticker],ticker);
 for (const [ticker,symbol] of Object.entries(committed.symbols)) {
   assert.equal(symbol.values.length,committed.dates.length,ticker);
@@ -58,11 +76,19 @@ console.log(`Committed public snapshot checks passed (${Object.keys(committed.sy
 const originalFetch=globalThis.fetch;
 let fetchCount=0;
 try {
-  globalThis.fetch=async()=> {fetchCount++; return fetchCount===1 ? new Response('',{status:503}) : Response.json(committed);};
+  const partName = 'history-0123456789abcdef.json';
+  const manifest = {...committed, symbols: {SPY: committed.symbols.SPY}, parts: [partName]};
+  globalThis.fetch=async(input)=> {
+    fetchCount++;
+    if (fetchCount===1 || fetchCount===3) return new Response('', {status:503});
+    return Response.json(String(input).endsWith(partName) ? committed.symbols : manifest);
+  };
   await assert.rejects(loadRiskSnapshot(),/unavailable/);
+  await assert.rejects(loadRiskSnapshot(),/unavailable/, 'missing shard must fail without caching partial history');
   const [one,two]=await Promise.all([loadRiskSnapshot(),loadRiskSnapshot()]);
   assert.equal(one,two);
+  assert.ok(one.symbols.VOO, 'full shard content is merged before coverage is exposed');
   for (const investment of [10000,20000,30000]) applyHistoricalSnapshot([{ticker:'VOO',name:'VOO',assetClass:'Other',investment,weight:1,price:0}],one);
-  assert.equal(fetchCount,2,'one failed fetch, then one shared successful fetch; allocation changes do not fetch');
+  assert.equal(fetchCount,5,'failures can retry; concurrent consumers share manifest and shards; allocation changes do not fetch');
 } finally {globalThis.fetch=originalFetch;}
 console.log('Snapshot retry, shared loading and allocation reuse checks passed.');
