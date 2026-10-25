@@ -1,7 +1,7 @@
 import {Explanation} from './Explanation';
 import React, { useMemo, useReducer, useState } from 'react';
 import { AlertCircle, ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
-import { PortfolioPosition, StressScenario, AiResponseSource } from '../types/risk';
+import { PortfolioPosition, AiResponseSource } from '../types/risk';
 import { PRESET_SCENARIOS, executeStressTest } from '../utils/quantEngine';
 import {
   createScenarioControls,
@@ -28,7 +28,8 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
     PRESET_SCENARIOS[0],
     createScenarioControls,
   );
-  const [aiPrompt, setAiPrompt] = useState('AI stocks fall sharply and the Fed cuts rates');
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [scenarioError, setScenarioError] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiResultExplanation, setAiResultExplanation] = useState<string | null>(null);
   const [aiSource, setAiSource] = useState<AiResponseSource | null>(null);
@@ -43,6 +44,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
     event?.preventDefault();
     if (!aiPrompt.trim() || isAiLoading) return;
     setIsAiLoading(true);
+    setScenarioError(null);
     try {
       const response = await fetch('/api/gemini/parse-scenario', {
         method: 'POST',
@@ -64,8 +66,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
       } });
     } catch (error) {
       console.error('Error parsing scenario', error);
-      setAiSource({provider: 'fallback', label: 'Scenario service unavailable', reason: 'unavailable'});
-      setAiResultExplanation('Your previous scenario is unchanged. Please try again.');
+      setScenarioError('We couldn’t build that scenario. Your current results are unchanged. Please try again.');
     } finally {
       setIsAiLoading(false);
     }
@@ -88,124 +89,138 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
   ];
   const sortedLosses = [...stressResult.attributions].sort((a, b) => b.dollarLoss - a.dollarLoss);
 
+  const selectedPreset = QUICK_SCENARIOS.find(item => PRESET_SCENARIOS[item.index].id === controls.source.id);
+  const scenarioLabel = controls.edited ? 'Your adjusted scenario' : selectedPreset?.label ?? scenarioForCalculation.name;
+  const explanation = !controls.edited && aiResultExplanation ? aiResultExplanation : scenarioForCalculation.description;
+
   return (
     <div className="space-y-6">
-      <section className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 shadow-sm">
+      <header>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-400">What if?</p>
         <h2 className="mt-1 text-2xl sm:text-3xl font-black text-white tracking-tight">What happens if markets change?</h2>
-        <p className="mt-2 text-xs text-slate-400">Explore a scenario, not a prediction.</p><Explanation label="About stress testing"><p className="mt-2 max-w-3xl text-sm text-slate-400 leading-relaxed">
-          Stress testing asks a simple question: <strong className="text-slate-300">“If this bad thing happened, what might it do to my portfolio?”</strong> It is not a prediction — it is a way to understand vulnerability before a real downturn arrives.
-        </p></Explanation>
-
-        <form onSubmit={handleAiScenario} className="mt-5 flex flex-col sm:flex-row gap-2.5">
-          <div className="flex-1">
-            <label className="text-xs text-slate-400 font-semibold">Describe a market scenario in plain English</label>
-            <input
-              type="text"
-              maxLength={2000}
-              value={aiPrompt}
-              onChange={event => setAiPrompt(event.target.value)}
-              placeholder="e.g. Technology falls 30% and interest rates decline"
-              className="mt-1.5 w-full bg-slate-950 border border-slate-700/80 rounded-lg px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-            />
+        <p className="mt-2 text-sm text-slate-400">Choose a scenario to see the impact on your portfolio and understand why.</p>
+      </header>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(280px,340px)_minmax(0,1fr)]">
+        <section className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 shadow-sm lg:sticky lg:top-32">
+          <h3 className="text-base font-bold text-white">Choose a scenario</h3>
+          <p className="mt-1 text-xs text-slate-400">Try a sample scenario for an instant estimate.</p>
+          <div className="mt-4 grid gap-2" role="group" aria-label="Sample scenarios">
+            {QUICK_SCENARIOS.map(item => {
+              const selected = !controls.edited && controls.source.id === PRESET_SCENARIOS[item.index].id;
+              return <button
+                key={item.index}
+                type="button"
+                aria-label={item.label}
+                aria-pressed={selected}
+                disabled={isAiLoading}
+                onClick={() => {
+                  dispatch({ type: 'load', scenario: PRESET_SCENARIOS[item.index] });
+                  setAiPrompt('');
+                  setAiResultExplanation(null);
+                  setAiSource(null);
+                  setScenarioError(null);
+                }}
+                className={`rounded-lg border px-3 py-3 text-left text-sm font-semibold transition-colors disabled:opacity-50 ${selected ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300' : 'border-slate-700/70 bg-slate-950/40 text-slate-300 hover:border-slate-500 hover:bg-slate-800'}`}
+              >{item.label}{selected && <span className="ml-2 text-[10px] font-normal">Selected</span>}</button>;
+            })}
           </div>
-          <button
-            type="submit"
-            disabled={isAiLoading}
-            className="sm:self-end px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {isAiLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            {isAiLoading ? 'Building scenario...' : 'See portfolio impact'}
-          </button>
-        </form>
 
-        <div className="mt-4 flex flex-wrap gap-2 items-center">
-          <span className="text-[11px] text-slate-500">Or try:</span>
-          {QUICK_SCENARIOS.map(item => (
+          <form onSubmit={handleAiScenario} className="mt-5 border-t border-slate-800 pt-5 space-y-3">
+            <div className="flex-1">
+              <label htmlFor="scenario-prompt" className="text-sm text-slate-200 font-semibold">Or describe your own</label>
+              <textarea
+                id="scenario-prompt"
+                rows={3}
+                disabled={isAiLoading}
+                maxLength={2000}
+                value={aiPrompt}
+                onChange={event => setAiPrompt(event.target.value)}
+                placeholder="e.g. Technology falls 30% and interest rates decline"
+                className="mt-1.5 w-full resize-y bg-slate-950 border border-slate-700/80 rounded-lg px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              />
+            </div>
             <button
-              key={item.index}
-              type="button"
-              disabled={isAiLoading}
-              onClick={() => {
-                dispatch({ type: 'load', scenario: PRESET_SCENARIOS[item.index] });
-                setAiResultExplanation(null);
-                setAiSource(null);
-              }}
-              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700/50 disabled:opacity-50"
+              type="submit"
+              disabled={isAiLoading || !aiPrompt.trim()}
+              className="w-full px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {item.label}
+              {isAiLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              {isAiLoading ? 'Building scenario...' : 'See portfolio impact'}
             </button>
-          ))}
-        </div>
+          </form>
 
-        {aiResultExplanation && !controls.edited && (
-          <div className="mt-4 rounded-lg bg-slate-950/70 border border-slate-800 p-3 text-xs text-slate-300 leading-relaxed">
-            {aiSource && <p className="mb-2 text-sm font-semibold text-slate-200" role="status">
-              {aiSource.label}{aiSource.provider === 'fallback' && aiSource.reason === 'unavailable' ? ' · AI unavailable right now' : ''}
-            </p>}
-            {aiSource?.label === 'Scenario service unavailable' ? <p role="alert">{aiResultExplanation}</p> : <Explanation label="Why this impact?">{aiResultExplanation}</Explanation>}
-          </div>
-        )}
-      </section>
+          {isAiLoading && <p role="status" className="mt-3 text-xs text-slate-400">Building your scenario. Current results show {scenarioLabel.toLowerCase()}.</p>}
+          {scenarioError && <p role="alert" className="mt-3 text-xs text-amber-300">{scenarioError}</p>}
+          <p className="mt-4 text-xs text-slate-500">These are modeled estimates, not predictions.</p>
+        </section>
 
-      <section className="bg-slate-900/70 rounded-xl border border-slate-800 p-6 shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 pb-5 border-b border-slate-800">
-          <div>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-300 font-semibold border border-rose-500/20">Estimated portfolio impact</span>
-            <h3 className="mt-2 text-xl font-bold text-white">{scenarioForCalculation.name}</h3>
-            <Explanation label="Scenario assumptions">{scenarioForCalculation.description}</Explanation>
-          </div>
-        </div>
+        <div className="min-w-0 space-y-6" aria-label="Scenario results" aria-busy={isAiLoading}>
+          <section className="bg-slate-900/70 rounded-xl border border-slate-800 p-6 shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 pb-5 border-b border-slate-800">
+              <div>
+                <span className="text-xs px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-300 font-semibold border border-rose-500/20">Estimated portfolio impact</span>
+                <h3 className="mt-2 text-xl font-bold text-white">{scenarioLabel}</h3>
+                <p className="mt-2 text-xs text-slate-400">Applied to your current portfolio · Estimates update when you choose a scenario.</p>
+              </div>
+            </div>
 
-        <div className="py-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Starting value</div>
-            <div className="mt-1 text-2xl sm:text-3xl font-black text-white font-mono-nums">${Math.round(stressResult.initialValue).toLocaleString()}</div>
-          </div>
-          <div>
-            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">After scenario</div>
-            <div className={`mt-1 text-2xl sm:text-3xl font-black font-mono-nums ${impactColor}`}>${Math.round(stressResult.stressedValue).toLocaleString()}</div>
-          </div>
-          <div>
-            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{hasLoss ? 'Estimated loss' : hasGain ? 'Estimated gain' : 'Estimated change'}</div>
-            <div className={`mt-1 text-2xl sm:text-3xl font-black font-mono-nums ${impactColor}`}>{impactSign}${Math.round(Math.abs(stressResult.dollarLoss)).toLocaleString()}</div>
-          </div>
-          <div>
-            <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{hasLoss ? 'Estimated decline' : hasGain ? 'Estimated increase' : 'Estimated change'}</div>
-            <div className={`mt-1 text-2xl sm:text-3xl font-black font-mono-nums ${impactColor}`}>{impactSign}{Math.abs(stressResult.percentLoss).toFixed(1)}%</div>
-          </div>
-        </div>
-
-        <div className="pt-4 border-t border-slate-800 flex items-start gap-2 text-xs text-slate-300">
-          <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-          <p>
-            {grossLoss > 0 ? (
-              <><strong className="text-white">Biggest loss driver:</strong> {stressResult.topCulprit.ticker} accounts for about {(Math.max(0, stressResult.topCulprit.dollarLoss) / grossLoss * 100).toFixed(1)}% of the losses across declining holdings, before gains elsewhere offset them.</>
-            ) : hasGain ? 'The model estimates a net gain in this scenario. None of the holdings has a modeled loss.' : 'These assumptions leave the portfolio value unchanged.'}
-          </p>
-        </div>
-      </section>
-
-      <section className="bg-slate-900/60 rounded-xl border border-slate-800 p-5">
-        <h3 className="text-base font-bold text-white">How would each holding change?</h3>
-        <Explanation label="How to read these impacts">Each amount is the estimated change for that holding. Bars show its share of losses before any offsetting gains.</Explanation>
-        <div className="mt-4 space-y-3">
-          {sortedLosses.slice(0, 6).map(attr => {
-            const pct = grossLoss > 0 ? Math.max(0, attr.dollarLoss) / grossLoss * 100 : 0;
-            return (
-              <div key={attr.ticker}>
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="font-semibold text-white">{attr.ticker}</span>
-                  <span className="text-slate-400">{attr.dollarLoss > 0 ? `-$${Math.round(attr.dollarLoss).toLocaleString()}` : attr.dollarLoss < 0 ? `+$${Math.round(-attr.dollarLoss).toLocaleString()}` : '$0'}</span>
+            <div className="py-6">
+              <p className="text-xs font-semibold text-slate-400">{hasLoss ? 'Your portfolio could lose' : hasGain ? 'Your portfolio could gain' : 'Estimated portfolio change'}</p>
+              <div className="mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                <p className={`text-4xl sm:text-5xl font-black tracking-tight font-mono-nums ${impactColor}`}>{impactSign}${Math.round(Math.abs(stressResult.dollarLoss)).toLocaleString()}</p>
+                <p className={`text-xl font-bold font-mono-nums ${impactColor}`}>{impactSign}{Math.abs(stressResult.percentLoss).toFixed(1)}%</p>
+              </div>
+              <div className="mt-5 grid grid-cols-2 gap-4 rounded-lg bg-slate-950/50 p-4">
+                <div>
+                  <p className="text-xs text-slate-400">Starting value</p>
+                  <p className="mt-1 text-xl font-bold text-slate-200 font-mono-nums">${Math.round(stressResult.initialValue).toLocaleString()}</p>
                 </div>
-                <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
-                  <div className="h-full rounded-full bg-rose-400" style={{ width: `${Math.min(100, pct)}%` }} />
+                <div>
+                  <p className="text-xs text-slate-400">After this scenario</p>
+                  <p className={`mt-1 text-xl font-bold font-mono-nums ${impactColor}`}>${Math.round(stressResult.stressedValue).toLocaleString()}</p>
                 </div>
               </div>
-            );
-          })}
+            </div>
+
+            <div className="border-t border-slate-800 pt-5" aria-label="Why this impact?">
+              <h4 className="text-base font-bold text-white">Why this impact?</h4>
+              <p className="mt-2 text-sm leading-relaxed text-slate-300">{explanation}</p>
+              {aiSource && !controls.edited && <p className="mt-3 text-xs text-slate-500">{aiSource.label}{aiSource.provider === 'fallback' && aiSource.reason === 'unavailable' ? ' · AI unavailable right now' : ''}</p>}
+              <div className="mt-4 flex items-start gap-2 rounded-lg bg-slate-950/50 p-3 text-xs leading-relaxed text-slate-300">
+                <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                <p>
+                  {grossLoss > 0 ? (
+                    <><strong className="text-white">Biggest loss driver:</strong> {stressResult.topCulprit.ticker} accounts for about {(Math.max(0, stressResult.topCulprit.dollarLoss) / grossLoss * 100).toFixed(1)}% of the losses across declining holdings, before gains elsewhere offset them.</>
+                  ) : hasGain ? 'The model estimates a net gain in this scenario. None of the holdings has a modeled loss.' : 'These assumptions leave the portfolio value unchanged.'}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-slate-900/60 rounded-xl border border-slate-800 p-5">
+            <h3 className="text-base font-bold text-white">How would each holding change?</h3>
+            <Explanation label="How to read these impacts">Each amount is the estimated change for that holding. Bars show its share of losses before any offsetting gains.</Explanation>
+            {sortedLosses.length > 6 && <p className="mt-2 text-xs text-slate-500">Showing 6 of {sortedLosses.length} holdings, ordered by modeled loss.</p>}
+            <div className="mt-4 space-y-3">
+              {sortedLosses.slice(0, 6).map(attr => {
+                const pct = grossLoss > 0 ? Math.max(0, attr.dollarLoss) / grossLoss * 100 : 0;
+                return (
+                  <div key={attr.ticker}>
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="font-semibold text-white">{attr.ticker}</span>
+                      <span className="text-slate-400">{attr.dollarLoss > 0 ? `-$${Math.round(attr.dollarLoss).toLocaleString()}` : attr.dollarLoss < 0 ? `+$${Math.round(-attr.dollarLoss).toLocaleString()}` : '$0'}</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                      <div className="h-full rounded-full bg-rose-400" style={{ width: `${Math.min(100, pct)}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
         </div>
-      </section>
+      </div>
 
       <details className="group bg-slate-900/50 rounded-xl border border-slate-800 p-5">
         <summary className="cursor-pointer list-none flex items-center justify-between gap-3">
