@@ -59,7 +59,7 @@ export function SymbolPicker({value, name, excluded, onSelect, historicalTickers
           className={`cursor-pointer px-3 py-2 text-xs ${index === active ? 'bg-emerald-500/15' : 'hover:bg-slate-800'}`}>
           <span className="font-bold text-white">{symbol.ticker}</span> <span className="text-slate-500">{symbol.kind} · {symbol.exchange}</span>
           <div className="text-slate-300">{symbol.name}</div>
-          {historicalTickers && <div className={`mt-0.5 text-[10px] ${historicalTickers.has(symbol.ticker) ? 'text-emerald-400' : 'text-amber-300'}`}>{historicalTickers.has(symbol.ticker) ? 'Historical model available' : 'Outside historical snapshot'}</div>}
+          {historicalTickers && <div className={`mt-0.5 text-[10px] ${historicalTickers.has(symbol.ticker) ? 'text-emerald-400' : 'text-amber-300'}`}>{historicalTickers.has(symbol.ticker) ? 'Historical data available' : 'History not available yet'}</div>}
         </li>)}
         {results.length === 0 && <li className="px-3 py-3 text-xs text-slate-400">No matches. Try another ticker or name.</li>}
       </ul>

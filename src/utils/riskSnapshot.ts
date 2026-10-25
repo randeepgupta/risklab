@@ -10,19 +10,19 @@ export interface RiskSnapshot {
 let snapshotPromise: Promise<RiskSnapshot> | undefined;
 export function loadRiskSnapshot(): Promise<RiskSnapshot> {
   if (!snapshotPromise) snapshotPromise = fetch('/models/historical-snapshot.json').then(async response => {
-    if (!response.ok) throw new Error('Historical snapshot unavailable. Retry or use preset assumptions.');
+    if (!response.ok) throw new Error('Historical snapshot unavailable. Please retry.');
     const snapshot = await response.json() as RiskSnapshot;
     if (snapshot.parts) {
       const parts = await Promise.all(snapshot.parts.map(async name => {
         if (!/^history-[a-f0-9]{16}\.json$/.test(name)) throw new Error('Invalid historical snapshot part.');
         const part = await fetch(`/models/${name}`);
-        if (!part.ok) throw new Error('Historical snapshot unavailable. Retry or use preset assumptions.');
+        if (!part.ok) throw new Error('Historical snapshot unavailable. Please retry.');
         return await part.json() as RiskSnapshot['symbols'];
       }));
       snapshot.symbols = Object.assign({}, snapshot.symbols, ...parts);
     }
     if (!snapshot.symbols?.SPY || !Array.isArray(snapshot.dates) || snapshot.dates.length < 127) throw new Error('Historical snapshot is invalid.');
-    if (snapshot.coverage && Object.keys(snapshot.symbols).length !== snapshot.coverage.covered) throw new Error('Historical snapshot is incomplete. Retry or use preset assumptions.');
+    if (snapshot.coverage && Object.keys(snapshot.symbols).length !== snapshot.coverage.covered) throw new Error('Historical snapshot is incomplete. Please retry.');
     return snapshot;
   }).catch(error => {snapshotPromise = undefined; throw error;});
   return snapshotPromise;
@@ -32,7 +32,7 @@ export function applyHistoricalSnapshot(positions: PortfolioPosition[], snapshot
   const series: Record<string, DailyPrice[]> = {};
   for (const ticker of tickers) {
     const symbol = snapshot.symbols[ticker];
-    if (!symbol) throw new Error(`${ticker} is not covered by this historical snapshot. Use preset assumptions and select a proxy, or choose a covered holding.`);
+    if (!symbol) throw new Error(`${ticker} is not covered by this historical snapshot. Choose a covered holding.`);
     series[ticker] = snapshot.dates.flatMap((date, i) => symbol.values[i] == null ? [] : [{date, adjClose: symbol.values[i]!, close: symbol.values[i]!}]);
   }
   const models = calibrateHistoricalModels(series, positions.map(position => position.ticker), snapshot.capturedAt);
