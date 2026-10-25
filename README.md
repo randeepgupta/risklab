@@ -33,7 +33,7 @@ See [`docs/product-requirements.md`](docs/product-requirements.md) for the MVP p
 | Area | Capabilities |
 | --- | --- |
 | Portfolio onboarding | Clean ticker/allocation builder with sample portfolio and allocation validation |
-| Overview | Plain-English risk level, diversification, biggest risk driver, holdings, and optional advanced metrics |
+| Overview | Plain-English risk level, diversification, per-holding risk explanations, holdings, and optional advanced metrics |
 | Diversification | Plain-English view of which holdings move together, powered by the correlation model |
 | Risk metrics | 95%/99% parametric VaR and Expected Shortfall across multiple horizons |
 | What If? | Explicit market and holding changes with joint historical sensitivity estimates |

@@ -1,6 +1,7 @@
 import {Explanation} from './Explanation';
 import React, { useState } from 'react';
 import { RiskContribution } from '../types/risk';
+import { explainRiskContribution } from '../utils/riskContributionExplanation';
 import { AlertCircle, ChevronDown } from 'lucide-react';
 
 interface RiskContributionChartProps {
@@ -8,7 +9,7 @@ interface RiskContributionChartProps {
   portfolioVol: number;
 }
 
-export const RiskContributionChart: React.FC<RiskContributionChartProps> = ({ contributions }) => {
+export const RiskContributionChart: React.FC<RiskContributionChartProps> = ({ contributions, portfolioVol }) => {
   const [hoveredTicker, setHoveredTicker] = useState<string | null>(null);
   const sorted = [...contributions].sort(
     (a, b) => b.percentRiskContribution - a.percentRiskContribution,
@@ -18,6 +19,7 @@ export const RiskContributionChart: React.FC<RiskContributionChartProps> = ({ co
     <div className="bg-slate-900/60 rounded-xl border border-slate-800 p-5 shadow-sm">
       <div className="pb-4 border-b border-slate-800">
         <h3 className="text-base font-bold text-white">What is driving your risk?</h3>
+        <p className="mt-2 text-xs leading-relaxed text-slate-400">Each percentage is a calculated share of portfolio volatility, based on your holdings and their historical movements.</p>
         <Explanation label="How to read this chart"><p className="text-xs text-slate-400 mt-1 leading-relaxed">
           A holding can be a small part of your money but a large part of your portfolio&apos;s ups and downs. Compare how much you own with how much risk it contributes. Negative contributions offset risk elsewhere; positive contributions can exceed 100%.
         </p></Explanation>
@@ -28,6 +30,7 @@ export const RiskContributionChart: React.FC<RiskContributionChartProps> = ({ co
           const weightPct = item.weight * 100;
           const riskContribPct = item.percentRiskContribution * 100;
           const isRiskHeavy = riskContribPct > weightPct * 1.25;
+          const explanation = explainRiskContribution(item, portfolioVol);
 
           return (
             <div
@@ -52,7 +55,7 @@ export const RiskContributionChart: React.FC<RiskContributionChartProps> = ({ co
                 </div>
                 <div className="text-xs text-slate-400">
                   {weightPct.toFixed(1)}% of money <span className="text-slate-600 mx-1">→</span>{' '}
-                  <span className="text-amber-300 font-semibold">{riskContribPct.toFixed(1)}% of risk{riskContribPct < 0 ? ' (offset)' : ''}</span>
+                  <span className="text-amber-300 font-semibold">{portfolioVol === 0 ? 'Risk share undefined' : `${riskContribPct.toFixed(1)}% of risk${riskContribPct < 0 ? ' (offset)' : ''}`}</span>
                 </div>
               </div>
 
@@ -73,6 +76,14 @@ export const RiskContributionChart: React.FC<RiskContributionChartProps> = ({ co
                   </div>
                 </div>
               </div>
+
+              <p className="mt-3 text-xs leading-relaxed text-slate-300" aria-label={`Why ${item.ticker} contributes this risk share`}>
+                {explanation.summary}
+              </p>
+              <Explanation label={`See ${item.ticker}'s calculation`}>
+                {explanation.calculation && <p className="mb-2 font-mono-nums text-slate-300">{explanation.calculation}</p>}
+                <p>{explanation.note}</p>
+              </Explanation>
             </div>
           );
         })}
