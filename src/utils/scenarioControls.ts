@@ -112,7 +112,7 @@ export function scenarioFromControls(state: ScenarioControlsState): StressScenar
     ...state.source,
     id: `${state.source.id}-edited`,
     name: `Custom: ${state.source.name}`,
-    description: 'Using your edited assumptions, not the original preset. Estimates update as you adjust the controls.',
+    description: 'Using your edited assumptions. Estimates update as you adjust the controls.',
     category: 'custom',
     factorShocks: state.usingFactors ? state.factors : state.source.factorShocks,
     tickerShocks: {
