@@ -92,6 +92,35 @@ The full methodology, assumptions, and limitations are documented in [`docs/quan
 - **PWA:** `vite-plugin-pwa`
 - **Testing:** focused quantitative test suite executed with `tsx`
 
+## Welcome page and the Lab
+
+The welcome page at `/` introduces the project, its three analysis views, and the
+motivation from “Why I built it.” **Enter the Lab** opens portfolio setup at `/lab`;
+**Try a sample portfolio** loads a historically calibrated sample before opening
+Overview. The historical snapshot is requested when entering the Lab or opening a
+sample, rather than while reading the welcome page. Existing query-based app links
+continue to enter the Lab. Overview leads with the actual portfolio: every holding,
+company name, invested amount, and allocation. Samples are marked as examples and
+can be edited or regenerated before exploring the risk analysis.
+
+Historical calibration is the standard path for custom portfolios, samples, and
+portfolio templates; there is no model-selection checkbox or silent proxy fallback.
+Uncovered holdings remain unavailable until usable history is added to the batch
+snapshot. Data dates, coverage, and model disclosures follow the main content at
+the bottom of setup and analysis pages.
+
+The Lab has three views: **Overview**, **What If?**, and **Future**. **Ask Copilot**
+opens a companion panel alongside the current view, also available through quick
+actions or Command/Ctrl+4. It stays open across view changes and preserves the
+conversation when closed and reopened. Changing portfolio holdings resets its
+conversation. Escape closes the panel and restores focus. Opening it makes no AI
+request; questions are sent only after an explicit user action. Existing source
+labels and opt-in rule-based summaries remain in place.
+
+The RiskLab brand link returns to the welcome page. The current portfolio remains
+available when returning to the Lab within the same session; reloading the app
+still starts with portfolio setup.
+
 ## Run locally
 
 ### Prerequisites
@@ -214,8 +243,8 @@ The next major milestone is to replace hardcoded market assumptions with a marke
 
 RiskLab is currently a research and engineering project, not a production trading or portfolio-management system. In particular:
 
-- expected returns, volatilities, betas, and some factor exposures are still modeled assumptions
-- the application does not yet ingest live or historical market data
+- volatility, correlation, and beta are historical estimates; forward growth and macroeconomic stress sensitivities retain modeled assumptions
+- the application uses dated historical snapshots, not a live quote feed
 - Monte Carlo uses constant-parameter geometric Brownian motion
 - hedge outputs are illustrative and do not use a live option chain
 - parametric VaR / Expected Shortfall use a normal-return model and can understate fat-tail risk
@@ -236,23 +265,20 @@ It is a listing directory, not a live quote feed; some corporate actions or unus
 may require a refresh or filter adjustment. Refresh deliberately with `npm run refresh:symbols`
 and commit the resulting snapshot. Failed downloads preserve the existing file.
 
-Portfolios support up to 30 holdings. The original 15 assets retain their illustrative model
-assumptions. Other tickers require an explicit risk proxy from those assets. Actual security
-names/tickers remain visible, while volatility, returns, factor sensitivity, pairwise correlation
-and preset stress shocks use the proxy. Holdings sharing a proxy have effectively identical
-modeled exposure. Proxy selections are shown in the holdings table, preserved in JSON exports
-and included in the CSV's Risk Proxy column. Unavailable prices export as blank rather than a
-proxy quote. Choose another proxy in Edit Portfolio. Run `npm run test:symbols` for directory,
-search and model consistency checks.
+Portfolios support up to 30 covered holdings. Each uses its own historical model;
+the broader listing directory includes some securities without usable history.
+Those holdings remain unavailable until a later batch adds sufficient, valid data.
+Security names, tickers, model provenance, and data dates remain visible and are
+preserved in exports. Run `npm run test:symbols` for directory and model checks.
 
 ### Historical risk models from a public snapshot
 
-Historical mode calculates each covered holding's risk from a committed, dated public dataset,
+RiskLab calculates each covered holding's risk from a committed, dated public dataset,
 loaded once and reused in the browser. Changing allocations, adding covered holdings and running
 analysis do not call a market-data API. No account, token or backend market-data secret is needed.
-The PWA also caches the snapshot and its content-addressed parts. The listing directory remains broader than historical coverage;
-unsupported holdings can use the existing, explicitly selected proxy in preset mode. A portfolio
-uses one mode consistently, with no hidden mixture of historical and preset covariance estimates.
+The PWA also caches the snapshot and its content-addressed parts. The listing directory
+remains broader than historical coverage. All portfolio holdings are calibrated against
+the same historical snapshot, with no hidden mixture of historical and preset covariance estimates.
 
 `npm run refresh:risk-models` deliberately rebuilds `public/models/historical-snapshot.json`
 from the publicly readable `post-no-preference/stocks` DoltHub database. The generator uses its
@@ -260,7 +286,7 @@ indexed daily closing-price records and dividend/split tables to form total-retu
 the latest available year. It checks query completeness, valid closes, source dates, minimum
 history and availability of corporate-action dates. Missing, short or stale symbols are omitted;
 failed refreshes preserve the previous snapshot. Refresh and commit the file when desired;
-there is no scheduled job or runtime upstream price fetch. Repeated generator queries have a
+there is no runtime upstream price fetch. Optional weekly local scheduling is described below. Repeated generator queries have a
 seven-day temporary cache to permit resuming downloads; remove `risklab-public-data-cache` from
 your system's temporary directory if you need to bypass it for source corrections.
 
@@ -314,8 +340,7 @@ The manifest records `coverage` counts and an `exclusions` reason for every unco
 `no_source_history`, `stale_history`, `insufficient_history` (fewer than 127 closes),
 `invalid_price`, `invalid_corporate_action`, `duplicate_prices`, `missing_corporate_action_price`,
 `invalid_adjusted_history`, or `insufficient_benchmark_overlap`. Some new listings or securities absent from the public dataset
-cannot have a valid own-history model yet. These remain visibly unavailable in historical
-mode; the batch never substitutes another security's model.
+cannot have a valid own-history model yet. These remain visibly unavailable in the Lab; the batch never substitutes another security's model.
 
 Output is `public/models/historical-snapshot.json` plus content-addressed `history-*.json`
 parts with at most 500 holdings each. All parts are written before atomically replacing the

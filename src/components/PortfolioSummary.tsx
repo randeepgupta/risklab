@@ -43,9 +43,9 @@ export const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">Portfolio overview</p>
-          <h1 className="mt-1 text-2xl sm:text-3xl font-black tracking-tight text-white">
+          <h2 className="mt-1 text-2xl sm:text-3xl font-black tracking-tight text-white">
             What should you know about this portfolio?
-          </h1>
+          </h2>
           <p className="mt-2 max-w-3xl text-sm text-slate-400 leading-relaxed">
             Your risk at a glance.
           </p>

@@ -29,7 +29,8 @@ interface CommandItem {
 interface DesktopCommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
-  setActiveTab: (tab: 'risk' | 'monte-carlo' | 'stress' | 'hedging') => void;
+  setActiveTab: (tab: 'risk' | 'monte-carlo' | 'stress') => void;
+  onOpenCopilot: () => void;
   onSelectPreset: (presetKey: string) => void;
   onToggleCompactMode: () => void;
   onExportJson: () => void;
@@ -42,6 +43,7 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
   isOpen,
   onClose,
   setActiveTab,
+  onOpenCopilot,
   onSelectPreset,
   onToggleCompactMode,
   onExportJson,
@@ -92,14 +94,14 @@ export const DesktopCommandPalette: React.FC<DesktopCommandPaletteProps> = ({
       },
     },
     {
-      id: 'tab-hedging',
-      category: 'Analysis Views',
+      id: 'open-copilot',
+      category: 'Tools',
       label: 'Copilot',
       description: 'Ask about your portfolio’s sectors, concentrations, and risk',
       icon: <Sparkles className="w-4 h-4 text-cyan-400" />,
       shortcut: '⌘4',
       action: () => {
-        setActiveTab('hedging');
+        onOpenCopilot();
         onClose();
       },
     },

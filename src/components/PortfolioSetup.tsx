@@ -2,8 +2,7 @@ import {Explanation} from './Explanation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, ArrowRight, Plus, Trash2 } from 'lucide-react';
 import { PortfolioPosition } from '../types/risk';
-import { ASSET_DATABASE } from '../utils/quantEngine';
-import { SymbolPicker, RiskProxyPicker } from './SymbolPicker';
+import { SymbolPicker } from './SymbolPicker';
 import { ListedSymbol, createListedPosition } from '../utils/symbolDirectory';
 
 type AllocationRow = {
@@ -12,16 +11,15 @@ type AllocationRow = {
   allocation: string;
   name?: string;
   symbol?: ListedSymbol;
-  riskProxyTicker?: string;
 };
 
 interface PortfolioSetupProps {
+  onHome?: () => void;
+  isSampleLoading?: boolean;
   initialPositions?: PortfolioPosition[];
   initialPortfolioValue?: number;
   onAnalyze: (positions: PortfolioPosition[], portfolioValue: number) => void;
   onUseSample: () => void;
-  historicalMode: boolean;
-  onHistoricalModeChange: (enabled: boolean) => void;
   historicalTickers: Set<string>;
   snapshotAsOf?: string;
   modelError?: string;
@@ -29,10 +27,11 @@ interface PortfolioSetupProps {
 }
 
 export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
+  onHome, isSampleLoading = false,
   initialPositions = [],
   initialPortfolioValue = 100000,
   onAnalyze,
-  onUseSample, historicalMode, onHistoricalModeChange, historicalTickers, snapshotAsOf, modelError, onRetrySnapshot,
+  onUseSample, historicalTickers, snapshotAsOf, modelError, onRetrySnapshot,
 }) => {
   const nextId = useRef(1);
   const [portfolioValue, setPortfolioValue] = useState(String(Math.round(initialPortfolioValue || 100000)));
@@ -42,7 +41,6 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
         id: nextId.current++,
         ticker: position.ticker,
         name: position.name,
-        riskProxyTicker: position.riskProxyTicker,
         allocation: (position.weight * 100).toFixed(1).replace(/\.0$/, ''),
       }));
     }
@@ -57,7 +55,6 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
       id: nextId.current++,
       ticker: position.ticker,
       name: position.name,
-      riskProxyTicker: position.riskProxyTicker,
       allocation: (position.weight * 100).toFixed(1).replace(/\.0$/, ''),
     })));
   }, [initialPositions, initialPortfolioValue]);
@@ -71,7 +68,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
   const uniqueTickers = new Set(rows.map((row) => row.ticker));
   const allocationsValid = rows.every((row) => {
     const value = Number.parseFloat(row.allocation);
-    return row.ticker && (historicalMode ? historicalTickers.has(row.ticker) : ASSET_DATABASE[row.ticker] || ASSET_DATABASE[row.riskProxyTicker || '']) && Number.isFinite(value) && value > 0 && value <= 100;
+    return row.ticker && historicalTickers.has(row.ticker) && Number.isFinite(value) && value > 0 && value <= 100;
   });
   const isValid =
     rows.length > 0 && rows.length <= 30 &&
@@ -81,7 +78,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
     uniqueTickers.size === rows.length &&
     allocationsValid;
 
-  const updateRow = (id: number, field: 'ticker' | 'allocation' | 'riskProxyTicker', value: string) => {
+  const updateRow = (id: number, field: 'ticker' | 'allocation', value: string) => {
     setRows((current) => current.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
   };
 
@@ -99,8 +96,8 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
 
     const positions: PortfolioPosition[] = rows.map((row) => {
       const weight = Number.parseFloat(row.allocation) / 100;
-      const symbol = row.symbol || {ticker: row.ticker, name: row.name || ASSET_DATABASE[row.ticker]?.name || row.ticker, kind: 'Stock' as const, exchange: ''};
-      return createListedPosition(symbol, parsedPortfolioValue * weight, weight, row.riskProxyTicker, historicalMode && historicalTickers.has(row.ticker));
+      const symbol = row.symbol || {ticker: row.ticker, name: row.name || row.ticker, kind: 'Stock' as const, exchange: ''};
+      return createListedPosition(symbol, parsedPortfolioValue * weight, weight, undefined, true);
     });
 
     onAnalyze(positions, parsedPortfolioValue);
@@ -114,7 +111,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
             <Activity className="w-5 h-5" />
           </div>
           <div>
-            <div className="font-extrabold tracking-tight text-white">RiskLab</div>
+            <button type="button" onClick={onHome} className="font-extrabold tracking-tight text-white hover:text-emerald-300" aria-label="RiskLab home">RiskLab <span className="ml-1 text-xs font-normal text-slate-500">/ Lab</span></button>
             <div className="text-[11px] text-slate-500">Portfolio risk analytics</div>
           </div>
         </div>
@@ -124,10 +121,10 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
       <main className="max-w-5xl mx-auto px-5 sm:px-8 pt-10 sm:pt-16 pb-16">
         <section className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 text-xs font-medium text-emerald-300 mb-5">
-            Portfolio risk, explained
+            Welcome to the Lab
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-            Understand how your portfolio behaves before the market tests it.
+            Start with your portfolio.
           </h1>
           <p className="mt-5 text-base sm:text-lg text-slate-400 leading-relaxed max-w-2xl mx-auto">
             Add your holdings to explore risk and possible outcomes.
@@ -141,15 +138,6 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
           </div>
 
           <div className="p-5 sm:p-7 space-y-6">
-            <div className="rounded-xl border border-slate-800 bg-slate-950/45 p-4 text-xs">
-              <label className="flex items-center gap-2 font-semibold text-slate-200">
-                <input type="checkbox" checked={historicalMode} onChange={event => onHistoricalModeChange(event.target.checked)} />
-                Use historical risk models
-              </label>
-              <p className="mt-2 text-slate-400">{snapshotAsOf ? `${historicalTickers.size.toLocaleString()} holdings covered · Data through ${snapshotAsOf}` : 'Loading public historical snapshot…'}</p>
-              <Explanation label="About historical models">Loaded once and reused; no API token needed. Uncheck to use preset assumptions and modeling proxies. Historical coverage is smaller than the listing directory.</Explanation>
-              {modelError && <p role="alert" className="mt-2 text-rose-300">{modelError} {!snapshotAsOf && <button type="button" className="ml-2 underline" onClick={onRetrySnapshot}>Retry snapshot</button>}</p>}
-            </div>
             <div>
               <label htmlFor="portfolio-value" className="block text-xs font-semibold text-slate-300 mb-2">
                 Portfolio value
@@ -181,12 +169,10 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
                   return (
                     <div key={row.id} className="grid grid-cols-[minmax(0,1fr)_80px_32px] sm:grid-cols-[minmax(0,1fr)_120px_32px] gap-3 items-start">
                       <div className="min-w-0">
-                        <SymbolPicker value={row.ticker} name={row.name} excluded={usedByOthers} historicalTickers={historicalMode ? historicalTickers : undefined}
+                        <SymbolPicker value={row.ticker} name={row.name} excluded={usedByOthers} historicalTickers={historicalTickers}
                           onSelect={symbol => setRows(current => current.map(candidate => candidate.id === row.id
-                            ? {...candidate, ticker: symbol.ticker, name: symbol.name, symbol, riskProxyTicker: ''} : candidate))} />
-                        {!historicalMode && <RiskProxyPicker ticker={row.ticker} value={row.riskProxyTicker || ''}
-                          onChange={value => updateRow(row.id, 'riskProxyTicker', value)} />}
-                        {historicalMode && row.ticker && <p className={`mt-1 text-[11px] ${historicalTickers.has(row.ticker) ? 'text-emerald-400' : 'text-amber-300'}`}>{historicalTickers.has(row.ticker) ? 'Own historical risk model' : snapshotAsOf ? 'Not covered by this snapshot. Choose another holding or use preset assumptions.' : 'Checking historical coverage…'}</p>}
+                            ? {...candidate, ticker: symbol.ticker, name: symbol.name, symbol} : candidate))} />
+                        {row.ticker && !historicalTickers.has(row.ticker) && <p className="mt-1 text-[11px] text-amber-300">{snapshotAsOf ? 'History is not available for this holding yet. Choose a covered holding.' : 'Checking historical coverage…'}</p>}
                       </div>
 
                       <div className="relative">
@@ -259,18 +245,25 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
               <button
                 type="button"
                 onClick={onUseSample}
+                disabled={isSampleLoading}
                 title="Generate a fresh portfolio with 4–7 randomly selected holdings and allocations"
                 className="px-4 py-3 text-sm font-semibold text-slate-300 hover:text-white rounded-lg border border-slate-700 hover:border-slate-600 hover:bg-slate-800/70 transition-colors"
               >
-                Try sample portfolio
+                {isSampleLoading ? 'Opening sample…' : 'Try sample portfolio'}
               </button>
             </div>
           </div>
         </section>
 
+        <div className="mt-6 max-w-3xl mx-auto rounded-xl border border-slate-800 bg-slate-950/30 p-4 text-xs">
+          <p className="font-semibold text-slate-200">{snapshotAsOf ? `Historical data through ${snapshotAsOf}` : 'Loading historical data…'}</p>
+          <p className="mt-1 text-slate-400">{snapshotAsOf ? `${historicalTickers.size.toLocaleString()} holdings covered` : 'Coverage will appear when the snapshot is ready.'}</p>
+          <Explanation label="About this data">Each covered holding uses its own historical prices. New listings and holdings without enough usable history may be unavailable.</Explanation>
+          {modelError && <p role="alert" className="mt-2 text-rose-300">{modelError} {!snapshotAsOf && <button type="button" className="ml-2 underline" onClick={onRetrySnapshot}>Retry snapshot</button>}</p>}
+        </div>
         <p className="mt-5 text-center text-[11px] text-slate-600">
           Search US-listed stocks and ETFs by ticker or name. Up to 30 holdings per portfolio.
-          Covered holdings use their own historical data. Preset mode requires proxies for other tickers. No live market prices.
+          Covered holdings use their own historical data. No live market prices.
         </p>
       </main>
     </div>

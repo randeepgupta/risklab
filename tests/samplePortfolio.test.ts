@@ -1,4 +1,8 @@
 import assert from 'node:assert/strict';
+import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {PortfolioSnapshot} from '../src/components/PortfolioSnapshot';
+import {PortfolioSetup} from '../src/components/PortfolioSetup';
 import {createRandomSamplePortfolio, SAMPLE_PORTFOLIO_VALUE} from '../src/utils/samplePortfolio';
 import {readFileSync} from 'node:fs';
 import {applyHistoricalSnapshot, type RiskSnapshot} from '../src/utils/riskSnapshot';
@@ -45,3 +49,29 @@ for (let seed = 1; seed <= 20; seed++) {
   assert.ok(Number.isFinite(calculatePortfolioRisk(sample).annualizedVolatility));
 }
 console.log('Random samples also support the cached historical models.');
+
+// The introduction must show every holding and derive allocation from the
+// invested amounts, even if an imported position's stored weight is stale.
+const previewPositions = Array.from({length:7}, (_,i) => ({
+  ...createRandomSamplePortfolio(seededRandom(1))[0], ticker:`EX${i}`, name:`Example holding ${i}`,
+  investment:i===0 ? 40000 : 10000, weight:0.99,
+}));
+const previewProps = {positions:previewPositions, isSample:true, loading:false, onEdit:()=>{}, onNewSample:()=>{}};
+const preview = renderToStaticMarkup(createElement(PortfolioSnapshot, previewProps));
+assert.ok(preview.includes('$100,000'));
+assert.ok(preview.includes('40.0%'));
+assert.equal(preview.match(/<li /g)?.length,7);
+for (const position of previewPositions) assert.ok(preview.includes(position.name));
+assert.ok(preview.includes('Try another sample'));
+const customPreview = renderToStaticMarkup(createElement(PortfolioSnapshot, {...previewProps,isSample:false}));
+assert.ok(!customPreview.includes('Try another sample'), 'custom portfolios must not offer accidental sample replacement');
+console.log('Portfolio introduction allocation and complete holdings checks passed.');
+
+const setupProps = {initialPositions:[{...previewPositions[0], weight:1}], initialPortfolioValue:100000,
+  historicalTickers:new Set(['EX0']), snapshotAsOf:'2026-10-23', onAnalyze:()=>{}, onUseSample:()=>{}, onRetrySnapshot:()=>{}};
+const setup = renderToStaticMarkup(createElement(PortfolioSetup, setupProps));
+assert.ok(!setup.includes('type="checkbox"'), 'historical calibration must not be an opt-in decision');
+assert.ok(setup.indexOf('Historical data through') > setup.indexOf('Analyze portfolio'), 'data metadata follows the main portfolio task');
+const unsupportedSetup = renderToStaticMarkup(createElement(PortfolioSetup, {...setupProps,historicalTickers:new Set<string>()}));
+assert.match(unsupportedSetup, /<button[^>]*disabled=""[^>]*>Analyze portfolio/, 'unsupported holdings cannot silently use preset models');
+console.log('Historical default, unsupported holding guard, and data detail placement checks passed.');

@@ -9,11 +9,13 @@ const MarkdownReply = React.lazy(() => import('./MarkdownReply').then(module => 
 interface HedgingLabViewProps {
   positions: PortfolioPosition[];
   metrics: PortfolioRiskMetrics;
+  companion?: boolean;
 }
 
 export const HedgingLabView: React.FC<HedgingLabViewProps> = ({
   positions,
   metrics,
+  companion = false,
 }) => {
   const copilotRef = React.useRef<HTMLElement>(null);
   const feedRef = React.useRef<HTMLDivElement>(null);
@@ -103,7 +105,7 @@ export const HedgingLabView: React.FC<HedgingLabViewProps> = ({
   return (
     <div className="space-y-6">
       <section ref={copilotRef} aria-label="RiskLab Conversational Copilot" className="rounded-xl border border-emerald-500/30 bg-slate-900/70 p-5 shadow-sm">
-      <div className="flex flex-col h-[520px]">
+      <div className={companion ? "flex flex-col h-[min(580px,calc(100dvh-240px))] min-h-[360px]" : "flex flex-col h-[520px]"}>
         <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
           <div className="flex items-center space-x-2">
             <div className="h-7 w-7 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
@@ -111,7 +113,7 @@ export const HedgingLabView: React.FC<HedgingLabViewProps> = ({
             </div>
             <div>
               <h2 className="text-lg sm:text-2xl font-bold text-white">
-                RiskLab Conversational Copilot
+                {companion ? 'Your portfolio' : 'RiskLab Conversational Copilot'}
               </h2>
               <p className="text-[11px] text-slate-400">
                 ${Math.round(metrics.totalValue).toLocaleString()} portfolio · {(metrics.annualizedVolatility * 100).toFixed(1)}% modeled volatility
@@ -227,7 +229,7 @@ export const HedgingLabView: React.FC<HedgingLabViewProps> = ({
             value={inputQuery}
             onChange={e => setInputQuery(e.target.value)}
             placeholder="e.g. How exposed am I to technology, and what could diversify it?"
-            className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="min-w-0 flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
           />
           <button
             type="submit"
@@ -241,6 +243,7 @@ export const HedgingLabView: React.FC<HedgingLabViewProps> = ({
       </div>
       </section>
 
+      <details open={companion ? undefined : true}><summary className="mb-4 cursor-pointer text-sm font-semibold text-slate-300">Portfolio context</summary>
       <section aria-label="Portfolio sector and asset exposure" className="space-y-4">
         <div>
           <h3 className="text-lg font-bold text-white">Your sectors and exposures</h3>
@@ -257,6 +260,7 @@ export const HedgingLabView: React.FC<HedgingLabViewProps> = ({
         </div>
         <Explanation label="How these groups are calculated">Percentages use the amounts entered for your actual tickers, not their risk proxies. Known companies and sector-specific funds have curated sector labels. Mixed funds such as SPY and QQQM are not assigned entirely to technology or another sector. Their underlying sector weights and overlap need fund holdings data. Unknown tickers stay unclassified. This breakdown does not measure all underlying sector exposure. Labels checked October 8, 2026. <a href="https://www.ssga.com/us/en/intermediary/capabilities/equities/sector-investing/sector-and-industry-etfs" target="_blank" rel="noreferrer" className="text-sky-300 underline">Sector reference</a></Explanation>
       </section>
+      </details>
     </div>
   );
 };

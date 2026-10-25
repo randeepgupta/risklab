@@ -15,7 +15,9 @@ import { RiskContributionChart } from './components/RiskContributionChart';
 import { CorrelationMatrix } from './components/CorrelationMatrix';
 import { MonteCarloView } from './components/MonteCarloView';
 import { StressTestingView } from './components/StressTestingView';
-import { HedgingLabView } from './components/HedgingLabView';
+import {CopilotPanel} from './components/CopilotPanel';
+import {WelcomePage} from './components/WelcomePage';
+import {PortfolioSnapshot} from './components/PortfolioSnapshot';
 import { DesktopInstallModal } from './components/DesktopInstallModal';
 import { DesktopCommandPalette } from './components/DesktopCommandPalette';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
@@ -56,12 +58,15 @@ const MVP_PORTFOLIO: PortfolioPosition[] = [
   },
 ];
 
-type RiskLabTab = 'risk' | 'monte-carlo' | 'stress' | 'hedging';
+type RiskLabTab = 'risk' | 'monte-carlo' | 'stress';
+function initialPage(): 'welcome' | 'lab' {
+  return typeof window !== 'undefined' && (window.location.pathname === '/lab' || new URLSearchParams(window.location.search).has('tab')) ? 'lab' : 'welcome';
+}
 
 function getInitialTab(): RiskLabTab {
   if (typeof window === 'undefined') return 'risk';
   const tab = new URLSearchParams(window.location.search).get('tab');
-  if (tab === 'monte-carlo' || tab === 'stress' || tab === 'hedging' || tab === 'risk') {
+  if (tab === 'monte-carlo' || tab === 'stress' || tab === 'risk') {
     return tab;
   }
   return 'risk';
@@ -98,14 +103,30 @@ const PRESET_NAMES: Record<string, string> = {
 };
 
 export default function App() {
+  const [page, setPage] = useState(initialPage);
+  const [isSampleLoading, setIsSampleLoading] = useState(false);
+  const [isCopilotOpen, setIsCopilotOpen] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('tab') === 'hedging');
+  const closeCopilot = useCallback(() => setIsCopilotOpen(false), []);
+  const openCopilot = useCallback(() => setIsCopilotOpen(true), []);
+  const navigateTo = useCallback((next: 'welcome' | 'lab') => {
+    setPage(next);
+    setIsCopilotOpen(false);
+    window.history.pushState({}, '', next === 'lab' ? '/lab' : '/');
+    window.scrollTo({top: 0});
+  }, []);
+  useEffect(() => {
+    const onPopState = () => {setPage(initialPage()); setIsCopilotOpen(false);};
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
   const [riskSnapshot, setRiskSnapshot] = useState<RiskSnapshot | null>(null);
-  const [historicalMode, setHistoricalMode] = useState(true);
   const [modelError, setModelError] = useState('');
-  useEffect(() => {loadRiskSnapshot().then(setRiskSnapshot).catch(error => setModelError(error.message));}, []);
+  useEffect(() => {if (page === 'lab') loadRiskSnapshot().then(setRiskSnapshot).catch(error => setModelError(error.message));}, [page]);
   const retryRiskSnapshot = () => {setModelError(''); loadRiskSnapshot().then(setRiskSnapshot).catch(error => setModelError(error.message));};
   const historicalTickers = useMemo(() => new Set<string>(Object.keys(riskSnapshot?.symbols || {})), [riskSnapshot]);
   const [positions, setPositions] = useState<PortfolioPosition[]>(MVP_PORTFOLIO);
   const [portfolioReady, setPortfolioReady] = useState(false);
+  const [isSamplePortfolio, setIsSamplePortfolio] = useState(false);
   const [portfolioName, setPortfolioName] = useState('Custom portfolio');
   const [setupSeedPositions, setSetupSeedPositions] = useState<PortfolioPosition[]>([]);
   const [setupInitialValue, setSetupInitialValue] = useState(100000);
@@ -152,32 +173,40 @@ export default function App() {
   const handleAnalyzePortfolio = (newPositions: PortfolioPosition[], portfolioValue: number) => {
     let analyzed = newPositions;
     try {
-      if (historicalMode) {
-        if (!riskSnapshot) throw new Error('Historical snapshot is still loading. Retry or select preset assumptions.');
-        analyzed = applyHistoricalSnapshot(newPositions, riskSnapshot);
-      }
+      if (!riskSnapshot) throw new Error('Historical snapshot is still loading. Please retry.');
+      analyzed = applyHistoricalSnapshot(newPositions, riskSnapshot);
     } catch (error) {setModelError(error instanceof Error ? error.message : 'Could not calculate historical risk.'); return;}
     setModelError('');
     setPositions(analyzed);
     setSetupSeedPositions(analyzed);
     setSetupInitialValue(portfolioValue);
+    setIsSamplePortfolio(false);
     setPortfolioName('Custom portfolio');
     setActiveTab('risk');
     setPortfolioReady(true);
   };
 
-  const handleUseSample = () => {
+  const handleUseSample = async () => {
+    if (isSampleLoading) return;
+    setIsSampleLoading(true);
     let sample = createRandomSamplePortfolio();
     try {
-      if (historicalMode && riskSnapshot) sample = applyHistoricalSnapshot(sample, riskSnapshot);
+      const snapshot = riskSnapshot ?? await loadRiskSnapshot();
+      setRiskSnapshot(snapshot);
+      sample = applyHistoricalSnapshot(sample, snapshot);
     } catch (error) {
       setModelError(error instanceof Error ? error.message : 'Could not calculate sample risk.');
+      setIsSampleLoading(false);
       return;
     }
     setModelError('');
     setPositions(sample);
     setSetupSeedPositions(sample);
     setSetupInitialValue(SAMPLE_PORTFOLIO_VALUE);
+    if (page !== 'lab') navigateTo('lab');
+    setIsCopilotOpen(false);
+    setIsSamplePortfolio(true);
+    setIsSampleLoading(false);
     setPortfolioName('Random sample portfolio');
     setActiveTab('risk');
     setPortfolioReady(true);
@@ -185,26 +214,36 @@ export default function App() {
 
   const handleUpdatePositions = (newPositions: PortfolioPosition[]) => {
     try {
-      const next = positions.some(position => position.historicalModel) && riskSnapshot
-        ? applyHistoricalSnapshot(newPositions, riskSnapshot) : newPositions;
+      if (!riskSnapshot) throw new Error('Historical snapshot is still loading. Please retry.');
+      const next = applyHistoricalSnapshot(newPositions, riskSnapshot);
       setPositions(next); setModelError('');
+      setIsSamplePortfolio(false);
+      setPortfolioName('Custom portfolio');
     } catch (error) {setModelError(error instanceof Error ? error.message : 'Unable to update risk models.');}
   };
 
   const handleEditPortfolio = () => {
-    setHistoricalMode(positions.every(position => !!position.historicalModel));
+    setIsCopilotOpen(false);
     setSetupSeedPositions(positions);
     setSetupInitialValue(positions.reduce((sum, position) => sum + position.investment, 0));
     setPortfolioReady(false);
   };
 
-  const handleSelectPreset = (key: string) => {
+  const handleSelectPreset = async (key: string) => {
     const preset = PRESETS[key];
     if (!preset) return;
 
-    setPositions(preset);
-    setSetupSeedPositions(preset);
+    let calibrated: PortfolioPosition[];
+    try {
+      const snapshot = riskSnapshot ?? await loadRiskSnapshot();
+      setRiskSnapshot(snapshot);
+      calibrated = applyHistoricalSnapshot(preset, snapshot);
+    } catch (error) {setModelError(error instanceof Error ? error.message : 'Could not load portfolio history.'); return;}
+    setModelError('');
+    setPositions(calibrated);
+    setSetupSeedPositions(calibrated);
     setSetupInitialValue(preset.reduce((sum, position) => sum + position.investment, 0));
+    setIsSamplePortfolio(true);
     setPortfolioName(PRESET_NAMES[key] || 'Preset portfolio');
     setActiveTab('risk');
     setPortfolioReady(true);
@@ -275,7 +314,7 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!portfolioReady) return;
+      if (!portfolioReady || page !== 'lab') return;
 
       const target = event.target as HTMLElement | null;
       const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
@@ -298,7 +337,7 @@ export default function App() {
           setActiveTab('monte-carlo');
         } else if (event.key === '4') {
           event.preventDefault();
-          setActiveTab('hedging');
+          setIsCopilotOpen(open => !open);
         } else if (event.key.toLowerCase() === 'd') {
           event.preventDefault();
           setIsCompactMode((compact) => !compact);
@@ -316,16 +355,20 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleExportJson, portfolioReady]);
+  }, [handleExportJson, portfolioReady, page]);
+
+  if (page === 'welcome') return <WelcomePage onEnterLab={() => navigateTo('lab')}
+    onUseSample={handleUseSample} hasPortfolio={portfolioReady} isSampleLoading={isSampleLoading} error={modelError} />;
 
   if (!portfolioReady) {
     return (
       <PortfolioSetup
+        onHome={() => navigateTo('welcome')}
+        isSampleLoading={isSampleLoading}
         initialPositions={setupSeedPositions}
         initialPortfolioValue={setupInitialValue}
         onAnalyze={handleAnalyzePortfolio}
         onUseSample={handleUseSample}
-        historicalMode={historicalMode} onHistoricalModeChange={mode => {setHistoricalMode(mode); setModelError('');}}
         historicalTickers={historicalTickers} snapshotAsOf={riskSnapshot?.asOf} modelError={modelError} onRetrySnapshot={retryRiskSnapshot}
       />
     );
@@ -338,6 +381,9 @@ export default function App() {
         totalValue={metrics.totalValue}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        onHome={() => navigateTo('welcome')}
+        onOpenCopilot={() => setIsCopilotOpen(open => !open)}
+        isCopilotOpen={isCopilotOpen}
         onEditPortfolio={handleEditPortfolio}
         onExportJson={handleExportJson}
         onExportCsv={handleExportCsv}
@@ -351,14 +397,10 @@ export default function App() {
 
       <main className={`flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 transition-all ${
         isCompactMode ? 'py-3 space-y-4' : 'py-6 space-y-6'
-      }`}>
+      } ${isCopilotOpen ? 'lg:mr-[460px] lg:w-[calc(100%-460px)]' : ''}`}>
         {modelError && <p role="alert" className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">{modelError}</p>}
-        {positions[0]?.historicalModel && <details className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-xs text-slate-300">
-          <summary className="cursor-pointer font-semibold text-emerald-300">Historical risk · Data through {positions[0].historicalModel.endDate} · About this model</summary>
-          <p className="mt-1">{positions[0].historicalModel.startDate} to {positions[0].historicalModel.endDate} · {positions[0].historicalModel.observations} matched daily returns · SPY benchmark · Prices as of {positions[0].priceAsOf}</p>
-          <p className="mt-1 text-slate-400">Volatility, correlations and beta use split/dividend-adjusted history. Advanced risk metrics use the historical annualized mean; Future uses a separately selected growth assumption. Neither is a forecast. VaR and simulations retain distribution assumptions; rate and sector stress inputs remain illustrative.</p>
-          <a href="https://www.dolthub.com/repositories/post-no-preference/stocks" target="_blank" rel="noreferrer" className="text-emerald-400 underline">Data: post-no-preference/stocks · CC BY-SA 4.0 · RiskLab adjusted snapshot</a>
-        </details>}
+        {activeTab === 'risk' && <PortfolioSnapshot positions={positions} isSample={isSamplePortfolio}
+          onEdit={handleEditPortfolio} onNewSample={handleUseSample} loading={isSampleLoading} />}
         {activeTab === 'risk' && (
           <div className={`animate-fadeIn ${isCompactMode ? 'space-y-4' : 'space-y-6'}`}>
             <PortfolioSummary
@@ -379,7 +421,7 @@ export default function App() {
             <HoldingsTable
               positions={positions}
               onUpdatePositions={handleUpdatePositions}
-              historicalTickers={positions.some(position => position.historicalModel) ? historicalTickers : undefined}
+              historicalTickers={historicalTickers}
             />
 
             <details className="group bg-slate-900/40 border border-slate-800 rounded-xl p-5">
@@ -401,11 +443,7 @@ export default function App() {
           <div className="animate-fadeIn">
             <MonteCarloView
               initialValue={metrics.totalValue}
-              volatilitySource={positions.every(position => !!position.historicalModel)
-                ? 'Estimated from historical prices and correlations'
-                : positions.some(position => !!position.historicalModel)
-                  ? 'Combined historical and preset risk estimates'
-                  : 'Estimated from preset volatility and correlations'}
+              volatilitySource="Estimated from historical prices and correlations"
               volatility={metrics.annualizedVolatility}
             />
           </div>
@@ -417,11 +455,12 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'hedging' && (
-          <div className="animate-fadeIn">
-            <HedgingLabView positions={positions} metrics={metrics} />
-          </div>
-        )}
+        {positions[0]?.historicalModel && <details className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-xs text-slate-300">
+          <summary className="cursor-pointer font-semibold text-emerald-300">Historical risk · Data through {positions[0].historicalModel.endDate} · About this model</summary>
+          <p className="mt-1">{positions[0].historicalModel.startDate} to {positions[0].historicalModel.endDate} · {positions[0].historicalModel.observations} matched daily returns · SPY benchmark · Prices as of {positions[0].priceAsOf}</p>
+          <p className="mt-1 text-slate-400">Volatility, correlations and beta use split/dividend-adjusted history. Advanced risk metrics use the historical annualized mean; Future uses a separately selected growth assumption. Neither is a forecast. VaR and simulations retain distribution assumptions; rate and sector stress inputs remain illustrative.</p>
+          <a href="https://www.dolthub.com/repositories/post-no-preference/stocks" target="_blank" rel="noreferrer" className="text-emerald-400 underline">Data: post-no-preference/stocks · CC BY-SA 4.0 · RiskLab adjusted snapshot</a>
+        </details>}
       </main>
 
       <footer className="border-t border-slate-900/90 py-5 mt-10 text-xs text-slate-600">
@@ -430,6 +469,8 @@ export default function App() {
           <span>Educational analytics only · Not investment advice</span>
         </div>
       </footer>
+
+      <CopilotPanel open={isCopilotOpen} onClose={closeCopilot} positions={positions} metrics={metrics} />
 
       <DesktopInstallModal
         isOpen={isInstallModalOpen}
@@ -440,6 +481,7 @@ export default function App() {
       />
 
       <DesktopCommandPalette
+        onOpenCopilot={openCopilot}
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
         setActiveTab={setActiveTab}

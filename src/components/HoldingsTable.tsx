@@ -2,13 +2,12 @@ import {Explanation} from './Explanation';
 import React, { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { PortfolioPosition } from '../types/risk';
-import { ASSET_DATABASE } from '../utils/quantEngine';
-import { SymbolPicker, RiskProxyPicker } from './SymbolPicker';
+import { SymbolPicker } from './SymbolPicker';
 import { ListedSymbol, createListedPosition } from '../utils/symbolDirectory';
 
 interface HoldingsTableProps {
   positions: PortfolioPosition[];
-  historicalTickers?: Set<string>;
+  historicalTickers: Set<string>;
   onUpdatePositions: (newPositions: PortfolioPosition[]) => void;
 }
 
@@ -19,7 +18,6 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
   const [isAdding, setIsAdding] = useState(false);
   const [newTicker, setNewTicker] = useState('');
   const [newSymbol, setNewSymbol] = useState<ListedSymbol | null>(null);
-  const [riskProxyTicker, setRiskProxyTicker] = useState('');
   const [newInvestment, setNewInvestment] = useState('');
 
   const [editingTicker, setEditingTicker] = useState<string | null>(null);
@@ -32,9 +30,9 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
   const handleAddPosition = (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(newInvestment);
-    if (!Number.isFinite(amount) || amount <= 0 || !newSymbol || usedTickers.has(newTicker) || positions.length >= 30 || !(historicalTickers ? historicalTickers.has(newTicker) : ASSET_DATABASE[newTicker] || ASSET_DATABASE[riskProxyTicker])) return;
+    if (!Number.isFinite(amount) || amount <= 0 || !newSymbol || usedTickers.has(newTicker) || positions.length >= 30 || !historicalTickers.has(newTicker)) return;
 
-    const newPositions = [...positions, createListedPosition(newSymbol, amount, 0, riskProxyTicker, historicalTickers?.has(newTicker))];
+    const newPositions = [...positions, createListedPosition(newSymbol, amount, 0, undefined, true)];
 
     const newTotal = newPositions.reduce((sum, p) => sum + p.investment, 0);
     const updated = newPositions.map(p => ({
@@ -44,7 +42,7 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
 
     onUpdatePositions(updated);
     setIsAdding(false);
-    setNewTicker(''); setNewSymbol(null); setRiskProxyTicker('');
+    setNewTicker(''); setNewSymbol(null);
   };
 
   const handleRemovePosition = (ticker: string) => {
@@ -103,7 +101,7 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
           <button
             type="button"
             onClick={() => {
-              setNewTicker(''); setNewSymbol(null); setRiskProxyTicker(''); setNewInvestment('');
+              setNewTicker(''); setNewSymbol(null); setNewInvestment('');
               setIsAdding(true);
             }}
             disabled={positions.length >= 30}
@@ -116,10 +114,9 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
           <form onSubmit={handleAddPosition} className="flex flex-wrap items-start gap-2 w-full">
             <div className="min-w-0 flex-1 basis-64">
               <SymbolPicker value={newTicker} excluded={usedTickers} historicalTickers={historicalTickers} onSelect={symbol => {
-                setNewTicker(symbol.ticker); setNewSymbol(symbol); setRiskProxyTicker('');
+                setNewTicker(symbol.ticker); setNewSymbol(symbol);
               }} />
-              {!historicalTickers && <RiskProxyPicker ticker={newTicker} value={riskProxyTicker} onChange={setRiskProxyTicker} />}
-              {historicalTickers && newTicker && !historicalTickers.has(newTicker) && <p className="mt-1 text-xs text-amber-300">This holding is outside the historical snapshot. Use Edit Portfolio to switch to preset assumptions.</p>}
+              {historicalTickers && newTicker && !historicalTickers.has(newTicker) && <p className="mt-1 text-xs text-amber-300">Historical data is not available for this holding yet. Choose a covered holding.</p>}
             </div>
 
             <div className="relative">
@@ -136,7 +133,7 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({
 
             <button
               type="submit"
-              disabled={!newSymbol || !(historicalTickers ? historicalTickers.has(newTicker) : ASSET_DATABASE[newTicker] || ASSET_DATABASE[riskProxyTicker]) || !Number.isFinite(Number(newInvestment)) || Number(newInvestment) <= 0}
+              disabled={!newSymbol || !historicalTickers.has(newTicker) || !Number.isFinite(Number(newInvestment)) || Number(newInvestment) <= 0}
               className="p-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded transition-colors"
               title="Confirm Add"
             >

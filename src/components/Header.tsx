@@ -18,8 +18,11 @@ import {
 interface HeaderProps {
   portfolioName: string;
   totalValue: number;
-  activeTab: 'risk' | 'monte-carlo' | 'stress' | 'hedging';
-  setActiveTab: (tab: 'risk' | 'monte-carlo' | 'stress' | 'hedging') => void;
+  activeTab: 'risk' | 'monte-carlo' | 'stress';
+  setActiveTab: (tab: 'risk' | 'monte-carlo' | 'stress') => void;
+  onHome: () => void;
+  onOpenCopilot: () => void;
+  isCopilotOpen: boolean;
   onEditPortfolio: () => void;
   onExportJson: () => void;
   onExportCsv: () => void;
@@ -35,7 +38,6 @@ const tabs = [
   { id: 'risk' as const, label: 'Overview', icon: BarChart3 },
   { id: 'stress' as const, label: 'What If?', icon: ShieldAlert },
   { id: 'monte-carlo' as const, label: 'Future', icon: TrendingUp },
-  { id: 'hedging' as const, label: 'Copilot', icon: Sparkles },
 ];
 
 export const Header: React.FC<HeaderProps> = ({
@@ -43,6 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
   totalValue,
   activeTab,
   setActiveTab,
+  onHome, onOpenCopilot, isCopilotOpen,
   onEditPortfolio,
   onExportJson,
   onExportCsv,
@@ -66,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-extrabold tracking-tight text-white">RiskLab</span>
+                <button onClick={onHome} aria-label="RiskLab home" className="font-extrabold tracking-tight text-white hover:text-emerald-300">RiskLab</button><span className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-slate-400">Lab</span>
                 <span className="hidden sm:inline text-slate-700">/</span>
                 <span className="hidden sm:inline text-sm text-slate-300 truncate">{portfolioName}</span>
               </div>
@@ -205,6 +208,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
+        <div className="flex items-center justify-between gap-2">
         <nav className="flex items-center gap-1 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none" aria-label="RiskLab analysis views">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -226,6 +230,11 @@ export const Header: React.FC<HeaderProps> = ({
             );
           })}
         </nav>
+        <button type="button" onClick={onOpenCopilot} aria-expanded={isCopilotOpen} aria-label="Toggle Copilot"
+          className={`mb-2 inline-flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs sm:text-sm font-semibold ${isCopilotOpen ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' : 'border-slate-700 text-slate-300 hover:border-emerald-500/40 hover:text-emerald-300'}`}>
+          <Sparkles className="h-4 w-4" /><span className="hidden sm:inline">Ask Copilot</span>
+        </button>
+        </div>
       </div>
     </header>
   );
