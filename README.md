@@ -250,7 +250,7 @@ search and model consistency checks.
 Historical mode calculates each covered holding's risk from a committed, dated public dataset,
 loaded once and reused in the browser. Changing allocations, adding covered holdings and running
 analysis do not call a market-data API. No account, token or backend market-data secret is needed.
-The PWA also caches the snapshot. The listing directory remains broader than historical coverage;
+The PWA also caches the snapshot and its content-addressed parts. The listing directory remains broader than historical coverage;
 unsupported holdings can use the existing, explicitly selected proxy in preset mode. A portfolio
 uses one mode consistently, with no hidden mixture of historical and preset covariance estimates.
 
@@ -261,7 +261,7 @@ the latest available year. It checks query completeness, valid closes, source da
 history and availability of corporate-action dates. Missing, short or stale symbols are omitted;
 failed refreshes preserve the previous snapshot. Refresh and commit the file when desired;
 there is no scheduled job or runtime upstream price fetch. Repeated generator queries have a
-one-hour temporary cache to permit resuming downloads; remove `risklab-public-data-cache` from
+seven-day temporary cache to permit resuming downloads; remove `risklab-public-data-cache` from
 your system's temporary directory if you need to bypass it for source corrections.
 
 For the selected holdings and SPY benchmark, RiskLab aligns identical daily return intervals,
@@ -287,3 +287,40 @@ This data license does not change the license of unrelated application code. Sna
 model data retain source and license metadata. The public dataset is community-maintained;
 corporate actions, source corrections and ticker reuse can affect estimates. Inspect the visible
 as-of date and coverage before relying on a model.
+
+### Ad hoc full-directory historical refresh
+
+Run `npm run refresh:risk-models` to rebuild historical models for the entire committed
+`public/symbols/us-listed.json` directory, including SPY as the benchmark. There is no
+hardcoded ticker allowlist. Optionally run `npm run refresh:symbols` first to update listings.
+The browser calculates each covered ticker's model from its own adjusted return series;
+portfolio covariance still uses matching daily intervals across the selected holdings.
+
+The batch scans one year of daily prices with one aggregate per day, validating its
+size against the source row count to avoid the public API's 1,000-row cap. Dividend
+and split downloads use explicit pagination below that cap. A full refresh can take several minutes
+or longer depending on source latency. Interrupted runs reuse successfully downloaded
+pages for seven days. Retry the same command to resume. No API key is required.
+
+```bash
+npm run refresh:risk-models
+# Reduce concurrent day downloads if the public source is busy:
+npm run refresh:risk-models -- --workers 4
+# Generate an isolated candidate without replacing the app's snapshot:
+npm run refresh:risk-models -- --output /tmp/risklab-models/historical-snapshot.json
+```
+
+The manifest records `coverage` counts and an `exclusions` reason for every uncovered ticker:
+`no_source_history`, `stale_history`, `insufficient_history` (fewer than 127 closes),
+`invalid_price`, `invalid_corporate_action`, `duplicate_prices`, `missing_corporate_action_price`,
+`invalid_adjusted_history`, or `insufficient_benchmark_overlap`. Some new listings or securities absent from the public dataset
+cannot have a valid own-history model yet. These remain visibly unavailable in historical
+mode; the batch never substitutes another security's model.
+
+Output is `public/models/historical-snapshot.json` plus content-addressed `history-*.json`
+parts with at most 500 holdings each. All parts are written before atomically replacing the
+manifest. Failed downloads, missing benchmark data, fewer than 150 covered tickers, or a
+coverage drop greater than 10% preserve the current manifest. Old parts remain safe for
+clients that already loaded the previous manifest; remove unreferenced parts deliberately
+before committing a refreshed snapshot. Commit the manifest and every referenced part
+together, then run `npm run test:history` and `npm run build`.

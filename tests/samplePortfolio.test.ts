@@ -38,6 +38,7 @@ assert.ok(allocations.size > 100);
 console.log('Random sample portfolio checks passed (200 samples).');
 
 const snapshot = JSON.parse(readFileSync(new URL('../public/models/historical-snapshot.json', import.meta.url), 'utf8')) as RiskSnapshot;
+for (const part of snapshot.parts || []) Object.assign(snapshot.symbols, JSON.parse(readFileSync(new URL(`../public/models/${part}`, import.meta.url), 'utf8')));
 for (let seed = 1; seed <= 20; seed++) {
   const sample = applyHistoricalSnapshot(createRandomSamplePortfolio(seededRandom(seed)), snapshot);
   assert.ok(sample.every(position => position.historicalModel && !position.riskProxyTicker));
