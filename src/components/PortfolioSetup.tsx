@@ -28,8 +28,6 @@ interface PortfolioSetupProps {
   onRetrySnapshot: () => void;
 }
 
-const supportedTickers = Object.keys(ASSET_DATABASE).sort();
-
 export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
   initialPositions = [],
   initialPortfolioValue = 100000,
@@ -49,7 +47,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
       }));
     }
 
-    return [{ id: nextId.current++, ticker: 'SPY', allocation: '' }];
+    return [{ id: nextId.current++, ticker: '', allocation: '' }];
   });
 
   useEffect(() => {
@@ -88,10 +86,8 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
   };
 
   const addRow = () => {
-    const used = new Set(rows.map((row) => row.ticker));
-    const nextTicker = supportedTickers.find((ticker) => !used.has(ticker));
     if (rows.length >= 30) return;
-    setRows((current) => [...current, { id: nextId.current++, ticker: nextTicker || '', allocation: '' }]);
+    setRows((current) => [...current, { id: nextId.current++, ticker: '', allocation: '' }]);
   };
 
   const removeRow = (id: number) => {
