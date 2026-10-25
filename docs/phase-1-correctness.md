@@ -1,5 +1,8 @@
 # Phase 1 — Quantitative Correctness Pass
 
+This is the historical phase-one baseline. The current Lab uses historical calibration and the [measured scenario model](scenario-model.md); preset stress factors described below have been retired.
+
+
 This pass intentionally focuses on correctness and truthful labeling rather than adding product features.
 
 ## Fixed

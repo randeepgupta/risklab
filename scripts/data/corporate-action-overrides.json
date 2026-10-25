@@ -1,0 +1,20 @@
+[
+  {
+    "ticker": "AMTD",
+    "date": "2026-10-19",
+    "toFactor": 1,
+    "forFactor": 60,
+    "source": "https://www.sec.gov/Archives/edgar/data/1769731/000121390026107254/ea030787901ex99-1.htm",
+    "verifiedAt": "2026-10-25",
+    "description": "Issuer announced ADS ratio changing from six to 360 Class A ordinary shares per ADS, economically a one-for-60 reverse split."
+  },
+  {
+    "ticker": "DKI",
+    "date": "2026-10-22",
+    "toFactor": 1,
+    "forFactor": 50,
+    "source": "https://www.globenewswire.com/news-release/2026/10/19/3383397/0/en/darkiris-inc-announces-share-consolidation.html",
+    "verifiedAt": "2026-10-25",
+    "description": "Issuer announced one-for-50 Class A and Class B share consolidation effective October 22, 2026."
+  }
+]

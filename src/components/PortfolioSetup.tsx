@@ -258,7 +258,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
         <div className="mt-6 max-w-3xl mx-auto rounded-xl border border-slate-800 bg-slate-950/30 p-4 text-xs">
           <p className="font-semibold text-slate-200">{snapshotAsOf ? `Historical data through ${snapshotAsOf}` : 'Loading historical data…'}</p>
           <p className="mt-1 text-slate-400">{snapshotAsOf ? `${historicalTickers.size.toLocaleString()} holdings covered` : 'Coverage will appear when the snapshot is ready.'}</p>
-          <Explanation label="About this data">Each covered holding uses its own historical prices. New listings and holdings without enough usable history may be unavailable.</Explanation>
+          <Explanation label="About this data">Each covered holding uses its own historical prices. New listings, insufficient history and data-quality exclusions may make a holding unavailable. The batch uses a conservative cutoff when corporate-action feeds lag prices.</Explanation>
           {modelError && <p role="alert" className="mt-2 text-rose-300">{modelError} {!snapshotAsOf && <button type="button" className="ml-2 underline" onClick={onRetrySnapshot}>Retry snapshot</button>}</p>}
         </div>
         <p className="mt-5 text-center text-[11px] text-slate-600">

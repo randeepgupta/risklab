@@ -4,7 +4,7 @@ RiskLab is designed around a strict separation between **language interpretation
 
 ## Design principle
 
-> The LLM may translate a user's scenario into structured assumptions, but it does not own the portfolio mathematics.
+> Explicit user scenarios are parsed into measurable assumptions; AI explanations do not control portfolio mathematics.
 
 This boundary makes the system easier to test, reason about, and evolve.
 
@@ -15,9 +15,9 @@ flowchart TD
     U[User] --> FE[React UI]
     FE -->|positions| QE[Quantitative Engine]
     FE -->|natural-language scenario| API[Express API]
-    API --> LLM[Gemini]
-    LLM --> SAN[Scenario sanitizer / bounds]
-    SAN --> QE
+    API --> PARSER[Shared explicit-shock parser]
+    PARSER --> QE
+    SNAP[Historical snapshot + Treasury yields] --> QE
 
     QE --> RM[Risk metrics]
     QE --> RC[Risk contribution]
@@ -61,7 +61,7 @@ The quantitative engine contains the financial models and has no dependency on G
 - Black-Scholes option pricing
 - illustrative hedge economics
 
-The current implementation is intentionally centralized in `quantEngine.ts`. A later architecture phase will split this into focused modules after the market-data interface is established.
+Portfolio mathematics remain in `quantEngine.ts`; `historicalModels.ts` calibrates risk statistics and `measuredScenario.ts` handles historical stress sensitivities. The batch snapshot supplies reproducible inputs.
 
 ## API layer
 
@@ -75,15 +75,15 @@ The server owns the Gemini credential. The browser never receives the API key.
 
 ### Scenario safety boundary
 
-LLM-generated scenarios are sanitized before entering the deterministic engine:
+Both deployments use `api/scenario-parser.ts` for explicit numeric shocks. It
+validates supported drivers, magnitudes, directions, units and held ticker symbols.
+Ambiguous requests return clarification errors; values are rejected rather than
+silently clamped. It makes no AI call and does not invent missing magnitudes.
 
-1. unknown or malformed values are normalized
-2. numeric factor shocks are clamped to bounded ranges
-3. ticker identifiers are validated
-4. text fields are length-limited
-5. asset-specific percentage shocks are bounded
-
-This does not make an LLM scenario a forecast; it prevents untrusted model output from directly controlling numerical calculations without validation.
+The browser estimates joint measured responses from the historical snapshot, and
+refuses a portfolio total for missing coverage or invalid fits. See
+[the scenario model](scenario-model.md). The copilot remains an optional AI
+explanation service; its prose does not supply scenario price changes.
 
 ## Development / production
 

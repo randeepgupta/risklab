@@ -1,5 +1,6 @@
 // Also exercise the UI scenario-state logic against the actual stress engine.
 import './scenarioControls.test';
+import './measuredScenarios.test';
 import assert from 'node:assert/strict';
 import {
   ASSET_DATABASE,
@@ -85,87 +86,8 @@ function position(ticker: string, investment: number): PortfolioPosition {
   assert.ok(metrics.var95_10d > metrics.var95_1d, '10-day VaR should exceed 1-day VaR for this portfolio');
 }
 
-// 4) Duration sign convention: falling yields lift a positive-duration bond; rising yields hurt it.
-{
-  const base: StressScenario = {
-    id: 'rates-only',
-    name: 'Rates only',
-    description: 'Rates-only unit test',
-    category: 'macro_factor',
-    tickerShocks: {},
-    factorShocks: {
-      equityShockPct: 0,
-      rateChangeBps: -100,
-      vixSpikePct: 0,
-      semiShockPct: 0,
-      techShockPct: 0,
-    },
-  };
-
-  const cut = executeStressTest([position('TLT', 100_000)], base);
-  approx(cut.attributions[0].shockPct, 0.168, 1e-10, '100 bps rate cut should lift TLT by duration approximation');
-
-  const hike: StressScenario = {
-    ...base,
-    factorShocks: { ...base.factorShocks!, rateChangeBps: 100 },
-  };
-  const up = executeStressTest([position('TLT', 100_000)], hike);
-  approx(up.attributions[0].shockPct, -0.168, 1e-10, '100 bps rate hike should hurt TLT by duration approximation');
-}
-
-// 5) Direct ticker shock overrides factor model.
-{
-  const scenario: StressScenario = {
-    id: 'override',
-    name: 'Override',
-    description: 'Direct shock wins',
-    category: 'macro_factor',
-    tickerShocks: { SPY: -0.12 },
-    factorShocks: {
-      equityShockPct: -50,
-      rateChangeBps: 0,
-      vixSpikePct: 200,
-      semiShockPct: -60,
-      techShockPct: -50,
-    },
-  };
-  const result = executeStressTest([position('SPY', 100_000)], scenario);
-  approx(result.attributions[0].shockPct, -0.12, 1e-12, 'Direct ticker shock should override factor calculation');
-}
-
-// 6) Hierarchical factor shocks do not double-count identical market/sector shocks,
-// and a VIX-only change does not mechanically subtract from spot P&L.
-{
-  const sameShock: StressScenario = {
-    id: 'same-shock',
-    name: 'Same shock',
-    description: 'Market and sector shocks are identical',
-    category: 'macro_factor',
-    tickerShocks: {},
-    factorShocks: {
-      equityShockPct: -20,
-      rateChangeBps: 0,
-      vixSpikePct: 200,
-      semiShockPct: -20,
-      techShockPct: -20,
-    },
-  };
-  const qqqm = executeStressTest([position('QQQM', 100_000)], sameShock);
-  approx(qqqm.attributions[0].shockPct, -0.256, 1e-12, 'Equal sector shocks should reduce to beta-adjusted market shock');
-
-  const vixOnly: StressScenario = {
-    ...sameShock,
-    factorShocks: {
-      equityShockPct: 0,
-      rateChangeBps: 0,
-      vixSpikePct: 250,
-      semiShockPct: 0,
-      techShockPct: 0,
-    },
-  };
-  const spot = executeStressTest([position('SPY', 100_000)], vixOnly);
-  approx(spot.attributions[0].shockPct, 0, 1e-12, 'VIX context should not be double-counted into spot returns');
-}
+// 4–6) Measured stress response, units, conditioning and coverage checks are
+// exercised above by measuredScenarios.test; demo factor sensitivities are rejected.
 
 // 7) Hedging output no longer invents a fixed floor for put spreads / beta overlays.
 {
@@ -188,8 +110,8 @@ function position(ticker: string, investment: number): PortfolioPosition {
     category: 'preset',
     tickerShocks: { SPY: -0.2 },
   };
-  const result = executeStressTest([position('BND', 100_000)], scenario);
-  approx(result.attributions[0].shockPct, 0, 1e-12, 'Unspecified direct-shock asset should remain unchanged');
+  const result = executeStressTest([position('SPY', 100_000), position('BND', 100_000)], scenario);
+  approx(result.attributions.find(item=>item.ticker==='BND')!.shockPct, 0, 1e-12, 'Unspecified direct-shock asset should remain unchanged');
 }
 
 // 9) Black-Scholes implementation satisfies European put-call parity.

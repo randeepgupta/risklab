@@ -1,8 +1,11 @@
 import {calibrateHistoricalModels, type DailyPrice} from './historicalModels';
+import {SCENARIO_BENCHMARKS} from './measuredScenario';
 import type {PortfolioPosition} from '../types/risk';
 export interface RiskSnapshot {
   capturedAt: string; asOf: string; dates: string[];
   symbols: Record<string, {values: (number | null)[]; price: number; priceAsOf: string}>;
+  treasuryYields?: {series:'DGS10';source:string;units:'percent';values:(number|null)[];observations?:number;startDate?:string;endDate?:string;downloadUrl?:string};
+  dataQuality?: {priceLatestDate?:string;actionCutoff?:string;[key:string]:unknown};
   parts?: string[];
   exclusions?: Record<string, string>;
   coverage?: {requested: number; covered: number; excluded: number};
@@ -28,14 +31,17 @@ export function loadRiskSnapshot(): Promise<RiskSnapshot> {
   return snapshotPromise;
 }
 export function applyHistoricalSnapshot(positions: PortfolioPosition[], snapshot: RiskSnapshot): PortfolioPosition[] {
-  const tickers = [...new Set([...positions.map(position => position.ticker), 'SPY'])];
+  const requiredTickers = [...new Set([...positions.map(position => position.ticker), 'SPY'])];
+  const tickers = [...new Set([...requiredTickers, ...Object.values(SCENARIO_BENCHMARKS).filter(ticker=>snapshot.symbols[ticker])])];
   const series: Record<string, DailyPrice[]> = {};
   for (const ticker of tickers) {
     const symbol = snapshot.symbols[ticker];
     if (!symbol) throw new Error(`${ticker} is not covered by this historical snapshot. Choose a covered holding.`);
     series[ticker] = snapshot.dates.flatMap((date, i) => symbol.values[i] == null ? [] : [{date, adjClose: symbol.values[i]!, close: symbol.values[i]!}]);
   }
-  const models = calibrateHistoricalModels(series, positions.map(position => position.ticker), snapshot.capturedAt);
+  if(snapshot.treasuryYields && (snapshot.treasuryYields.units!=='percent'||snapshot.treasuryYields.series!=='DGS10'||snapshot.treasuryYields.values.length!==snapshot.dates.length)) throw new Error('Historical Treasury yield data is invalid.');
+  const yields=snapshot.treasuryYields?snapshot.dates.flatMap((date,i)=>snapshot.treasuryYields!.values[i]==null?[]:[{date,value:snapshot.treasuryYields!.values[i]!}]):undefined;
+  const models = calibrateHistoricalModels(series, positions.map(position => position.ticker), snapshot.capturedAt, yields);
   return positions.map(position => {
     const {riskProxyTicker: _proxy, ...rest} = position;
     return {...rest, historicalModel: models[position.ticker], price: snapshot.symbols[position.ticker].price, priceAsOf: snapshot.symbols[position.ticker].priceAsOf};

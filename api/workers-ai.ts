@@ -1,3 +1,4 @@
+import {EXPLICIT_DRIVER_LIMITS, validateExplicitScenario} from './scenario-parser';
 export const AI_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 
 export interface Env {
@@ -12,32 +13,19 @@ export function aiMetadata(env: Env) {
     : {provider: 'fallback', reason: env.fallbackReason ?? 'not_configured', label: 'Rule-based fallback'};
 }
 
-const factorNames = ['equityShockPct', 'rateChangeBps', 'vixSpikePct', 'semiShockPct', 'techShockPct'];
 const scenarioSchema = {
   type: 'object',
   properties: {
     scenarioName: {type: 'string'},
-    factorShocks: {
-      type: 'object',
-      properties: Object.fromEntries(factorNames.map(name => [name, {type: 'number'}])),
-      required: factorNames,
-    },
-    macroTransmissionExplanation: {type: 'string'},
-    vulnerabilities: {type: 'array', items: {type: 'string'}},
-    suggestedHedgeAction: {type: 'string'},
+    drivers: {type: 'object', additionalProperties: false,
+      properties: Object.fromEntries(Object.entries(EXPLICIT_DRIVER_LIMITS).map(([name, bounds]) => [name, {type:'number', minimum:bounds.min, maximum:bounds.max}]))},
+    tickerShocks: {type:'object', additionalProperties:{type:'number',minimum:-1,maximum:3}},
+    macroTransmissionExplanation: {type:'string'},
   },
-  required: ['scenarioName', 'factorShocks', 'macroTransmissionExplanation'],
+  required: ['scenarioName', 'drivers', 'tickerShocks', 'macroTransmissionExplanation'],
 };
 
-export function validateScenario(value: any) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)
-      || typeof value.scenarioName !== 'string' || !value.scenarioName.trim()
-      || typeof value.macroTransmissionExplanation !== 'string' || !value.macroTransmissionExplanation.trim()
-      || !factorNames.every(name => typeof value.factorShocks?.[name] === 'number'
-        && Number.isFinite(value.factorShocks[name]))) {
-    throw new Error('AI response is missing valid scenario factors');
-  }
-}
+export const validateScenario = validateExplicitScenario;
 
 export async function generateAi(env: Env, system: string, user: string, json: boolean): Promise<unknown> {
   if (!env.AI) throw new Error('Workers AI is not configured');
