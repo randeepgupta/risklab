@@ -2,6 +2,26 @@
 
 RiskLab is being developed in deliberate phases so that additional features do not outrun the reliability of the underlying models.
 
+## Current delivery plan — October 2026
+
+The original phases below are historical planning notes. Historical calibration,
+batch refresh, measured conditional stress responses, a Welcome/Lab flow and the
+Copilot companion panel have shipped. They are no longer pending market-data work.
+
+The next phase is delivered in reviewable releases:
+
+- **A, in review:** named local saved portfolios, versioned backup/restore,
+  persisted What If and Future settings, validation CI and refresh reports.
+- **B, planned:** CSV portfolio import with mapping, value reconciliation and
+  coverage review, followed by a five-user pilot.
+- **C, planned:** side-by-side current/proposed allocation comparisons on a common
+  model revision, historical window and scenario assumptions.
+
+Independent-source reconciliation and chronological model evaluation remain
+required research; an automated input report is not a substitute. Historical
+replays and ETF look-through depend on suitable verified, licensed data. See
+[saved-portfolio release details](saved-portfolios.md).
+
 ## Phase 1 — Quantitative correctness ✅
 
 Completed:

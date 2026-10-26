@@ -1,7 +1,7 @@
 import {Explanation} from './Explanation';
-import React, { useMemo, useReducer, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
-import { PortfolioPosition, AiResponseSource, StressScenario } from '../types/risk';
+import { PortfolioPosition, StressScenario } from '../types/risk';
 import { executeStressTest } from '../utils/quantEngine';
 import {
   createScenarioControls,
@@ -10,9 +10,13 @@ import {
   scenarioFromControls,
 } from '../utils/scenarioControls';
 import type { EditableFactor } from '../utils/scenarioControls';
+import type {ScenarioSession} from '../types/workspace';
+import {createScenarioSession} from '../utils/workspaceSettings';
 
 interface StressTestingViewProps {
   positions: PortfolioPosition[];
+  session?: ScenarioSession;
+  onSessionChange?: (session:ScenarioSession) => void;
 }
 
 const EXAMPLE_PROMPTS = [
@@ -21,25 +25,23 @@ const EXAMPLE_PROMPTS = [
   'The 10-year Treasury yield rises by 2 percentage points',
 ];
 
-const EMPTY_SCENARIO: StressScenario = {
-  id: 'unsubmitted', name: '', description: '', category: 'custom', tickerShocks: {},
-  drivers: {},
-};
-
-export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions }) => {
-  const [controls, dispatch] = useReducer(
-    scenarioControlsReducer,
-    EMPTY_SCENARIO,
-    createScenarioControls,
-  );
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [hasResult, setHasResult] = useState(false);
+export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions, session:suppliedSession, onSessionChange }) => {
+  const [localSession,setLocalSession] = useState(createScenarioSession);
+  const session = suppliedSession ?? localSession;
+  const updateSession = (patch:Partial<ScenarioSession>) => {
+    const next={...session,...patch};
+    if(onSessionChange) onSessionChange(next); else setLocalSession(next);
+  };
+  const {controls,prompt:aiPrompt,hasResult,explanation:aiResultExplanation,source:aiSource}=session;
+  const setAiPrompt = (prompt:string) => updateSession({prompt});
+  const dispatch = (action:Parameters<typeof scenarioControlsReducer>[1]) => updateSession({controls:scenarioControlsReducer(controls,action)});
   const [showExamples, setShowExamples] = useState(false);
   const promptRef = useRef<HTMLTextAreaElement>(null);
   const [scenarioError, setScenarioError] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiResultExplanation, setAiResultExplanation] = useState<string | null>(null);
-  const [aiSource, setAiSource] = useState<AiResponseSource | null>(null);
+  const pendingRequest = useRef<AbortController | null>(null);
+  const mounted = useRef(true);
+  useEffect(() => {mounted.current=true; return () => {mounted.current=false; pendingRequest.current?.abort();};}, []);
   const scenarioForCalculation = useMemo(() => scenarioFromControls(controls), [controls]);
 
   const calculation = useMemo(() => {
@@ -54,31 +56,31 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions 
     if (!aiPrompt.trim() || isAiLoading) return;
     setIsAiLoading(true);
     setScenarioError(null);
+    const controller=new AbortController();
+    pendingRequest.current=controller;
     try {
       const response = await fetch('/api/gemini/parse-scenario', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: aiPrompt, portfolio: positions }),
+        body: JSON.stringify({ prompt: aiPrompt, portfolio: positions.map(({ticker})=>({ticker})) }),
+        signal: controller.signal,
       });
       const data = await response.json();
+      if(!mounted.current || controller.signal.aborted) return;
       if (!response.ok) throw new Error(data.error || 'Scenario service unavailable. Please try again.');
       if (!data.drivers || !data.tickerShocks) throw new Error('Scenario assumptions unavailable');
-      setAiSource(data.ai ?? {provider: 'fallback', label: 'Explicit scenario assumptions'});
-      setAiResultExplanation(data.macroTransmissionExplanation ?? null);
-      dispatch({ type: 'load', scenario: {
-        id: `ai_${Date.now()}`,
-        name: data.scenarioName || aiPrompt,
-        description: data.macroTransmissionExplanation || 'Custom market scenario translated from your description.',
-        category: data.ai?.provider === 'cloudflare' ? 'ai_generated' : 'custom',
-        tickerShocks: data.tickerShocks,
-        drivers: data.drivers,
-      } });
-      setHasResult(true);
+      const scenario:StressScenario={
+        id: `scenario_${Date.now()}`, name:data.scenarioName || aiPrompt,
+        description:data.macroTransmissionExplanation || 'Your explicit market assumptions.',
+        category:'custom', tickerShocks:data.tickerShocks, drivers:data.drivers,
+      };
+      updateSession({source:data.ai ?? {provider:'deterministic',label:'Explicit scenario assumptions'},
+        explanation:data.macroTransmissionExplanation ?? null,controls:createScenarioControls(scenario),hasResult:true});
     } catch (error) {
-      console.error('Error parsing scenario', error);
+      if(!mounted.current || controller.signal.aborted) return;
       setScenarioError((error instanceof Error ? error.message : 'We couldn’t interpret that scenario.') + (hasResult ? ' Previous results remain below.' : ''));
     } finally {
-      setIsAiLoading(false);
+      if(mounted.current) setIsAiLoading(false);
     }
   };
 

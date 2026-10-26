@@ -1,4 +1,5 @@
 import React from 'react';
+import type {SavedPortfolio} from '../types/workspace';
 import {Activity, ArrowRight, BarChart3, MessageCircle, ShieldAlert, TrendingUp} from 'lucide-react';
 
 interface WelcomePageProps {
@@ -7,13 +8,17 @@ interface WelcomePageProps {
   hasPortfolio: boolean;
   isSampleLoading: boolean;
   error?: string;
+  onOpenSaved?: () => void;
+  savedPortfolios?: SavedPortfolio[];
+  onResumeSaved?: (portfolio:SavedPortfolio) => void;
 }
 
-export function WelcomePage({onEnterLab, onUseSample, hasPortfolio, isSampleLoading, error}: WelcomePageProps) {
+export function WelcomePage({onEnterLab, onUseSample, hasPortfolio, isSampleLoading, error,onOpenSaved,savedPortfolios=[],onResumeSaved}: WelcomePageProps) {
   return <div className="min-h-screen bg-[#0b0f19] text-slate-200 selection:bg-emerald-500/30">
     <header className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-6 sm:px-8">
       <span className="flex items-center gap-2.5 font-extrabold text-white"><Activity className="h-6 w-6 text-emerald-400" />RiskLab</span>
       <nav aria-label="Welcome navigation" className="flex items-center gap-5 text-sm">
+        {onOpenSaved&&<button onClick={onOpenSaved} className="text-slate-300 hover:text-white">Saved portfolios</button>}
         <a href="#why-risklab" className="hidden text-slate-400 hover:text-white sm:block">Why I built it</a>
         <button onClick={onEnterLab} disabled={isSampleLoading} className="flex items-center gap-2 text-emerald-300 hover:text-emerald-200 disabled:opacity-50">Enter the Lab <ArrowRight className="h-4 w-4" /></button>
       </nav>
@@ -30,6 +35,7 @@ export function WelcomePage({onEnterLab, onUseSample, hasPortfolio, isSampleLoad
             <button onClick={onUseSample} disabled={isSampleLoading} className="rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 hover:border-slate-500 hover:bg-slate-900 disabled:opacity-50">{isSampleLoading ? 'Opening sample…' : 'Try a sample portfolio'}</button>
           </div>
           <p className="mt-3 text-xs text-slate-500">Start with a sample, or enter your own tickers and allocations.</p>
+          {!!savedPortfolios.length&&<div className="mt-5 rounded-xl border border-slate-700/70 bg-slate-900/60 p-4"><p className="text-xs font-semibold text-slate-300">Continue a saved portfolio</p><div className="mt-3 flex flex-wrap gap-2">{[...savedPortfolios].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)).slice(0,3).map(portfolio=><button key={portfolio.id} disabled={isSampleLoading} onClick={()=>onResumeSaved?.(portfolio)} className="rounded-lg border border-emerald-500/25 px-3 py-2 text-sm font-semibold text-emerald-300 disabled:opacity-50">Resume {portfolio.name}</button>)}</div><p className="mt-2 text-xs text-slate-500">Saved on this device. Reopening recalculates results from the current model data.</p></div>}
           {error && <p role="alert" className="mt-3 text-sm text-amber-300">{error} You can enter the Lab to retry loading the historical data.</p>}
         </div>
         <div className="relative rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-slate-900/60 p-6 sm:p-8">

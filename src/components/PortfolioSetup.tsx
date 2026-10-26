@@ -15,6 +15,7 @@ type AllocationRow = {
 
 interface PortfolioSetupProps {
   onHome?: () => void;
+  onOpenSaved?: () => void;
   isSampleLoading?: boolean;
   initialPositions?: PortfolioPosition[];
   initialPortfolioValue?: number;
@@ -27,7 +28,7 @@ interface PortfolioSetupProps {
 }
 
 export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
-  onHome, isSampleLoading = false,
+  onHome, onOpenSaved, isSampleLoading = false,
   initialPositions = [],
   initialPortfolioValue = 100000,
   onAnalyze,
@@ -112,6 +113,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
           </div>
           <div>
             <button type="button" onClick={onHome} className="font-extrabold tracking-tight text-white hover:text-emerald-300" aria-label="RiskLab home">RiskLab <span className="ml-1 text-xs font-normal text-slate-500">/ Lab</span></button>
+            {onOpenSaved&&<button type="button" onClick={onOpenSaved} className="ml-auto text-xs font-semibold text-emerald-300">Saved portfolios / restore backup</button>}
             <div className="text-[11px] text-slate-500">Portfolio risk analytics</div>
           </div>
         </div>

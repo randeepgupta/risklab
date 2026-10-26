@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Activity,
+  Save,
   BarChart3,
   Download,
   Edit3,
@@ -17,6 +18,8 @@ import {
 
 interface HeaderProps {
   portfolioName: string;
+  onOpenSaved?: () => void;
+  hasUnsavedChanges?: boolean;
   totalValue: number;
   activeTab: 'risk' | 'monte-carlo' | 'stress';
   setActiveTab: (tab: 'risk' | 'monte-carlo' | 'stress') => void;
@@ -41,7 +44,7 @@ const tabs = [
 ];
 
 export const Header: React.FC<HeaderProps> = ({
-  portfolioName,
+  portfolioName, onOpenSaved, hasUnsavedChanges,
   totalValue,
   activeTab,
   setActiveTab,
@@ -80,6 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {onOpenSaved && <button type="button" onClick={onOpenSaved} aria-label="Save or open portfolios" className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs font-semibold text-emerald-300"><Save className="h-3.5 w-3.5"/><span className="hidden sm:inline">{hasUnsavedChanges?'Save portfolio':'Saved portfolios'}</span>{hasUnsavedChanges&&<span className="h-1.5 w-1.5 rounded-full bg-amber-300" title="Unsaved changes"/>}</button>}
             <button
               type="button"
               onClick={onEditPortfolio}

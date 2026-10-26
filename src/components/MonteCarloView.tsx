@@ -3,23 +3,35 @@ import { ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
 import { MonteCarloResult } from '../types/risk';
 import {annualizedOutcomeReturn, annualReturnToDrift, benchmarkDifferenceLabel, DEFAULT_FUTURE_ANNUAL_RETURN, modeledReturnRange, SPY_RETURN_BENCHMARK} from '../utils/simulationOutcomes';
 import { runMonteCarloSimulation } from '../utils/quantEngine';
+import type {FutureSettings} from '../types/workspace';
+import {DEFAULT_FUTURE_SETTINGS} from '../utils/workspaceSettings';
 
 interface MonteCarloViewProps {
   initialValue: number;
   volatility: number;
   volatilitySource?: string;
+  settings?: FutureSettings;
+  onSettingsChange?: (settings:FutureSettings) => void;
 }
 
 export const MonteCarloView: React.FC<MonteCarloViewProps> = ({
   initialValue,
   volatility,
   volatilitySource = 'Portfolio risk model',
+  settings: suppliedSettings, onSettingsChange,
 }) => {
-  const [expectedReturn, setExpectedReturn] = useState<number>(DEFAULT_FUTURE_ANNUAL_RETURN);
-  const [horizonYears, setHorizonYears] = useState<number>(10);
-  const [simCount, setSimCount] = useState<number>(2500);
+  const [localSettings,setLocalSettings] = useState<FutureSettings>({...DEFAULT_FUTURE_SETTINGS});
+  const settings = suppliedSettings ?? localSettings;
+  const updateSettings = (patch:Partial<FutureSettings>) => {
+    const next = {...settings,...patch};
+    if(onSettingsChange) onSettingsChange(next); else setLocalSettings(next);
+  };
+  const {annualReturn:expectedReturn,horizonYears,simulations:simCount,returnPeriod}=settings;
+  const setExpectedReturn = (annualReturn:number) => updateSettings({annualReturn});
+  const setHorizonYears = (horizonYears:number) => updateSettings({horizonYears});
+  const setSimCount = (simulations:number) => updateSettings({simulations});
+  const setReturnPeriod = (returnPeriod:'year'|'month') => updateSettings({returnPeriod});
   const [runId, setRunId] = useState<number>(1);
-  const [returnPeriod, setReturnPeriod] = useState<'year' | 'month'>('year');
   const returnRange = modeledReturnRange(expectedReturn, volatility, returnPeriod === 'year' ? 1 : 1 / 12);
   const signedReturn = (value: number) => `${value > 0 ? '+' : ''}${(value * 100).toFixed(1)}%`;
 

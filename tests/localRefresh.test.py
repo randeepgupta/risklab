@@ -39,6 +39,11 @@ class LocalRefreshTests(unittest.TestCase):
                 if mode == 'changed': updated['asOf'] = '2026-10-30'
                 (kwargs['cwd']/'public/models/historical-snapshot.json').write_text(json.dumps(updated))
                 output = ''
+            elif args[:2] == ('python3','scripts/risk-model-report.py'):
+                artifacts=kwargs['cwd']/'artifacts'
+                (artifacts/'risk-model-report.md').write_text('## Data report\nAutomated screens only.\n')
+                (artifacts/'risk-model-report.json').write_text('{"reportSchemaVersion":1}')
+                output=''
             elif args[:3] == ('gh','pr','create'):
                 output = 'https://example.com/new-pr'
             else: output = ''
@@ -55,6 +60,7 @@ class LocalRefreshTests(unittest.TestCase):
         for check in runner.CHECKS:
             self.assertLess(calls.index(('npm','run',check)),push)
         self.assertFalse(any('merge' in args for args in calls))
+        self.assertTrue(pathlib.Path(result['report']).exists(), 'report survives disposable checkout cleanup')
 
     def test_failed_check_never_pushes(self):
         result,calls = self.pipeline(fail='test:history')

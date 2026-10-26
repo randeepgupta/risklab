@@ -6,12 +6,13 @@ import json
 import os
 import pathlib
 import subprocess
+import shutil
 import tempfile
 import traceback
 
 REPO = 'randeepgupta/risklab'
 BRANCH_PREFIX = 'codex/risk-models-'
-CHECKS = ['lint', 'test:quant', 'test:history', 'test:ai', 'test:symbols', 'test:sample', 'test:future', 'build', 'build:cloudflare']
+CHECKS = ['lint', 'test:quant', 'test:history', 'test:ai', 'test:symbols', 'test:sample', 'test:future', 'test:portfolios', 'test:refresh', 'build', 'build:cloudflare']
 
 
 def run_job(state, validate_only=False):
@@ -53,6 +54,10 @@ def run_job(state, validate_only=False):
                     command('git', 'clone', '--depth', '1', '--branch', 'main', f'https://github.com/{REPO}.git', str(checkout))
                     manifest = checkout/'public/models/historical-snapshot.json'
                     before = json.loads(manifest.read_text())
+                    artifacts=checkout/'artifacts'
+                    artifacts.mkdir(exist_ok=True)
+                    before_file=artifacts/'before-snapshot.json'
+                    before_file.write_text(json.dumps(before))
                     command('npm', 'ci', cwd=checkout)
                     command('npm', 'run', 'refresh:risk-models', cwd=checkout)
                     after = json.loads(manifest.read_text())
@@ -61,10 +66,20 @@ def run_job(state, validate_only=False):
                     after.pop('capturedAt', None)
                     if before == after and not validate_only:
                         return finish('unchanged', asOf=after['asOf'])
+                    command('python3','scripts/risk-model-report.py','--before',str(before_file),
+                            '--before-parts-dir',str(manifest.parent),cwd=checkout)
+                    report_md=artifacts/'risk-model-report.md'
+                    report_json=artifacts/'risk-model-report.json'
+                    reports=state/'reports'/stamp
+                    reports.mkdir(parents=True,exist_ok=True)
+                    shutil.copyfile(report_md,reports/report_md.name)
+                    shutil.copyfile(report_json,reports/report_json.name)
+                    # The complete JSON report travels with the proposed snapshot.
+                    shutil.copyfile(report_json,manifest.parent/'validation-report.json')
                     for check in CHECKS:
                         command('npm', 'run', check, cwd=checkout)
                     if validate_only:
-                        return finish('validated', asOf=after['asOf'], covered=after['coverage']['covered'])
+                        return finish('validated', asOf=after['asOf'], covered=after['coverage']['covered'],report=str(reports/report_md.name))
                     # Prune old parts only in this disposable checkout. Main and
                     # the developer's checkout are never changed by this job.
                     referenced = set(after.get('parts', []))
@@ -79,12 +94,14 @@ def run_job(state, validate_only=False):
                     body = checkout/'refresh-pr.md'
                     body.write_text(f"Weekly local batch refresh through **{after['asOf']}**.\n\n"
                                     f"Coverage: {json.dumps(after['coverage'])}.\n\n"
+                                    + report_md.read_text()+"\n\n" +
+                                    f"[Full JSON data report](https://github.com/{REPO}/blob/{branch}/public/models/validation-report.json).\n\n"
                                     "All test suites, TypeScript checks, and Node/Cloudflare builds passed. "
                                     "The refresh ran locally without AI calls.\n\n"
                                     "Awaiting your approval before merging; Cloudflare deploys after merge.\n")
                     url = command('gh', 'pr', 'create', '--repo', REPO, '--base', 'main', '--head', branch,
                                   '--title', f"Weekly risk model refresh: {after['asOf']}", '--body-file', str(body), cwd=checkout, capture=True)
-                    return finish('pr_created', url=url, asOf=after['asOf'], covered=after['coverage']['covered'])
+                    return finish('pr_created', url=url, asOf=after['asOf'], covered=after['coverage']['covered'],report=str(reports/report_md.name))
             except Exception as error:
                 traceback.print_exc(file=log)
                 finish('failed', error=str(error))

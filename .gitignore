@@ -11,3 +11,6 @@ coverage/
 # Cloudflare local state and secrets
 .wrangler/
 .dev.vars*
+
+# Generated validation reports
+artifacts/
