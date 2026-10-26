@@ -1,3 +1,4 @@
+import {formatDate} from '../utils/dateFormat';
 import React, { useEffect, useId, useMemo, useState } from 'react';
 import { ASSET_DATABASE } from '../utils/quantEngine';
 import { ListedSymbol, loadSymbolDirectory, modeledSymbols, searchSymbols } from '../utils/symbolDirectory';
@@ -21,7 +22,7 @@ export function SymbolPicker({value, name, excluded, onSelect, historicalTickers
       const merged = new Map(data.symbols.map(symbol => [symbol.ticker, symbol]));
       for (const symbol of modeledSymbols) if (!merged.has(symbol.ticker)) merged.set(symbol.ticker, symbol);
       setSymbols([...merged.values()]);
-      setStatus(`${data.symbols.length.toLocaleString()} listings · Snapshot ${data.capturedAt.slice(0, 10)}`);
+      setStatus(`${data.symbols.length.toLocaleString()} listings · Snapshot ${formatDate(data.capturedAt.slice(0,10))}`);
     }).catch(() => { if (mounted) {setFailed(true); setStatus('Directory unavailable. Showing built-in assets.');} });
     return () => { mounted = false; };
   }, [retry]);

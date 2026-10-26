@@ -119,7 +119,20 @@ labels and opt-in rule-based summaries remain in place.
 
 The RiskLab brand link returns to the welcome page. The current portfolio remains
 available when returning to the Lab within the same session; reloading the app
-still starts with portfolio setup.
+offers saved portfolios to resume from Welcome or portfolio setup.
+
+## Save and resume portfolios
+
+The Lab's **Save portfolio** action stores named holdings and What If/Future
+settings on this device. Resume recalculates from the current snapshot and retains
+uncovered holdings for review. Download and restore versioned JSON backups from
+the saved-portfolios dialog. Preview domains and production have separate storage.
+See [save, recovery and validation details](docs/saved-portfolios.md).
+
+GitHub's **RiskLab validation** workflow runs tests and both builds. Each run also
+produces an automated historical-data report; weekly local refresh PRs include a
+comparison report. These checks describe input quality and regression behavior,
+not proof of model forecast accuracy.
 
 ## Run locally
 

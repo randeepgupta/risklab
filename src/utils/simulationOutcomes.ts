@@ -7,7 +7,7 @@ export function annualizedOutcomeReturn(initialValue: number, endingValue: numbe
 // Dated NAV total-return CAGR, not an average across all rolling decades.
 export const SPY_RETURN_BENCHMARK = {
   annualReturn: 0.1518,
-  asOf: 'September 30, 2026',
+  asOf: '2026-09-30',
   period: 'September 2016–September 2026',
   source: 'https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-500-etf-trust-spy',
 } as const;

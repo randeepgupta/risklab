@@ -2,7 +2,7 @@ import {calibrateHistoricalModels, type DailyPrice} from './historicalModels';
 import {SCENARIO_BENCHMARKS} from './measuredScenario';
 import type {PortfolioPosition} from '../types/risk';
 export interface RiskSnapshot {
-  capturedAt: string; asOf: string; dates: string[];
+  capturedAt: string; asOf: string; dates: string[]; sourceRevision?: string;
   symbols: Record<string, {values: (number | null)[]; price: number; priceAsOf: string}>;
   treasuryYields?: {series:'DGS10';source:string;units:'percent';values:(number|null)[];observations?:number;startDate?:string;endDate?:string;downloadUrl?:string};
   dataQuality?: {priceLatestDate?:string;actionCutoff?:string;[key:string]:unknown};

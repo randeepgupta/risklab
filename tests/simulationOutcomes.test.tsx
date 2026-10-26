@@ -25,7 +25,7 @@ const markup = renderToStaticMarkup(<MonteCarloView initialValue={250000} volati
   volatilitySource="Estimated from historical prices and correlations" />);
 assert.ok(markup.indexOf('Strong outcome') < markup.indexOf('aria-label="Simulation assumptions"'), 'Lead with outcomes before assumptions');
 const visibleAssumptions = markup.slice(markup.indexOf('aria-label="Simulation assumptions"'), markup.indexOf('aria-label="Understanding returns"'));
-for (const text of ['Annual compound growth assumption', '15.18%', 'Annual volatility', '0.0%', '10 years', '2,500 paths', 'Estimated from historical prices and correlations', 'Monthly steps', 'Choose annual compound growth', 'not a forecast', 'recent returns are not projected forward', 'September 30, 2026', 'dividends reinvested', 'Reset to SPY benchmark', 'Source: State Street SPY performance']) {
+for (const text of ['Annual compound growth assumption', '15.18%', 'Annual volatility', '0.0%', '10 years', '2,500 paths', 'Estimated from historical prices and correlations', 'Monthly steps', 'Choose annual compound growth', 'not a forecast', 'recent returns are not projected forward', '09/30/2026', 'dividends reinvested', 'Reset to SPY benchmark', 'Source: State Street SPY performance']) {
   assert.ok(visibleAssumptions.includes(text), `Visible assumptions should include ${text}`);
 }
 assert.equal(markup.match(/15\.2% annualized return/g)?.length, 3);

@@ -1,3 +1,4 @@
+import {formatDate} from './utils/dateFormat';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PortfolioPosition } from './types/risk';
 import {createRandomSamplePortfolio, SAMPLE_PORTFOLIO_VALUE} from './utils/samplePortfolio';
@@ -22,6 +23,11 @@ import { DesktopInstallModal } from './components/DesktopInstallModal';
 import { DesktopCommandPalette } from './components/DesktopCommandPalette';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import {loadRiskSnapshot, applyHistoricalSnapshot, type RiskSnapshot} from './utils/riskSnapshot';
+import {PortfolioLibraryDialog,downloadPortfolioBackup} from './components/PortfolioLibraryDialog';
+import {usePortfolioLibrary} from './hooks/usePortfolioLibrary';
+import {createScenarioSession,DEFAULT_FUTURE_SETTINGS,localDate} from './utils/workspaceSettings';
+import {validateSavedPortfolio,workspaceFingerprint} from './utils/savedPortfolios';
+import type {FutureSettings,ScenarioSession,SavedPortfolio} from './types/workspace';
 
 const MVP_PORTFOLIO: PortfolioPosition[] = [
   {
@@ -131,6 +137,23 @@ export default function App() {
   const [setupSeedPositions, setSetupSeedPositions] = useState<PortfolioPosition[]>([]);
   const [setupInitialValue, setSetupInitialValue] = useState(100000);
   const [activeTab, setActiveTab] = useState<RiskLabTab>(getInitialTab);
+  const library = usePortfolioLibrary();
+  const [libraryOpen,setLibraryOpen] = useState(false);
+  const [pendingResume,setPendingResume] = useState<SavedPortfolio|null>(null);
+  const [activeSavedId,setActiveSavedId] = useState<string|null>(null);
+  const [activeSavedVersion,setActiveSavedVersion] = useState<string|undefined>();
+  const [valuationDate,setValuationDate] = useState(localDate);
+  const [futureSettings,setFutureSettings] = useState<FutureSettings>({...DEFAULT_FUTURE_SETTINGS});
+  const [scenarioSession,setScenarioSession] = useState<ScenarioSession>(createScenarioSession);
+  const [workspaceGeneration,setWorkspaceGeneration] = useState(0);
+  const [resumeNote,setResumeNote] = useState('');
+  const openLibrary = () => {library.setMessage('');setPendingResume(null);setIsCopilotOpen(false);setLibraryOpen(true);};
+  const resetAnalysisSettings = () => {
+    setFutureSettings({...DEFAULT_FUTURE_SETTINGS});setScenarioSession(createScenarioSession());
+    setActiveSavedId(null);setActiveSavedVersion(undefined);setValuationDate(localDate());
+    setResumeNote('');setWorkspaceGeneration(value=>value+1);
+  };
+
 
   const [isStandalone, setIsStandalone] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -181,7 +204,7 @@ export default function App() {
     setSetupSeedPositions(analyzed);
     setSetupInitialValue(portfolioValue);
     setIsSamplePortfolio(false);
-    setPortfolioName('Custom portfolio');
+    if(!activeSavedId) setPortfolioName('Custom portfolio');
     setActiveTab('risk');
     setPortfolioReady(true);
   };
@@ -200,6 +223,7 @@ export default function App() {
       return;
     }
     setModelError('');
+    resetAnalysisSettings();
     setPositions(sample);
     setSetupSeedPositions(sample);
     setSetupInitialValue(SAMPLE_PORTFOLIO_VALUE);
@@ -218,7 +242,7 @@ export default function App() {
       const next = applyHistoricalSnapshot(newPositions, riskSnapshot);
       setPositions(next); setModelError('');
       setIsSamplePortfolio(false);
-      setPortfolioName('Custom portfolio');
+      if(!activeSavedId) setPortfolioName('Custom portfolio');
     } catch (error) {setModelError(error instanceof Error ? error.message : 'Unable to update risk models.');}
   };
 
@@ -240,6 +264,7 @@ export default function App() {
       calibrated = applyHistoricalSnapshot(preset, snapshot);
     } catch (error) {setModelError(error instanceof Error ? error.message : 'Could not load portfolio history.'); return;}
     setModelError('');
+    resetAnalysisSettings();
     setPositions(calibrated);
     setSetupSeedPositions(calibrated);
     setSetupInitialValue(preset.reduce((sum, position) => sum + position.investment, 0));
@@ -250,6 +275,77 @@ export default function App() {
   };
 
   const handleResetToMvp = () => handleSelectPreset('mvp');
+
+  const workspaceInput = {
+    name:portfolioName,valuationDate,
+    holdings:positions.map(({ticker,name,investment})=>({ticker,name,investment})),
+    settings:{activeTab,future:futureSettings,scenario:scenarioSession},
+  };
+  const activeSaved = library.library.portfolios.find(portfolio=>portfolio.id===activeSavedId);
+  const hasUnsavedChanges = !activeSaved || workspaceFingerprint(workspaceInput)!==workspaceFingerprint(activeSaved);
+  const prepareCurrentSave = (name:string,date:string,copy:boolean) => {
+    if(!portfolioReady || !riskSnapshot) throw new Error('Open an analyzed portfolio before saving.');
+    if(date>localDate()) throw new Error('Allocation values cannot be dated in the future.');
+    const now=new Date().toISOString();
+    return validateSavedPortfolio({
+      ...workspaceInput,name,valuationDate:date,id:!copy&&activeSavedId?activeSavedId:crypto.randomUUID(),
+      createdAt:!copy&&activeSaved?activeSaved.createdAt:now,updatedAt:now,currency:'USD',
+      modelContext:{asOf:riskSnapshot.asOf,capturedAt:riskSnapshot.capturedAt,sourceRevision:riskSnapshot.sourceRevision},
+    });
+  };
+  const handleSavePortfolio = (name:string,date:string,copy:boolean) => {
+    try {
+      const portfolio=prepareCurrentSave(name,date,copy);
+      if(library.save(portfolio,!copy?activeSavedVersion:undefined)) {
+        setPortfolioName(portfolio.name);setValuationDate(portfolio.valuationDate);
+        setActiveSavedId(portfolio.id);setActiveSavedVersion(portfolio.updatedAt);
+      }
+    } catch(error) {library.setMessage(error instanceof Error?error.message:'Could not save the portfolio.');}
+  };
+  const handleDownloadCurrent = (name:string,date:string) => {
+    try {downloadPortfolioBackup({app:'RiskLab',schemaVersion:1,portfolios:[prepareCurrentSave(name,date,true)]});}
+    catch(error) {library.setMessage(error instanceof Error?error.message:'Could not prepare this backup.');}
+  };
+  const handleResumePortfolio = async (portfolio:SavedPortfolio,discardOpenChanges=false) => {
+    if(isSampleLoading) return;
+    if(portfolioReady&&hasUnsavedChanges&&!discardOpenChanges) {setPendingResume(portfolio);setLibraryOpen(true);return;}
+    setPendingResume(null);
+    setIsSampleLoading(true);setModelError('');
+    try {
+      const saved=validateSavedPortfolio(portfolio);
+      const snapshot=riskSnapshot??await loadRiskSnapshot();
+      setRiskSnapshot(snapshot);
+      const total=saved.holdings.reduce((sum,p)=>sum+p.investment,0);
+      const restored:PortfolioPosition[]=saved.holdings.map(p=>({...p,weight:p.investment/total,price:0,assetClass:ASSET_DATABASE[p.ticker]?.assetClass??'Other'}));
+      setSetupSeedPositions(restored);setSetupInitialValue(total);
+      setPortfolioName(saved.name);setValuationDate(saved.valuationDate);
+      setFutureSettings(saved.settings.future);setScenarioSession(saved.settings.scenario);
+      setActiveSavedId(saved.id);setActiveSavedVersion(saved.updatedAt);
+      setWorkspaceGeneration(value=>value+1);setIsSamplePortfolio(false);
+      setIsCopilotOpen(false);setLibraryOpen(false);
+      if(page!=='lab') navigateTo('lab');
+      try {
+        const calibrated=applyHistoricalSnapshot(restored,snapshot);
+        setPositions(calibrated);setPortfolioReady(true);setActiveTab(saved.settings.activeTab);
+        const changed=JSON.stringify(saved.modelContext)!==JSON.stringify({asOf:snapshot.asOf,capturedAt:snapshot.capturedAt,sourceRevision:snapshot.sourceRevision});
+        setResumeNote(changed
+          ? `The model snapshot has changed since this save. Results were recalculated using data through ${formatDate(snapshot.asOf)}.`
+          : `Resumed “${saved.name}”. Results use the current snapshot through ${formatDate(snapshot.asOf)}. Simulations are rerun from your saved assumptions.`);
+      } catch(error) {
+        setPortfolioReady(false);
+        setModelError(`Your saved allocation has been kept. ${error instanceof Error?error.message:'Historical models are unavailable.'} Review the holdings below before analyzing.`);
+      }
+    } catch(error) {library.setMessage(error instanceof Error?error.message:'Could not resume this saved portfolio.');}
+    finally {setIsSampleLoading(false);}
+  };
+  const libraryDialog=<PortfolioLibraryDialog open={libraryOpen} onClose={()=>{setLibraryOpen(false);setPendingResume(null);}}
+    pendingResume={pendingResume} onConfirmResume={()=>pendingResume&&handleResumePortfolio(pendingResume,true)}
+    library={library.library} error={library.error} blocked={library.blocked} message={library.message}
+    current={portfolioReady?{id:activeSavedId,name:portfolioName,valuationDate,dirty:hasUnsavedChanges}:undefined}
+    loading={isSampleLoading} onSave={handleSavePortfolio} onDownloadCurrent={handleDownloadCurrent} onResume={handleResumePortfolio}
+    onDelete={id=>{if(library.remove(id)&&id===activeSavedId){setActiveSavedId(null);setActiveSavedVersion(undefined);}}}
+    onRestore={library.restore} onClear={library.clearUnreadable} onRetry={library.retry}/>;
+
 
   const handleTriggerInstall = async () => {
     if (deferredPrompt) {
@@ -314,7 +410,7 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!portfolioReady || page !== 'lab') return;
+      if (!portfolioReady || page !== 'lab' || libraryOpen) return;
 
       const target = event.target as HTMLElement | null;
       const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
@@ -355,15 +451,18 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleExportJson, portfolioReady, page]);
+  }, [handleExportJson, portfolioReady, page, libraryOpen]);
 
-  if (page === 'welcome') return <WelcomePage onEnterLab={() => navigateTo('lab')}
-    onUseSample={handleUseSample} hasPortfolio={portfolioReady} isSampleLoading={isSampleLoading} error={modelError} />;
+  if (page === 'welcome') return <><WelcomePage onEnterLab={() => navigateTo('lab')}
+    onUseSample={handleUseSample} hasPortfolio={portfolioReady} isSampleLoading={isSampleLoading} error={modelError} onOpenSaved={openLibrary}
+    savedPortfolios={library.library.portfolios} onResumeSaved={handleResumePortfolio} />{libraryDialog}</>;
 
   if (!portfolioReady) {
     return (
+      <>
       <PortfolioSetup
         onHome={() => navigateTo('welcome')}
+        onOpenSaved={openLibrary}
         isSampleLoading={isSampleLoading}
         initialPositions={setupSeedPositions}
         initialPortfolioValue={setupInitialValue}
@@ -371,6 +470,7 @@ export default function App() {
         onUseSample={handleUseSample}
         historicalTickers={historicalTickers} snapshotAsOf={riskSnapshot?.asOf} modelError={modelError} onRetrySnapshot={retryRiskSnapshot}
       />
+      {libraryDialog}</>
     );
   }
 
@@ -378,6 +478,8 @@ export default function App() {
     <div className="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-slate-950 font-sans">
       <Header
         portfolioName={portfolioName}
+        onOpenSaved={openLibrary}
+        hasUnsavedChanges={hasUnsavedChanges}
         totalValue={metrics.totalValue}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -442,6 +544,8 @@ export default function App() {
         {activeTab === 'monte-carlo' && (
           <div className="animate-fadeIn">
             <MonteCarloView
+              key={workspaceGeneration}
+              settings={futureSettings} onSettingsChange={setFutureSettings}
               initialValue={metrics.totalValue}
               volatilitySource="Estimated from historical prices and correlations"
               volatility={metrics.annualizedVolatility}
@@ -451,13 +555,14 @@ export default function App() {
 
         {activeTab === 'stress' && (
           <div className="animate-fadeIn">
-            <StressTestingView positions={positions} />
+            <StressTestingView key={workspaceGeneration} positions={positions} session={scenarioSession} onSessionChange={setScenarioSession} />
           </div>
         )}
 
+        {resumeNote && <p role="status" className="text-xs leading-relaxed text-slate-400">{resumeNote}</p>}
         {positions[0]?.historicalModel && <details className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-xs text-slate-300">
-          <summary className="cursor-pointer font-semibold text-emerald-300">Historical risk · Data through {positions[0].historicalModel.endDate} · About this model</summary>
-          <p className="mt-1">{positions[0].historicalModel.startDate} to {positions[0].historicalModel.endDate} · {positions[0].historicalModel.observations} matched daily returns · SPY benchmark · Prices as of {positions[0].priceAsOf}</p>
+          <summary className="cursor-pointer font-semibold text-emerald-300">Historical risk · Data through {formatDate(positions[0].historicalModel.endDate)} · About this model</summary>
+          <p className="mt-1">{formatDate(positions[0].historicalModel.startDate)} to {formatDate(positions[0].historicalModel.endDate)} · {positions[0].historicalModel.observations} matched daily returns · SPY benchmark · Prices as of {formatDate(positions[0].priceAsOf)}</p>
           <p className="mt-1 text-slate-400">Volatility, correlations and beta use split/dividend-adjusted history. Advanced risk metrics use the historical annualized mean; Future uses a separately selected growth assumption. Neither is a forecast. VaR and simulations retain distribution assumptions. What If estimates joint historical responses to your specified market and 10-year Treasury yield moves; large shocks extrapolate beyond observed daily changes.</p>
           <p className="mt-1 text-slate-400">The batch quarantines unexplained extreme returns and uses an earlier cutoff when corporate-action feeds lag prices. Public-source errors can remain; the as-of date and coverage may change after quality checks.</p>
           <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank" rel="noreferrer" className="mt-1 block text-emerald-400 underline">Treasury yields: Federal Reserve H.15 / FRED DGS10</a>
@@ -472,6 +577,7 @@ export default function App() {
         </div>
       </footer>
 
+      {libraryDialog}
       <CopilotPanel open={isCopilotOpen} onClose={closeCopilot} positions={positions} metrics={metrics} />
 
       <DesktopInstallModal

@@ -37,7 +37,7 @@ Answers: *How am I positioned?*
 Answers: *What could hurt me?*
 
 - natural-language market scenario input
-- quick preset scenarios
+- optional hidden examples that fill the prompt; explicit measurable moves are required
 - estimated portfolio impact
 - largest loss driver
 - position-level loss attribution
@@ -52,12 +52,12 @@ Answers: *What could my portfolio become?*
 - visual outcome range
 - technical Monte Carlo assumptions hidden behind an explanation control
 
-### Advanced
-Optional technical lab for users who intentionally want deeper tools.
+### Copilot and technical details
+Copilot is a companion panel alongside the three analysis views. Technical details remain available on demand.
 
-- illustrative hedging strategies
-- options-model outputs
-- AI copilot
+- optional AI explanations
+- model provenance and assumptions
+- saved local portfolio inputs and versioned backups
 
 This section is not part of the core MVP path.
 
