@@ -27,6 +27,7 @@
     "test:sample": "node --import tsx tests/samplePortfolio.test.ts",
     "test:future": "node --import tsx tests/simulationOutcomes.test.tsx",
     "test:portfolios": "node --import tsx tests/savedPortfolios.test.tsx",
+    "test:csv": "node --import tsx tests/csvPortfolio.test.tsx",
     "test:refresh": "python3 tests/localRefresh.test.py && python3 tests/riskModelReport.test.py",
     "report:risk-models": "python3 scripts/risk-model-report.py"
   },

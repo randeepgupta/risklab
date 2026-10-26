@@ -1,4 +1,4 @@
-import {formatDate} from './utils/dateFormat';
+import {formatDate,parseUSDate} from './utils/dateFormat';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PortfolioPosition } from './types/risk';
 import {createRandomSamplePortfolio, SAMPLE_PORTFOLIO_VALUE} from './utils/samplePortfolio';
@@ -28,6 +28,8 @@ import {usePortfolioLibrary} from './hooks/usePortfolioLibrary';
 import {createScenarioSession,DEFAULT_FUTURE_SETTINGS,localDate} from './utils/workspaceSettings';
 import {validateSavedPortfolio,workspaceFingerprint} from './utils/savedPortfolios';
 import type {FutureSettings,ScenarioSession,SavedPortfolio} from './types/workspace';
+import {CsvImportDialog,type CsvImportRequest} from './components/CsvImportDialog';
+import {buildCsvPositions} from './utils/csvPortfolio';
 
 const MVP_PORTFOLIO: PortfolioPosition[] = [
   {
@@ -139,6 +141,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<RiskLabTab>(getInitialTab);
   const library = usePortfolioLibrary();
   const [libraryOpen,setLibraryOpen] = useState(false);
+  const [importOpen,setImportOpen] = useState(false);
   const [pendingResume,setPendingResume] = useState<SavedPortfolio|null>(null);
   const [activeSavedId,setActiveSavedId] = useState<string|null>(null);
   const [activeSavedVersion,setActiveSavedVersion] = useState<string|undefined>();
@@ -148,6 +151,7 @@ export default function App() {
   const [workspaceGeneration,setWorkspaceGeneration] = useState(0);
   const [resumeNote,setResumeNote] = useState('');
   const openLibrary = () => {library.setMessage('');setPendingResume(null);setIsCopilotOpen(false);setLibraryOpen(true);};
+  const openImport = () => {setIsCopilotOpen(false);setImportOpen(true);};
   const resetAnalysisSettings = () => {
     setFutureSettings({...DEFAULT_FUTURE_SETTINGS});setScenarioSession(createScenarioSession());
     setActiveSavedId(null);setActiveSavedVersion(undefined);setValuationDate(localDate());
@@ -204,10 +208,30 @@ export default function App() {
     setSetupSeedPositions(analyzed);
     setSetupInitialValue(portfolioValue);
     setIsSamplePortfolio(false);
-    if(!activeSavedId) setPortfolioName('Custom portfolio');
+    if(isSamplePortfolio&&!activeSavedId) setPortfolioName('Custom portfolio');
     setActiveTab('risk');
     setPortfolioReady(true);
   };
+
+  const handleImportPortfolio = (request:CsvImportRequest):string|null => {
+    try {
+      if(!riskSnapshot) throw new Error('Historical models are still loading. Retry before importing.');
+      if(!request.name.trim()||request.name.length>80||parseUSDate(formatDate(request.valuationDate))!==request.valuationDate||request.valuationDate>localDate()) throw new Error('Check the portfolio name and valuation date.');
+      const imported=buildCsvPositions(request.table,request.mapping,new Set(Object.keys(riskSnapshot.symbols)),request.symbols,request.combineDuplicates);
+      // Compute every model before changing any open or saved inputs.
+      const calibrated=applyHistoricalSnapshot(imported.positions,riskSnapshot);
+      resetAnalysisSettings();
+      setPositions(calibrated);setSetupSeedPositions(calibrated);setSetupInitialValue(imported.total);
+      setPortfolioName(request.name.trim());setValuationDate(request.valuationDate);
+      setIsSamplePortfolio(false);setActiveTab('risk');setPortfolioReady(true);setModelError('');
+      setImportOpen(false);setIsCopilotOpen(false);
+      if(page!=='lab')navigateTo('lab');
+      return null;
+    } catch(error) {return error instanceof Error?error.message:'The import could not be applied. Your open inputs are unchanged.';}
+  };
+  const importDialog=<CsvImportDialog open={importOpen} onClose={()=>setImportOpen(false)} covered={historicalTickers}
+    snapshotAsOf={riskSnapshot?.asOf} modelError={riskSnapshot?'':modelError} onRetrySnapshot={retryRiskSnapshot}
+    replacesOpen={portfolioReady||setupSeedPositions.length>0} onImport={handleImportPortfolio}/>;
 
   const handleUseSample = async () => {
     if (isSampleLoading) return;
@@ -410,7 +434,7 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!portfolioReady || page !== 'lab' || libraryOpen) return;
+      if (!portfolioReady || page !== 'lab' || libraryOpen || importOpen) return;
 
       const target = event.target as HTMLElement | null;
       const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
@@ -451,11 +475,11 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleExportJson, portfolioReady, page, libraryOpen]);
+  }, [handleExportJson, portfolioReady, page, libraryOpen, importOpen]);
 
   if (page === 'welcome') return <><WelcomePage onEnterLab={() => navigateTo('lab')}
     onUseSample={handleUseSample} hasPortfolio={portfolioReady} isSampleLoading={isSampleLoading} error={modelError} onOpenSaved={openLibrary}
-    savedPortfolios={library.library.portfolios} onResumeSaved={handleResumePortfolio} />{libraryDialog}</>;
+    savedPortfolios={library.library.portfolios} onResumeSaved={handleResumePortfolio} />{libraryDialog}{importDialog}</>;
 
   if (!portfolioReady) {
     return (
@@ -463,6 +487,7 @@ export default function App() {
       <PortfolioSetup
         onHome={() => navigateTo('welcome')}
         onOpenSaved={openLibrary}
+        onImportCsv={openImport}
         isSampleLoading={isSampleLoading}
         initialPositions={setupSeedPositions}
         initialPortfolioValue={setupInitialValue}
@@ -470,7 +495,7 @@ export default function App() {
         onUseSample={handleUseSample}
         historicalTickers={historicalTickers} snapshotAsOf={riskSnapshot?.asOf} modelError={modelError} onRetrySnapshot={retryRiskSnapshot}
       />
-      {libraryDialog}</>
+      {libraryDialog}{importDialog}</>
     );
   }
 
@@ -479,6 +504,7 @@ export default function App() {
       <Header
         portfolioName={portfolioName}
         onOpenSaved={openLibrary}
+        onImportCsv={openImport}
         hasUnsavedChanges={hasUnsavedChanges}
         totalValue={metrics.totalValue}
         activeTab={activeTab}
@@ -578,6 +604,7 @@ export default function App() {
       </footer>
 
       {libraryDialog}
+      {importDialog}
       <CopilotPanel open={isCopilotOpen} onClose={closeCopilot} positions={positions} metrics={metrics} />
 
       <DesktopInstallModal
