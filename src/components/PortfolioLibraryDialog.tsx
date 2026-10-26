@@ -3,6 +3,7 @@ import {Download,FolderOpen,Save,Trash2,Upload,X} from 'lucide-react';
 import type {PortfolioLibrary,SavedPortfolio} from '../types/workspace';
 import {MAX_BACKUP_BYTES,parsePortfolioLibrary,PORTFOLIO_STORAGE_KEY} from '../utils/savedPortfolios';
 import {localDate} from '../utils/workspaceSettings';
+import {formatDate,formatDateTime,parseUSDate} from '../utils/dateFormat';
 
 export function downloadPortfolioBackup(library:PortfolioLibrary) {
   downloadText(JSON.stringify(library,null,2),`risklab-backup-${localDate()}.json`);
@@ -24,20 +25,23 @@ export function PortfolioLibraryDialog({open,onClose,pendingResume,onConfirmResu
   const ref=useRef<HTMLDialogElement>(null);
   const fileRef=useRef<HTMLInputElement>(null);
   const [name,setName]=useState('');
-  const [valuationDate,setValuationDate]=useState(localDate);
+  const [valuationDate,setValuationDate]=useState(()=>formatDate(localDate()));
+  const [dateTouched,setDateTouched]=useState(false);
   const [incoming,setIncoming]=useState<PortfolioLibrary|null>(null);
   const [fileError,setFileError]=useState('');
   const [deleting,setDeleting]=useState<string|null>(null);
   useEffect(()=>{
     if(!open) return;
-    setName(current?.name??'');setValuationDate(current?.valuationDate??localDate());setIncoming(null);setFileError('');setDeleting(null);
+    setName(current?.name??'');setValuationDate(formatDate(current?.valuationDate??localDate()));setDateTouched(false);setIncoming(null);setFileError('');setDeleting(null);
     const previousFocus=document.activeElement as HTMLElement|null;
     ref.current?.showModal();
     return ()=>{ref.current?.close();previousFocus?.focus();};
   },[open]);
   if(!open) return null;
   const sorted=[...library.portfolios].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
-  const save=async(event:React.FormEvent)=>{event.preventDefault();if(name.trim()) onSave(name.trim(),valuationDate,false);};
+  const isoDate=parseUSDate(valuationDate);
+  const dateError=!isoDate?'Enter a valid date as MM/DD/YYYY.':isoDate>localDate()?'Allocation values cannot be dated in the future.':'';
+  const save=(event:React.FormEvent)=>{event.preventDefault();setDateTouched(true);if(name.trim()&&isoDate&&!dateError) onSave(name.trim(),isoDate,false);};
   return <dialog ref={ref} onCancel={onClose} aria-labelledby="portfolio-library-title" className="m-auto w-[min(94vw,700px)] max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-[#0b0f19] p-0 text-slate-200 shadow-2xl backdrop:bg-black/70">
     <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-800 bg-[#0b0f19] p-5">
       <div><h2 id="portfolio-library-title" className="text-xl font-bold text-white">Saved portfolios</h2><p className="mt-1 text-xs text-slate-400">Stored in this browser on this device. Download backups to keep a separate copy.</p></div>
@@ -50,12 +54,13 @@ export function PortfolioLibraryDialog({open,onClose,pendingResume,onConfirmResu
         <h3 className="font-semibold text-white">Save your open portfolio</h3>
         <p className="text-xs text-slate-400">{current.dirty?'You have changes that are not saved.':'Save the holdings and analysis settings you want to resume.'} Results will be recalculated when reopened.</p>
         <label className="block text-xs text-slate-300">Portfolio name<input required maxLength={80} value={name} onChange={event=>setName(event.target.value)} className="mt-1 block w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm"/></label>
-        <label className="block text-xs text-slate-300">Allocation values as of<input type="date" required value={valuationDate} max={localDate()} onChange={event=>setValuationDate(event.target.value)} className="mt-1 block rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm"/></label>
-        <p className="text-xs text-slate-500">This is the date of the dollar amounts you entered, separate from the model’s historical-data date.</p>
+        <label className="block text-xs text-slate-300">Allocation values as of<input type="text" required placeholder="MM/DD/YYYY" maxLength={10} pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}" value={valuationDate} onChange={event=>setValuationDate(event.target.value)} onBlur={()=>setDateTouched(true)} aria-invalid={dateTouched&&!!dateError} aria-describedby="allocation-date-help" className="mt-1 block rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm"/></label>
+        <p id="allocation-date-help" className="text-xs text-slate-500">Use MM/DD/YYYY. This is the date of the dollar amounts you entered, separate from the model’s historical-data date.</p>
+        {dateTouched&&dateError&&<p role="alert" className="text-xs text-amber-300">{dateError}</p>}
         <div className="flex flex-wrap gap-3">
-          <button disabled={blocked||loading||!name.trim()} className="inline-flex items-center gap-2 rounded-lg bg-emerald-400 px-4 py-2 text-xs font-bold text-slate-950 disabled:opacity-40"><Save className="h-4 w-4"/>{current.id?'Save changes':'Save portfolio'}</button>
-          {onDownloadCurrent&&<button type="button" disabled={loading||!name.trim()} onClick={()=>onDownloadCurrent(name.trim(),valuationDate)} className="text-xs font-semibold text-slate-300 disabled:opacity-40">Download this portfolio</button>}
-          {current.id && <button type="button" disabled={blocked||loading||!name.trim()} onClick={()=>onSave(name.trim(),valuationDate,true)} className="text-xs font-semibold text-emerald-300 disabled:opacity-40">Save a copy</button>}
+          <button disabled={blocked||loading||!name.trim()||!!dateError} className="inline-flex items-center gap-2 rounded-lg bg-emerald-400 px-4 py-2 text-xs font-bold text-slate-950 disabled:opacity-40"><Save className="h-4 w-4"/>{current.id?'Save changes':'Save portfolio'}</button>
+          {onDownloadCurrent&&<button type="button" disabled={loading||!name.trim()||!!dateError} onClick={()=>{if(isoDate&&!dateError)onDownloadCurrent(name.trim(),isoDate);}} className="text-xs font-semibold text-slate-300 disabled:opacity-40">Download this portfolio</button>}
+          {current.id && <button type="button" disabled={blocked||loading||!name.trim()||!!dateError} onClick={()=>{if(isoDate&&!dateError)onSave(name.trim(),isoDate,true);}} className="text-xs font-semibold text-emerald-300 disabled:opacity-40">Save a copy</button>}
         </div>
       </form>}
       {pendingResume&&<div role="alert" className="space-y-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-200"><p>Opening “{pendingResume.name}” replaces the open inputs. Save your changes above first, or continue with the saved version.</p><button type="button" disabled={loading} onClick={onConfirmResume} className="text-xs font-semibold text-emerald-300">Resume saved version</button></div>}
@@ -63,7 +68,7 @@ export function PortfolioLibraryDialog({open,onClose,pendingResume,onConfirmResu
         <h3 className="mb-3 text-sm font-semibold text-white">On this device · {sorted.length}</h3>
         {!sorted.length && <p className="text-sm text-slate-400">No saved portfolios yet. Open or build a portfolio, then choose Save portfolio.</p>}
         <ul className="space-y-3">{sorted.map(portfolio=><li key={portfolio.id} className="rounded-xl border border-slate-800 p-4">
-          <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-semibold text-white break-words">{portfolio.name}</p><p className="mt-1 text-xs text-slate-400">${portfolio.holdings.reduce((sum,p)=>sum+p.investment,0).toLocaleString()} · {portfolio.holdings.length} holdings · Values as of {portfolio.valuationDate}</p><p className="mt-1 text-xs text-slate-500">Saved {new Date(portfolio.updatedAt).toLocaleString()} · Model data through {portfolio.modelContext.asOf}</p></div>
+          <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-semibold text-white break-words">{portfolio.name}</p><p className="mt-1 text-xs text-slate-400">${portfolio.holdings.reduce((sum,p)=>sum+p.investment,0).toLocaleString()} · {portfolio.holdings.length} holdings · Values as of {formatDate(portfolio.valuationDate)}</p><p className="mt-1 text-xs text-slate-500">Saved {formatDateTime(portfolio.updatedAt)} · Model data through {formatDate(portfolio.modelContext.asOf)}</p></div>
             <div className="flex gap-3"><button type="button" disabled={loading} onClick={()=>onResume(portfolio)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300 disabled:opacity-40"><FolderOpen className="h-4 w-4"/>Resume {portfolio.name}</button><button type="button" onClick={()=>setDeleting(portfolio.id)} aria-label={`Delete ${portfolio.name}`} className="text-slate-500 hover:text-rose-300"><Trash2 className="h-4 w-4"/></button></div>
           </div>
           {deleting===portfolio.id && <div className="mt-3 text-xs text-amber-200"><p>Delete “{portfolio.name}” from this device? A downloaded backup can restore it.</p><div className="mt-2 flex gap-4"><button type="button" onClick={()=>{onDelete(portfolio.id);setDeleting(null);}} className="font-semibold text-rose-300">Delete saved portfolio</button><button type="button" onClick={()=>setDeleting(null)}>Keep portfolio</button></div></div>}

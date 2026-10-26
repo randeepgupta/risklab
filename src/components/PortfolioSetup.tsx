@@ -1,3 +1,4 @@
+import {formatDate} from '../utils/dateFormat';
 import {Explanation} from './Explanation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, ArrowRight, Plus, Trash2 } from 'lucide-react';
@@ -258,7 +259,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
         </section>
 
         <div className="mt-6 max-w-3xl mx-auto rounded-xl border border-slate-800 bg-slate-950/30 p-4 text-xs">
-          <p className="font-semibold text-slate-200">{snapshotAsOf ? `Historical data through ${snapshotAsOf}` : 'Loading historical data…'}</p>
+          <p className="font-semibold text-slate-200">{snapshotAsOf ? `Historical data through ${formatDate(snapshotAsOf)}` : 'Loading historical data…'}</p>
           <p className="mt-1 text-slate-400">{snapshotAsOf ? `${historicalTickers.size.toLocaleString()} holdings covered` : 'Coverage will appear when the snapshot is ready.'}</p>
           <Explanation label="About this data">Each covered holding uses its own historical prices. New listings, insufficient history and data-quality exclusions may make a holding unavailable. The batch uses a conservative cutoff when corporate-action feeds lag prices.</Explanation>
           {modelError && <p role="alert" className="mt-2 text-rose-300">{modelError} {!snapshotAsOf && <button type="button" className="ml-2 underline" onClick={onRetrySnapshot}>Retry snapshot</button>}</p>}

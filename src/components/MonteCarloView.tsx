@@ -1,3 +1,4 @@
+import {formatDate} from '../utils/dateFormat';
 import React, { useMemo, useState } from 'react';
 import { ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
 import { MonteCarloResult } from '../types/risk';
@@ -152,10 +153,10 @@ export const MonteCarloView: React.FC<MonteCarloViewProps> = ({
           <input id="future-annual-return" type="range" min="-10" max="25" step="0.01" value={expectedReturn * 100} onChange={event => setExpectedReturn(Number(event.target.value) / 100)} aria-describedby="future-return-note" className="mt-4 w-full accent-sky-400" />
           <div className="flex justify-between text-[11px] text-slate-500"><span>−10% per year</span><span>25% per year</span></div>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><p aria-live="polite" className="text-xs font-semibold text-sky-200">{benchmarkDifferenceLabel(expectedReturn)}</p><button type="button" onClick={() => setExpectedReturn(DEFAULT_FUTURE_ANNUAL_RETURN)} className="rounded-md border border-sky-500/30 px-3 py-1.5 text-xs text-sky-200 hover:bg-sky-500/10">Reset to SPY benchmark</button></div>
-          <p id="future-return-note" className="mt-3 text-[11px] text-slate-400">Historical SPY reference · {SPY_RETURN_BENCHMARK.asOf} · Not a forecast</p>
+          <p id="future-return-note" className="mt-3 text-[11px] text-slate-400">Historical SPY reference · {formatDate(SPY_RETURN_BENCHMARK.asOf)} · Not a forecast</p>
           <details className="mt-3 group">
             <summary className="flex cursor-pointer items-center gap-1.5 text-xs text-sky-300 hover:text-sky-100"><ChevronDown className="h-3.5 w-3.5 group-open:rotate-180" />About the SPY benchmark</summary>
-          <p id="future-return-help" className="mt-3 text-xs text-slate-300 leading-relaxed">Starts at SPY’s historical 10-year annualized total return: {(SPY_RETURN_BENCHMARK.annualReturn * 100).toFixed(2)}% per year, as of {SPY_RETURN_BENCHMARK.asOf}, with dividends reinvested. This describes one past decade, not every 10-year period, and is not a forecast for your portfolio.</p>
+          <p id="future-return-help" className="mt-3 text-xs text-slate-300 leading-relaxed">Starts at SPY’s historical 10-year annualized total return: {(SPY_RETURN_BENCHMARK.annualReturn * 100).toFixed(2)}% per year, as of {formatDate(SPY_RETURN_BENCHMARK.asOf)}, with dividends reinvested. This describes one past decade, not every 10-year period, and is not a forecast for your portfolio.</p>
           <p className="mt-2 text-[11px] text-slate-400">Reference period: {SPY_RETURN_BENCHMARK.period}. Before personal taxes, net of fund fees. <a href={SPY_RETURN_BENCHMARK.source} target="_blank" rel="noreferrer" className="text-sky-300 underline">Source: State Street SPY performance</a></p>
           <p className="mt-2 text-xs text-slate-400">This sets the center of simulated long-term compound growth. Monthly gains and losses still vary randomly, using your portfolio’s volatility. Your holdings’ recent returns are not projected forward. The slider limits are growth assumptions, not limits on individual simulated returns.</p>
           </details>

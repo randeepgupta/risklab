@@ -7,7 +7,7 @@ validation and longer historical replays remain later work.
 ## Save and resume
 
 Choose **Save portfolio** in the Lab. Give it a name and confirm the date of the
-entered dollar values. Save changes updates the active record; Save a copy creates
+entered dollar values using MM/DD/YYYY. Dates throughout the interface use that format, including the explicit date-entry field. Save changes updates the active record; Save a copy creates
 a separate record. The library is available from Welcome, portfolio setup and the
 Lab. Welcome offers direct resume links to the three most recently saved records.
 
@@ -41,7 +41,7 @@ Existing records are kept; matching IDs create separate copies. The limit is 50
 saved portfolios, 30 holdings per portfolio, and 1 MB per backup. Only USD positive
 dollar allocations and supported analysis settings are accepted.
 
-Backups do not contain prices, historical calibration arrays, cached risk results,
+Backup dates retain ISO values for compatibility with existing saves. Backups do not contain prices, historical calibration arrays, cached risk results,
 account-identifying columns or Copilot conversations. They are different from the
 existing analysis JSON exports. Restore only accepts this saved-library format.
 

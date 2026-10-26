@@ -1,3 +1,4 @@
+import {formatDate} from '../utils/dateFormat';
 import {Explanation} from './Explanation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
@@ -209,7 +210,7 @@ export const StressTestingView: React.FC<StressTestingViewProps> = ({ positions,
                 <summary className="cursor-pointer text-emerald-300">Historical model details</summary>
                 <p className="mt-2">Fit measures how much daily variation these drivers explained in the historical window. It does not measure prediction accuracy.</p>
                 <ul className="mt-2 space-y-1">
-                  {stressResult.modelDiagnostics.map(model => <li key={model.ticker}><strong className="text-slate-300">{model.ticker}</strong>: {model.observations} matched returns, {model.startDate} to {model.endDate}; {(model.rSquared * 100).toFixed(0)}% explained variation.</li>)}
+                  {stressResult.modelDiagnostics.map(model => <li key={model.ticker}><strong className="text-slate-300">{model.ticker}</strong>: {model.observations} matched returns, {formatDate(model.startDate)} to {formatDate(model.endDate)}; {(model.rSquared * 100).toFixed(0)}% explained variation.</li>)}
                 </ul>
               </details>}
               <div className="mt-4 flex items-start gap-2 rounded-lg bg-slate-950/50 p-3 text-xs leading-relaxed text-slate-300">

@@ -1,3 +1,4 @@
+import './dateFormat.test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {applyHistoricalSnapshot,type RiskSnapshot} from '../src/utils/riskSnapshot';
@@ -77,6 +78,6 @@ assert.ok(stress.includes('Only SPY falls 10%'));
 assert.ok(stress.includes('$6,000'));
 assert.ok(stress.includes('NVDA override: 0.0%'));
 const dialog=renderToStaticMarkup(<PortfolioLibraryDialog open onClose={()=>{}} library={library} error="" blocked={false} message="" loading={false} onSave={()=>{}} onResume={()=>{}} onDelete={()=>{}} onRestore={()=>true} onClear={()=>{}} onRetry={()=>{}} onConfirmResume={()=>{}}/>);
-assert.ok(dialog.includes('Values as of 2026-10-26'));
-assert.ok(dialog.includes('Model data through 2026-10-23'));
+assert.ok(dialog.includes('Values as of 10/26/2026'));
+assert.ok(dialog.includes('Model data through 10/23/2026'));
 console.log('Saved portfolio schema, restore, settings, privacy, conflicts and failed storage checks passed.');

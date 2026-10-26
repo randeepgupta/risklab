@@ -1,3 +1,4 @@
+import {formatDate} from './utils/dateFormat';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PortfolioPosition } from './types/risk';
 import {createRandomSamplePortfolio, SAMPLE_PORTFOLIO_VALUE} from './utils/samplePortfolio';
@@ -328,8 +329,8 @@ export default function App() {
         setPositions(calibrated);setPortfolioReady(true);setActiveTab(saved.settings.activeTab);
         const changed=JSON.stringify(saved.modelContext)!==JSON.stringify({asOf:snapshot.asOf,capturedAt:snapshot.capturedAt,sourceRevision:snapshot.sourceRevision});
         setResumeNote(changed
-          ? `The model snapshot has changed since this save. Results were recalculated using data through ${snapshot.asOf}.`
-          : `Resumed “${saved.name}”. Results use the current snapshot through ${snapshot.asOf}. Simulations are rerun from your saved assumptions.`);
+          ? `The model snapshot has changed since this save. Results were recalculated using data through ${formatDate(snapshot.asOf)}.`
+          : `Resumed “${saved.name}”. Results use the current snapshot through ${formatDate(snapshot.asOf)}. Simulations are rerun from your saved assumptions.`);
       } catch(error) {
         setPortfolioReady(false);
         setModelError(`Your saved allocation has been kept. ${error instanceof Error?error.message:'Historical models are unavailable.'} Review the holdings below before analyzing.`);
@@ -560,8 +561,8 @@ export default function App() {
 
         {resumeNote && <p role="status" className="text-xs leading-relaxed text-slate-400">{resumeNote}</p>}
         {positions[0]?.historicalModel && <details className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-xs text-slate-300">
-          <summary className="cursor-pointer font-semibold text-emerald-300">Historical risk · Data through {positions[0].historicalModel.endDate} · About this model</summary>
-          <p className="mt-1">{positions[0].historicalModel.startDate} to {positions[0].historicalModel.endDate} · {positions[0].historicalModel.observations} matched daily returns · SPY benchmark · Prices as of {positions[0].priceAsOf}</p>
+          <summary className="cursor-pointer font-semibold text-emerald-300">Historical risk · Data through {formatDate(positions[0].historicalModel.endDate)} · About this model</summary>
+          <p className="mt-1">{formatDate(positions[0].historicalModel.startDate)} to {formatDate(positions[0].historicalModel.endDate)} · {positions[0].historicalModel.observations} matched daily returns · SPY benchmark · Prices as of {formatDate(positions[0].priceAsOf)}</p>
           <p className="mt-1 text-slate-400">Volatility, correlations and beta use split/dividend-adjusted history. Advanced risk metrics use the historical annualized mean; Future uses a separately selected growth assumption. Neither is a forecast. VaR and simulations retain distribution assumptions. What If estimates joint historical responses to your specified market and 10-year Treasury yield moves; large shocks extrapolate beyond observed daily changes.</p>
           <p className="mt-1 text-slate-400">The batch quarantines unexplained extreme returns and uses an earlier cutoff when corporate-action feeds lag prices. Public-source errors can remain; the as-of date and coverage may change after quality checks.</p>
           <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank" rel="noreferrer" className="mt-1 block text-emerald-400 underline">Treasury yields: Federal Reserve H.15 / FRED DGS10</a>
