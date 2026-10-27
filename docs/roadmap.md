@@ -10,10 +10,10 @@ Copilot companion panel have shipped. They are no longer pending market-data wor
 
 The next phase is delivered in reviewable releases:
 
-- **A, in review:** named local saved portfolios, versioned backup/restore,
+- **A, shipped:** named local saved portfolios, versioned backup/restore,
   persisted What If and Future settings, validation CI and refresh reports.
-- **B, planned:** CSV portfolio import with mapping, value reconciliation and
-  coverage review, followed by a five-user pilot.
+- **B, in review:** CSV portfolio import with mapping, value reconciliation and
+  coverage review. The five-user pilot is still pending.
 - **C, planned:** side-by-side current/proposed allocation comparisons on a common
   model revision, historical window and scenario assumptions.
 
@@ -21,6 +21,8 @@ Independent-source reconciliation and chronological model evaluation remain
 required research; an automated input report is not a substitute. Historical
 replays and ETF look-through depend on suitable verified, licensed data. See
 [saved-portfolio release details](saved-portfolios.md).
+See [CSV import and pilot tasks](csv-import.md) for release B's supported inputs
+and remaining user validation.
 
 ## Phase 1 — Quantitative correctness ✅
 

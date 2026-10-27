@@ -12,7 +12,7 @@ import traceback
 
 REPO = 'randeepgupta/risklab'
 BRANCH_PREFIX = 'codex/risk-models-'
-CHECKS = ['lint', 'test:quant', 'test:history', 'test:ai', 'test:symbols', 'test:sample', 'test:future', 'test:portfolios', 'test:refresh', 'build', 'build:cloudflare']
+CHECKS = ['lint', 'test:quant', 'test:history', 'test:ai', 'test:symbols', 'test:sample', 'test:future', 'test:portfolios', 'test:csv', 'test:refresh', 'build', 'build:cloudflare']
 
 
 def run_job(state, validate_only=False):

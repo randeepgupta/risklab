@@ -19,6 +19,7 @@ import {
 interface HeaderProps {
   portfolioName: string;
   onOpenSaved?: () => void;
+  onImportCsv?: () => void;
   hasUnsavedChanges?: boolean;
   totalValue: number;
   activeTab: 'risk' | 'monte-carlo' | 'stress';
@@ -44,7 +45,7 @@ const tabs = [
 ];
 
 export const Header: React.FC<HeaderProps> = ({
-  portfolioName, onOpenSaved, hasUnsavedChanges,
+  portfolioName, onOpenSaved, onImportCsv, hasUnsavedChanges,
   totalValue,
   activeTab,
   setActiveTab,
@@ -148,6 +149,7 @@ export const Header: React.FC<HeaderProps> = ({
 
               {moreOpen && (
                 <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-700 bg-slate-900 shadow-2xl overflow-hidden py-1">
+                  {onImportCsv&&<button type="button" onClick={()=>{setMoreOpen(false);onImportCsv();}} className="w-full px-3 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-2"><FileSpreadsheet className="w-4 h-4"/>Import CSV</button>}
                   <button
                     type="button"
                     onClick={() => {

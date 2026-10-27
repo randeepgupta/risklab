@@ -129,6 +129,16 @@ uncovered holdings for review. Download and restore versioned JSON backups from
 the saved-portfolios dialog. Preview domains and production have separate storage.
 See [save, recovery and validation details](docs/saved-portfolios.md).
 
+## Import a portfolio
+
+Choose **Import CSV** in portfolio setup, or from **More actions** in the Lab.
+Map ticker and current USD market-value columns, confirm the valuation date,
+and review totals and historical coverage before applying. Repeated tickers need
+explicit confirmation to combine. Unresolved rows, cash, unsupported currencies
+and unavailable historical models block the import instead of being dropped.
+Raw CSV/account columns stay in the browser; importing uses no AI calls.
+See [supported CSV inputs and pilot tasks](docs/csv-import.md).
+
 GitHub's **RiskLab validation** workflow runs tests and both builds. Each run also
 produces an automated historical-data report; weekly local refresh PRs include a
 comparison report. These checks describe input quality and regression behavior,

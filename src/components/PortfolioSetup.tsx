@@ -4,19 +4,14 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, ArrowRight, Plus, Trash2 } from 'lucide-react';
 import { PortfolioPosition } from '../types/risk';
 import { SymbolPicker } from './SymbolPicker';
-import { ListedSymbol, createListedPosition } from '../utils/symbolDirectory';
+import {buildAllocationPositions,createAllocationInputs,type AllocationInput} from '../utils/portfolioSetupInputs';
 
-type AllocationRow = {
-  id: number;
-  ticker: string;
-  allocation: string;
-  name?: string;
-  symbol?: ListedSymbol;
-};
+type AllocationRow = AllocationInput & {id:number};
 
 interface PortfolioSetupProps {
   onHome?: () => void;
   onOpenSaved?: () => void;
+  onImportCsv?: () => void;
   isSampleLoading?: boolean;
   initialPositions?: PortfolioPosition[];
   initialPortfolioValue?: number;
@@ -29,22 +24,17 @@ interface PortfolioSetupProps {
 }
 
 export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
-  onHome, onOpenSaved, isSampleLoading = false,
+  onHome, onOpenSaved, onImportCsv, isSampleLoading = false,
   initialPositions = [],
   initialPortfolioValue = 100000,
   onAnalyze,
   onUseSample, historicalTickers, snapshotAsOf, modelError, onRetrySnapshot,
 }) => {
   const nextId = useRef(1);
-  const [portfolioValue, setPortfolioValue] = useState(String(Math.round(initialPortfolioValue || 100000)));
+  const [portfolioValue, setPortfolioValue] = useState(String(initialPortfolioValue || 100000));
   const [rows, setRows] = useState<AllocationRow[]>(() => {
     if (initialPositions.length > 0) {
-      return initialPositions.map((position) => ({
-        id: nextId.current++,
-        ticker: position.ticker,
-        name: position.name,
-        allocation: (position.weight * 100).toFixed(1).replace(/\.0$/, ''),
-      }));
+      return createAllocationInputs(initialPositions,initialPortfolioValue).map(row=>({...row,id:nextId.current++}));
     }
 
     return [{ id: nextId.current++, ticker: '', allocation: '' }];
@@ -52,13 +42,8 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
 
   useEffect(() => {
     if (initialPositions.length === 0) return;
-    setPortfolioValue(String(Math.round(initialPortfolioValue || 100000)));
-    setRows(initialPositions.map((position) => ({
-      id: nextId.current++,
-      ticker: position.ticker,
-      name: position.name,
-      allocation: (position.weight * 100).toFixed(1).replace(/\.0$/, ''),
-    })));
+    setPortfolioValue(String(initialPortfolioValue || 100000));
+    setRows(createAllocationInputs(initialPositions,initialPortfolioValue).map(row=>({...row,id:nextId.current++})));
   }, [initialPositions, initialPortfolioValue]);
 
   const allocationTotal = useMemo(
@@ -96,11 +81,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
   const analyzePortfolio = () => {
     if (!isValid) return;
 
-    const positions: PortfolioPosition[] = rows.map((row) => {
-      const weight = Number.parseFloat(row.allocation) / 100;
-      const symbol = row.symbol || {ticker: row.ticker, name: row.name || row.ticker, kind: 'Stock' as const, exchange: ''};
-      return createListedPosition(symbol, parsedPortfolioValue * weight, weight, undefined, true);
-    });
+    const positions = buildAllocationPositions(rows,parsedPortfolioValue,initialPortfolioValue);
 
     onAnalyze(positions, parsedPortfolioValue);
   };
@@ -135,9 +116,10 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
         </section>
 
         <section className="mt-10 sm:mt-12 max-w-3xl mx-auto rounded-2xl border border-slate-800 bg-slate-900/55 shadow-2xl shadow-black/20">
-          <div className="px-5 sm:px-7 py-5 border-b border-slate-800">
-            <h2 className="font-bold text-white">Build your portfolio</h2>
-            <p className="text-xs text-slate-400 mt-1">Enter a total value and make sure your allocations add up to 100%.</p>
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5 sm:px-7 py-5 border-b border-slate-800">
+            <div><h2 className="font-bold text-white">Build your portfolio</h2>
+            <p className="text-xs text-slate-400 mt-1">Enter a total value and make sure your allocations add up to 100%.</p></div>
+            {onImportCsv&&<button type="button" onClick={onImportCsv} className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-4 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/10">Import CSV</button>}
           </div>
 
           <div className="p-5 sm:p-7 space-y-6">
@@ -174,7 +156,7 @@ export const PortfolioSetup: React.FC<PortfolioSetupProps> = ({
                       <div className="min-w-0">
                         <SymbolPicker value={row.ticker} name={row.name} excluded={usedByOthers} historicalTickers={historicalTickers}
                           onSelect={symbol => setRows(current => current.map(candidate => candidate.id === row.id
-                            ? {...candidate, ticker: symbol.ticker, name: symbol.name, symbol} : candidate))} />
+                            ? {...candidate, ticker: symbol.ticker, name: symbol.name, symbol,sourceInvestment:undefined,sourceAllocation:undefined} : candidate))} />
                         {row.ticker && !historicalTickers.has(row.ticker) && <p className="mt-1 text-[11px] text-amber-300">{snapshotAsOf ? 'History is not available for this holding yet. Choose a covered holding.' : 'Checking historical coverage…'}</p>}
                       </div>
 
