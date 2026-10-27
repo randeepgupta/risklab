@@ -1,422 +1,259 @@
-## Deploy to Cloudflare
-
-RiskLab can run as one Cloudflare Worker serving the React app and `/api/*` endpoints. The quantitative engine continues to run in the browser; no database is required for the current app.
-
-See [Cloudflare deployment guide](docs/cloudflare-deployment.md) for GitHub auto-deploy settings and local deployment instructions. The Cloudflare deployment uses Workers AI (Llama 3.3) for the copilot. What If parses explicit market moves without AI inference. The existing Express development and Node deployment commands remain available.
-
 # RiskLab
 
-**AI-assisted quantitative portfolio risk analysis, stress testing, and Monte Carlo simulation.**
+**Understand your portfolio’s risk, test market assumptions, and explore possible outcomes.**
 
-RiskLab is a full-stack TypeScript application for exploring portfolio risk through deterministic quantitative models and an AI-assisted scenario interface. The core design principle is simple:
+[Try RiskLab](https://risklab.us) · [Open the Lab](https://risklab.us/lab)
+
+RiskLab is a personal research and engineering project for making portfolio risk
+more understandable and inspectable. Bring your stock and ETF holdings, import a
+CSV, or start with a sample. See what drives risk, ask “What if?”, and return to
+saved portfolios as the underlying data is refreshed.
 
 > **Explicit assumptions and historical data drive calculations. AI helps explain the results.**
 
-The application combines portfolio analytics, parametric VaR / Expected Shortfall, factor stress testing, Monte Carlo simulation, correlation analysis, risk attribution, and illustrative hedge modeling in a desktop-style React interface.
-
 ## Why I built it
 
-Risk tools often fall into one of two categories: opaque institutional systems or simple dashboards that hide the assumptions behind the numbers. RiskLab is an experiment in making portfolio risk modeling both **interactive** and **inspectable**.
+Risk tools often fall into one of two categories: opaque institutional systems or
+simple dashboards that hide the assumptions behind the numbers. I started RiskLab
+to make portfolio risk modeling both **interactive** and **inspectable**.
 
-The project also explores a practical pattern for AI-enabled software: use an LLM for natural-language interpretation and explanation, while keeping financial calculations inside a bounded, testable quantitative engine.
+I also wanted to explore a practical role for AI: helping answer questions and
+explain results about a portfolio while a testable quantitative engine handles the
+calculations. The goal is to make it easier to understand what is driving a result
+and question the assumptions behind it.
 
-## Current status
+RiskLab began as an AI-assisted demo with hardcoded scenarios and illustrative
+risk inputs. It has evolved into a Lab with historical models for covered holdings,
+explicit user-defined stress assumptions, an optional Copilot companion, and
+save/import workflows. Source-data checks and regression tests have grown with it;
+independent model evaluation is still work to do.
 
-**v0.2.0 — Investor-friendly MVP**
+## Explore the Lab
 
-The current release keeps the validated quantitative engine but changes the product experience for informed individual investors. The default interface answers plain-English questions first — how risky is my portfolio, what drives that risk, what if markets change, and what could the portfolio become — while technical methodology remains available on demand.
+The welcome page introduces the project. **Enter the Lab** opens portfolio setup;
+**Try a sample portfolio** opens an editable, historically calibrated example.
+Overview starts with the actual holdings, amounts and allocations before showing
+risk estimates.
 
-See [`docs/product-requirements.md`](docs/product-requirements.md) for the MVP product principles and [`docs/phase-1-correctness.md`](docs/phase-1-correctness.md) for the quantitative validation baseline.
-
-## Features
-
-| Area | Capabilities |
+| View | What it helps you inspect |
 | --- | --- |
-| Portfolio onboarding | Clean ticker/allocation builder with sample portfolio and allocation validation |
-| Overview | Plain-English risk level, diversification, per-holding risk explanations, holdings, and optional advanced metrics |
-| Diversification | Plain-English view of which holdings move together, powered by the correlation model |
-| Risk metrics | 95%/99% parametric VaR and Expected Shortfall across multiple horizons |
-| What If? | Explicit market and holding changes with joint historical sensitivity estimates |
-| Future | Long-term simulated outcome ranges with technical Monte Carlo details available on demand |
-| Advanced lab | Optional illustrative protective puts, put spreads, collars, beta overlays, and AI copilot |
-| AI copilot | Risk explanations using Cloudflare Workers AI (hosted) or Gemini (local) |
-| Desktop/PWA UX | Installable PWA, keyboard shortcuts, exportable JSON/CSV snapshots |
+| **Overview** | Risk level, diversification, holdings that move together, and each ticker’s calculated share of volatility with an explanation of the inputs. Advanced metrics and methodology are available on demand. |
+| **What If?** | The estimated effect of explicitly stated market or holding moves, with editable assumptions, holding-level impacts and a visible “Why this impact?” explanation. |
+| **Future** | A range of simulated outcomes using historical portfolio volatility and an editable compound-growth assumption, with horizon and simulation controls. |
 
-## Architecture
+**Ask Copilot** opens beside these views. Opening the panel makes no AI request;
+sending a question shares active portfolio context with the configured explanation
+service. Answers identify their source, and an unavailable AI service offers an
+opt-in rule-based summary. Calculations, CSV import and saved portfolios need no
+LLM calls. What If uses the app’s numeric-scenario parser without AI inference.
 
-```mermaid
-flowchart LR
-    UI[React / TypeScript UI] --> API[Worker / Express API]
-    UI --> QE[Quant Engine]
-    API --> B[Explicit shock parser]
-    B --> QE
-    HIST[Historical returns + Treasury yields] --> QE
-    API --> AI[Workers AI / Gemini Copilot]
-    QE --> R[Risk Metrics]
-    QE --> S[Stress Results]
-    QE --> M[Monte Carlo]
-    QE --> H[Hedge Illustrations]
-    R --> UI
-    S --> UI
-    M --> UI
-    H --> UI
-```
+For a new portfolio, What If starts with an empty prompt. Optional examples are
+references for what to type. For example, `What if the stock market falls 20%?` supplies a measurable
+assumption; a qualitative event without a direction and size asks for clarification.
+The parser supports broad equities (SPY), Nasdaq-100 (QQQM), semiconductors (SMH),
+10-year Treasury yield changes, and explicit held-ticker shocks. These inputs
+produce conditional estimates, not predictions of market events.
 
-What If validates the magnitudes and directions supplied by the user; it asks for clarification instead of guessing crisis returns. The engine estimates holding responses from aligned historical observations. AI copilot explanations do not supply numerical scenario shocks.
+## Bring your portfolio and keep your work
 
-More detail: [`docs/architecture.md`](docs/architecture.md)
+- **Build manually:** enter a portfolio value and allocations for up to 30 covered
+  holdings. Every holding uses its own history; missing coverage blocks analysis.
+- **Import CSV:** map ticker and current USD market-value columns, set a valuation
+  date, then review totals, security types, duplicates and coverage before applying.
+  Repeated tickers require confirmation to combine. Cash, unsupported currencies,
+  unresolved rows and missing models block the import. No rows are silently dropped.
+- **Save and resume:** explicitly save named holdings and What If/Future settings in
+  this browser’s localStorage. Resume recalculates using the current snapshot.
+  If coverage changes, the allocation is retained for review.
+- **Back up:** download and restore versioned saved-portfolio JSON. Analysis JSON
+  and holdings CSV exports are separate formats; the CSV importer accepts RiskLab’s
+  own holdings export.
 
-## Quantitative methodology
+Allocation dates use **MM/DD/YYYY** in the interface and stay separate from the
+historical model date. Imported values are preserved rather than replaced with
+live prices. Importing alone does not save the new portfolio.
 
-RiskLab currently implements:
+Raw CSV files and account columns stay in dialog memory and are cleared when the
+import is closed or applied. Saved portfolios contain inputs and settings, not
+cached risk results or Copilot conversations. Browser storage can be cleared and
+is specific to a device, browser and origin; localhost, preview URLs and production
+have separate libraries. RiskLab does not encrypt these saves or sync them to an account.
+Copilot use later sends active portfolio context when the user asks a question.
 
-- portfolio variance using a covariance matrix derived from modeled volatilities and correlations
-- positive-semidefinite projection for internally consistent correlation matrices
-- marginal and percentage risk contribution
-- annualized volatility
-- Sharpe ratio
-- downside-deviation-based Sortino ratio under the stated normal model
-- parametric VaR and Expected Shortfall at 95% and 99% confidence levels
-- joint historical market / Nasdaq-100 / semiconductor / 10-year Treasury sensitivities for stress scenarios
-- Black-Scholes option pricing for illustrative hedge economics
-- geometric Brownian motion for long-horizon simulation
+Details: [CSV import](docs/csv-import.md) · [Saved portfolios and recovery](docs/saved-portfolios.md)
 
-The full methodology, assumptions, and limitations are documented in [`docs/quantitative-methodology.md`](docs/quantitative-methodology.md).
+## Where the numbers come from
 
-## Tech stack
+The committed snapshot contains adjusted historical prices and Treasury observations.
+The browser loads it when entering the Lab, opening a sample or resuming a portfolio,
+then reuses it for allocation changes. The listing directory is broader than usable
+historical coverage. The app shows current coverage, data dates and provenance near
+the bottom of setup and analysis pages; the manifest is the source of truth as
+refreshes change those values.
 
-- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS
-- **Backend:** Cloudflare Worker for hosting; Node.js / Express for local development; TypeScript
-- **AI:** Cloudflare Workers AI (Llama 3.3) for hosting; Google Gemini via `@google/genai` for the legacy local server
-- **Quant layer:** custom TypeScript risk engine
-- **PWA:** `vite-plugin-pwa`
-- **Testing:** focused quantitative test suite executed with `tsx`
+| Calculation | Inputs and assumptions |
+| --- | --- |
+| Volatility, correlations and beta | Split/dividend-adjusted daily history aligned on matching return intervals; covariance is annualized using 252 trading days. |
+| Risk contribution | A signed decomposition of portfolio volatility using allocation, standalone volatility and co-movement. A risk share is not a probability of loss; contributions can be negative or exceed 100%. |
+| VaR, Expected Shortfall, Sharpe and Sortino | Parametric assumptions, historical arithmetic mean and portfolio volatility, with a fixed risk-free assumption where required. Normal-model tail estimates can understate extreme losses. |
+| What If responses | Joint linear sensitivities estimated from the specified equity benchmarks and 10-year Treasury yield changes. Explicit holding shocks override estimates. Missing history or an unusable fit prevents a complete result. |
+| Future outcomes | Constant-parameter geometric Brownian motion. The growth control begins at a dated SPY 10-year total-return benchmark and remains a user-editable assumption, separate from the portfolio’s historical mean. |
 
-## Welcome page and the Lab
+The batch checks completeness, corporate actions and common history, uses a
+conservative cutoff when action feeds lag prices, and quarantines unexplained
+extreme returns. These screens can also exclude genuine moves pending review.
+The source is community-maintained; missing actions, ticker reuse and source
+corrections can still affect results.
 
-The welcome page at `/` introduces the project, its three analysis views, and the
-motivation from “Why I built it.” **Enter the Lab** opens portfolio setup at `/lab`;
-**Try a sample portfolio** loads a historically calibrated sample before opening
-Overview. The historical snapshot is requested when entering the Lab or opening a
-sample, rather than while reading the welcome page. Existing query-based app links
-continue to enter the Lab. Overview leads with the actual portfolio: every holding,
-company name, invested amount, and allocation. Samples are marked as examples and
-can be edited or regenerated before exploring the risk analysis.
+Models describe a short historical window and make distribution assumptions.
+Large stress moves extrapolate daily relationships. Future does not include
+contributions, withdrawals, taxes, fees or inflation adjustment, and its outcome
+bands are not maximum-drawdown estimates. Successful tests, explained historical
+variation and a fresh snapshot do not establish forecast accuracy.
 
-Historical calibration is the standard path for custom portfolios, samples, and
-portfolio templates; there is no model-selection checkbox or silent proxy fallback.
-Uncovered holdings remain unavailable until usable history is added to the batch
-snapshot. Data dates, coverage, and model disclosures follow the main content at
-the bottom of setup and analysis pages.
-
-The Lab has three views: **Overview**, **What If?**, and **Future**. **Ask Copilot**
-opens a companion panel alongside the current view, also available through quick
-actions or Command/Ctrl+4. It stays open across view changes and preserves the
-conversation when closed and reopened. Changing portfolio holdings resets its
-conversation. Escape closes the panel and restores focus. Opening it makes no AI
-request; questions are sent only after an explicit user action. Existing source
-labels and opt-in rule-based summaries remain in place.
-
-The RiskLab brand link returns to the welcome page. The current portfolio remains
-available when returning to the Lab within the same session; reloading the app
-offers saved portfolios to resume from Welcome or portfolio setup.
-
-## Save and resume portfolios
-
-The Lab's **Save portfolio** action stores named holdings and What If/Future
-settings on this device. Resume recalculates from the current snapshot and retains
-uncovered holdings for review. Download and restore versioned JSON backups from
-the saved-portfolios dialog. Preview domains and production have separate storage.
-See [save, recovery and validation details](docs/saved-portfolios.md).
-
-## Import a portfolio
-
-Choose **Import CSV** in portfolio setup, or from **More actions** in the Lab.
-Map ticker and current USD market-value columns, confirm the valuation date,
-and review totals and historical coverage before applying. Repeated tickers need
-explicit confirmation to combine. Unresolved rows, cash, unsupported currencies
-and unavailable historical models block the import instead of being dropped.
-Raw CSV/account columns stay in the browser; importing uses no AI calls.
-See [supported CSV inputs and pilot tasks](docs/csv-import.md).
-
-GitHub's **RiskLab validation** workflow runs tests and both builds. Each run also
-produces an automated historical-data report; weekly local refresh PRs include a
-comparison report. These checks describe input quality and regression behavior,
-not proof of model forecast accuracy.
+Read the [scenario model](docs/scenario-model.md),
+[data-quality policy](docs/historical-data-quality.md) and
+[quantitative methodology](docs/quantitative-methodology.md).
 
 ## Run locally
 
-### Prerequisites
+Use Node.js 20+ and npm; CI uses Node 22. Python 3 is needed for the historical-data
+and refresh/report tests (CI uses Python 3.12). The committed snapshot lets you
+explore the Lab without market-data credentials or an AI key.
 
-- Node.js 20+
-- npm or Bun
-- Optional: a Gemini API key for local copilot explanations
-
-### Install
-
-Using npm:
-
-```bash
-npm install
-```
-
-Or with Bun:
-
-```bash
-bun install
-```
-
-### Configure AI (optional)
-
-Copy the example environment file:
-
-```bash
-cp .env.example .env
-```
-
-Then add your key:
-
-```env
-GEMINI_API_KEY=your_key_here
-```
-
-RiskLab and What If run without a Gemini key. The copilot labels unavailable AI and offers an opt-in deterministic portfolio summary.
-
-### Start development server
-
-```bash
+```sh
+npm ci
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Open [localhost:3000](http://localhost:3000). Express serves the API and Vite UI.
 
-### Validate the quantitative engine
+For optional local AI explanations, copy `.env.example` to `.env` and set
+`GEMINI_API_KEY`. Keep real keys out of source control. The hosted app uses
+Cloudflare Workers AI; local Express uses Gemini. Core analysis and the explicit
+What If parser work without either provider.
 
-```bash
-npm run test:quant
+```sh
+cp .env.example .env
 ```
 
-### Type-check
+Build and run the Node production server:
 
-```bash
-npm run lint
-```
-
-### Production build
-
-```bash
+```sh
 npm run build
-npm start
+NODE_ENV=production npm start
 ```
 
-## Quantitative validation
+To build for Cloudflare:
 
-The focused test suite checks invariants that should hold regardless of portfolio composition, including:
+```sh
+npm run build:cloudflare
+```
 
-- correlation matrix symmetry, unit diagonal, and PSD behavior
-- risk-contribution decomposition
-- VaR / Expected Shortfall ordering
-- measured Treasury yield and sector response, with aligned intervals
-- explicit ticker-shock precedence, omitted versus zero driver constraints
-- rejection of missing models, singular fits and invalid extrapolations
-- removal of unsupported hedge-floor claims
-- Black-Scholes put-call parity and option delta bounds
+The connected GitHub `main` branch deploys to Cloudflare after an approved PR is
+merged. Feature branches receive preview builds. See the
+[Cloudflare deployment guide](docs/cloudflare-deployment.md) for bindings and
+manual deployment or Worker preview commands.
 
-Run:
+## Tests and release checks
 
-```bash
+The required **RiskLab validation** workflow runs TypeScript checks, every test
+suite, a snapshot report, and both Node and Cloudflare builds. The AI tests mock
+provider behavior; passing them does not prove live inference access or answer
+quality. Changes are reviewed on feature branches and merged after approval.
+
+```sh
+npm run lint
 npm run test:quant
+npm run test:history
+npm run test:ai
+npm run test:symbols
+npm run test:sample
+npm run test:future
+npm run test:portfolios
+npm run test:csv
+npm run test:refresh
+npm run build
+npm run build:cloudflare
 ```
 
-## AI-assisted development
+Generate an offline snapshot report with `npm run report:risk-models`. CI uploads
+the report, and weekly refresh PRs include a comparison with the previous snapshot.
+Reports check input quality and regressions; independent-source reconciliation
+and chronological model evaluation remain outstanding.
 
-RiskLab began as an AI-assisted prototype. Generative AI was used to accelerate UI scaffolding and implementation, but the quantitative engine is being manually reviewed, tested, and refactored before the project is treated as technically trustworthy.
+## Historical refreshes
 
-One example: an early version used manually specified pairwise correlations that looked plausible individually but produced a correlation matrix with a negative eigenvalue. The engine was corrected to project modeled correlations to a positive-semidefinite matrix before portfolio variance calculations. The correction process is documented rather than hidden because validating AI-generated code is part of the engineering work.
+Historical inputs are refreshed in batches. Browsing the app and editing
+allocations do not request upstream prices or use AI inference tokens.
 
-## Project structure
-
-```text
-risklab/
-├── docs/
-│   ├── architecture.md
-│   ├── phase-1-correctness.md
-│   ├── product-requirements.md
-│   ├── quantitative-methodology.md
-│   └── roadmap.md
-├── public/
-├── scripts/
-├── src/
-│   ├── components/
-│   ├── types/
-│   └── utils/
-│       └── quantEngine.ts
-├── tests/
-│   └── quantEngine.test.ts
-├── server.ts
-├── package.json
-└── vite.config.ts
-```
-
-## Roadmap
-
-Historical calibration now supports thousands of covered holdings and measured scenario sensitivities. Further work includes independent data validation, historical backtesting and richer risk models. See [`docs/roadmap.md`](docs/roadmap.md).
-
-## Important limitations
-
-RiskLab is currently a research and engineering project, not a production trading or portfolio-management system. In particular:
-
-- volatility, correlation, and beta are historical estimates; forward growth and macroeconomic stress sensitivities retain modeled assumptions
-- the application uses dated historical snapshots, not a live quote feed
-- Monte Carlo uses constant-parameter geometric Brownian motion
-- hedge outputs are illustrative and do not use a live option chain
-- parametric VaR / Expected Shortfall use a normal-return model and can understate fat-tail risk
-
-## Disclaimer
-
-RiskLab is an educational and software-engineering project. It does **not** provide investment advice, trading recommendations, or guarantees of future performance. Model outputs are sensitive to assumptions and should not be relied upon for real financial decisions without independent validation.
-
-### US-listed holdings directory
-
-Both holding pickers search tickers and security names from a committed Nasdaq Trader snapshot:
-`public/symbols/us-listed.json`. Sources are Nasdaq-listed and other-listed directories at
-https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt and
-https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt. The snapshot records download time
-and source file creation times. It includes US exchange-listed stocks (including ADRs) and
-ETFs; test issues, warrants, rights, preferred issues, notes and closed-end funds are excluded.
-It is a listing directory, not a live quote feed; some corporate actions or unusual issue names
-may require a refresh or filter adjustment. Refresh deliberately with `npm run refresh:symbols`
-and commit the resulting snapshot. Failed downloads preserve the existing file.
-
-Portfolios support up to 30 covered holdings. Each uses its own historical model;
-the broader listing directory includes some securities without usable history.
-Those holdings remain unavailable until a later batch adds sufficient, valid data.
-Security names, tickers, model provenance, and data dates remain visible and are
-preserved in exports. Run `npm run test:symbols` for directory and model checks.
-
-### Historical risk models from a public snapshot
-
-RiskLab calculates each covered holding's risk from a committed, dated public dataset,
-loaded once and reused in the browser. Changing allocations, adding covered holdings and running
-analysis do not call a market-data API. No account, token or backend market-data secret is needed.
-The PWA also caches the snapshot and its content-addressed parts. The listing directory
-remains broader than historical coverage. All portfolio holdings are calibrated against
-the same historical snapshot, with no hidden mixture of historical and preset covariance estimates.
-
-`npm run refresh:risk-models` deliberately rebuilds `public/models/historical-snapshot.json`
-from the publicly readable `post-no-preference/stocks` DoltHub database. The generator uses its
-indexed daily closing-price records and dividend/split tables to form total-return indices over
-the latest available year. It checks query completeness, valid closes, source dates, minimum
-history and availability of corporate-action dates. Missing, short or stale symbols are omitted;
-failed refreshes preserve the previous snapshot. Refresh and commit the file when desired;
-there is no runtime upstream price fetch. Optional weekly local scheduling is described below. Each refresh pins an immutable Dolt source revision before querying prices and corporate actions. Cached queries are keyed by that revision, so source corrections cannot be hidden behind old responses.
-
-For the selected holdings and SPY benchmark, RiskLab aligns identical daily return intervals,
-requires at least 126 common returns, and calculates sample variance/covariance, annualized
-volatility (252 days), correlations, beta versus SPY, and annualized arithmetic historical mean
-return. The mean supplies parametric risk drift and is explicitly labeled as historical, not a forecast. Future uses a separate user-selected growth assumption. VaR/CVaR still use the normal-distribution model; this does not
-turn them into empirical historical VaR. What If jointly fits selected SPY, QQQM and SMH returns and official FRED DGS10 Treasury yield changes to each holding's observed returns. Missing sensitivities prevent a total instead of implying zero impact. See [scenario methodology](docs/scenario-model.md) and [data-quality policy](docs/historical-data-quality.md). Linear relationships do not capture every macroeconomic transmission path. No live quote or future return is implied.
-
-The UI and JSON export preserve provider, observation count, historical window, capture time,
-correlations and last closing-price date. CSV identifies the risk mode and data-through date.
-All holdings in an updated historical portfolio are recalibrated together against the same
-snapshot and window. Flat series produce zero volatility with finite risk contributions.
-
-Data attribution: https://www.dolthub.com/repositories/post-no-preference/stocks,
-creator `post-no-preference`, licensed CC BY-SA 4.0. RiskLab's stored adjusted indices and derived
-historical-model data are adaptations distributed under the same license:
-https://creativecommons.org/licenses/by-sa/4.0/. Adjustments and methodology are described above.
-This data license does not change the license of unrelated application code. Snapshot and
-model data retain source and license metadata. The public dataset is community-maintained;
-corporate actions, source corrections and ticker reuse can affect estimates. Inspect the visible
-as-of date and coverage before relying on a model.
-
-### Ad hoc full-directory historical refresh
-
-Run `npm run refresh:risk-models` to rebuild historical models for the entire committed
-`public/symbols/us-listed.json` directory, including SPY as the benchmark. There is no
-hardcoded ticker allowlist. Optionally run `npm run refresh:symbols` first to update listings.
-The browser calculates each covered ticker's model from its own adjusted return series;
-portfolio covariance still uses matching daily intervals across the selected holdings.
-
-The batch scans one year of daily prices with one aggregate per day, validating its
-size against the source row count to avoid the public API's 1,000-row cap. Dividend
-and split downloads use explicit pagination below that cap. A full refresh can take several minutes
-or longer depending on source latency. Interrupted runs reuse successfully downloaded
-pages for seven days within the same immutable source revision. A new revision downloads fresh data. Retry the same command to resume. No API key is required.
-
-```bash
+```sh
 npm run refresh:risk-models
-# Reduce concurrent day downloads if the public source is busy:
-npm run refresh:risk-models -- --workers 4
-# Generate an isolated candidate without replacing the app's snapshot:
-npm run refresh:risk-models -- --output /tmp/risklab-models/historical-snapshot.json
 ```
 
-The manifest records `coverage` counts and an `exclusions` reason for every uncovered ticker:
-`no_source_history`, `stale_history`, `insufficient_history` (fewer than 127 closes),
-`invalid_price`, `invalid_corporate_action`, `duplicate_prices`, `missing_corporate_action_price`,
-`invalid_adjusted_history`, `unverified_extreme_return`, or `insufficient_benchmark_overlap`. Some new listings or securities absent from the public dataset
-cannot have a valid own-history model yet. These remain visibly unavailable in the Lab; the batch never substitutes another security's model.
+The optional macOS LaunchAgent **`com.risklab.weekly-refresh`** runs on Saturdays
+at **10 PM in the Mac’s system time zone**. It uses a disposable checkout, runs the
+refresh, report, tests and both builds, then opens a data PR when inputs change.
+It never merges or deploys directly and uses no Codex or LLM tokens.
 
-Output is `public/models/historical-snapshot.json` plus content-addressed `history-*.json`
-parts with at most 500 holdings each. All parts are written before atomically replacing the
-manifest. Failed downloads, missing benchmark data, fewer than 150 covered tickers, or a
-unexplained coverage drop greater than 10% preserve the current manifest. Documented extreme-return quarantines are reported separately from an unexplained source regression. Old parts remain safe for
-clients that already loaded the previous manifest; remove unreferenced parts deliberately
-before committing a refreshed snapshot. Commit the manifest and every referenced part
-together, then run `npm run test:history` and `npm run build`.
+See [model refresh operations](docs/model-refresh.md) for ad hoc options,
+installation, logs, scheduling and recovery. The Mac needs the required tools,
+a logged-in account and internet access to run the job.
 
-The refresh also records corporate-action feed dates, a conservative cutoff policy when those feeds lag prices, reviewed split corrections, and a quarantine for unverified absolute returns of at least 50% between observations. Genuine extreme moves can be excluded pending review. The current snapshot retains October 23, 2026 prices; the Treasury series ends October 22. See [quality and provenance](docs/historical-data-quality.md).
+## Architecture and stack
 
-### Weekly refresh on a local Mac
+React 19, TypeScript, Vite and Tailwind provide the UI. Historical calibration,
+portfolio risk, scenario estimation and simulations run in browser-side TypeScript.
+Cloudflare serves the hosted app and API; Express provides local development and
+an alternative Node deployment. The PWA caches app assets and snapshot data;
+explicit portfolio saves use localStorage separately.
 
-The macOS scheduler can run the batch without Codex, an LLM, or AI token usage.
-Install once from the repository:
-
-```bash
-python3 scripts/local-refresh/install.py
+```mermaid
+flowchart TD
+    INPUT[Manual entry / CSV / saved inputs] --> CAL[Browser historical calibration]
+    SNAP[Committed prices + Treasury snapshot] --> CAL
+    CAL --> QE[Risk and simulation engine]
+    QE --> VIEWS[Overview / What If / Future]
+    PROMPT[Explicit What If prompt] --> PARSER[Worker or Express numeric parser]
+    PARSER -->|Validated assumptions| QE
+    INPUT <-->|Save / resume| LOCAL[Browser localStorage]
+    QUESTION[Copilot question + active portfolio context] --> API[Worker or Express]
+    API --> AI[Workers AI / Gemini explanations]
 ```
 
-This installs the per-user LaunchAgent `com.risklab.weekly-refresh` for **Saturday
-at 22:00 in the Mac's system time zone** (10 PM Central when set to Chicago).
-It copies the runner into `~/Library/Application Support/RiskLab/weekly-refresh/`;
-re-run the installer after changing the runner. Nothing runs immediately at install.
-Your Mac must be logged into your account and have internet access. If asleep at
-that time, launchd runs the missed calendar job on wake. The runner uses `caffeinate`
-to prevent idle sleep while working; it cannot run while the Mac is powered off.
+Code entry points: `src/App.tsx`, `src/utils/historicalModels.ts`,
+`src/utils/measuredScenario.ts`, `src/utils/quantEngine.ts`, `worker.ts` and
+`server.ts`. See the [architecture guide](docs/architecture.md).
 
-Prerequisites: Git, Python 3, Node.js 20+, npm, and GitHub CLI authenticated using
-`gh auth login`, with permission to push branches and open PRs in this repository.
-The installer records the required tool directories for noninteractive runs. No credentials
-are copied into the LaunchAgent or stored in repository files.
+## What is next
 
-Each run clones current GitHub `main` into a disposable checkout, refreshes the
-historical data, runs TypeScript checks, all existing application test suites, and
-both builds, then pushes a unique `codex/risk-models-*` branch and opens a PR.
-Your development checkout is untouched. Old snapshot parts are pruned only in the
-disposable checkout. A failed check prevents publication. A timestamp-only update
-creates no PR, and an existing open refresh PR pauses new refreshes until reviewed.
-The job never merges PRs or deploys directly; approval and merge trigger the existing
-Cloudflare integration.
+Saved portfolios, CSV import, automated release checks and refresh reports have
+shipped. The five-user import pilot is still pending. The next planned capability
+is side-by-side current/proposed allocation comparison on a common model revision,
+historical window and scenario assumptions.
 
-Validate the full pipeline without publishing anything:
+Independent data reconciliation and model evaluation are still required research.
+Longer historical replays, recurring contributions, inflation views and ETF
+look-through need additional data and validation. See the [roadmap](docs/roadmap.md).
 
-```bash
-python3 scripts/local-refresh/run.py --validate-only --state-dir /tmp/risklab-weekly-validation
-```
+## Data attribution
 
-Inspect `~/Library/Application Support/RiskLab/weekly-refresh/status.json` for the
-last outcome and its log path. Detailed per-run logs live in the `logs/` subfolder.
-Logs are local and retained for troubleshooting; no automated AI review runs.
+Equity and ETF price data: [post-no-preference/stocks on DoltHub](https://www.dolthub.com/repositories/post-no-preference/stocks),
+licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). RiskLab’s
+adjusted price indices and derived historical-model data are adaptations under
+the same license, retaining source and license metadata. This attribution does
+not assign that license to unrelated application code.
 
-```bash
-# Run once on demand using the installed job:
-launchctl kickstart gui/$(id -u)/com.risklab.weekly-refresh
-# Inspect the schedule and most recent exit status:
-launchctl print gui/$(id -u)/com.risklab.weekly-refresh
-# Disable future scheduled runs:
-launchctl disable gui/$(id -u)/com.risklab.weekly-refresh
-```
+Treasury observations: Federal Reserve Board H.15, distributed by
+[FRED DGS10](https://fred.stlouisfed.org/series/DGS10), labeled Public Domain:
+Citation Requested. The US-listed symbol directory comes from the
+[Nasdaq-listed](https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt) and
+[other-listed](https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt)
+Nasdaq Trader directories. Listings do not imply historical-model coverage.
 
-Scheduler regression checks: `python3 tests/localRefresh.test.py`.
+## Research and education
+
+RiskLab is an educational research project. It does not provide investment advice,
+trading recommendations, live execution or guarantees of future performance.
+Outputs depend on dated data and modeling assumptions and require independent
+validation before use in financial decisions.

@@ -12,7 +12,7 @@ The next phase is delivered in reviewable releases:
 
 - **A, shipped:** named local saved portfolios, versioned backup/restore,
   persisted What If and Future settings, validation CI and refresh reports.
-- **B, in review:** CSV portfolio import with mapping, value reconciliation and
+- **B, code shipped:** CSV portfolio import with mapping, value reconciliation and
   coverage review. The five-user pilot is still pending.
 - **C, planned:** side-by-side current/proposed allocation comparisons on a common
   model revision, historical window and scenario assumptions.

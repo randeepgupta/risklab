@@ -1,8 +1,9 @@
 # Saved portfolios and release validation
 
 This is release A of the next-phase proposal: saved inputs/settings, validation CI,
-and an automated snapshot report. CSV import, comparison, independent-source model
-validation and longer historical replays remain later work.
+and an automated snapshot report. [CSV import](csv-import.md) has also shipped;
+comparison, independent-source model validation and longer historical replays
+remain later work.
 
 ## Save and resume
 
