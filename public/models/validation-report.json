@@ -1,0 +1,4625 @@
+{
+  "reportSchemaVersion": 1,
+  "modelVersion": "historical-conditional-v1",
+  "codeRevision": "29695a0e532e72830845fce4ede15e27634d6db9",
+  "verification": "Automated input screens only; not independent source verification or evidence of forecast accuracy.",
+  "snapshot": {
+    "asOf": "2026-10-23",
+    "capturedAt": "2026-11-01T03:09:35.966162+00:00",
+    "sourceRevision": "u72hdotmo08b0cp07i1sj2qbr8g6fi3h",
+    "coverage": {
+      "requested": 11524,
+      "covered": 9369,
+      "excluded": 2155,
+      "directoryCapturedAt": "2026-10-07T02:02:53.190Z"
+    }
+  },
+  "quality": {
+    "exclusionCounts": {
+      "insufficient_benchmark_overlap": 33,
+      "insufficient_history": 1150,
+      "missing_corporate_action_price": 17,
+      "no_source_history": 6,
+      "stale_history": 235,
+      "unverified_extreme_return": 714
+    },
+    "quarantinedCount": 714,
+    "actionFeeds": {
+      "dividend": {
+        "latestEventDate": "2026-10-23",
+        "lagBusinessDays": 5,
+        "completeThrough": null
+      },
+      "split": {
+        "latestEventDate": "2026-10-23",
+        "lagBusinessDays": 5,
+        "completeThrough": null
+      }
+    },
+    "cutoffReason": "observed_action_feed_lag",
+    "reviewedSplitOverrides": [
+      {
+        "ticker": "AMTD",
+        "date": "2026-10-19",
+        "toFactor": 1,
+        "forFactor": 60,
+        "source": "https://www.sec.gov/Archives/edgar/data/1769731/000121390026107254/ea030787901ex99-1.htm",
+        "verifiedAt": "2026-10-25",
+        "description": "Issuer announced ADS ratio changing from six to 360 Class A ordinary shares per ADS, economically a one-for-60 reverse split.",
+        "status": "already_present"
+      },
+      {
+        "ticker": "DKI",
+        "date": "2026-10-22",
+        "toFactor": 1,
+        "forFactor": 50,
+        "source": "https://www.globenewswire.com/news-release/2026/10/19/3383397/0/en/darkiris-inc-announces-share-consolidation.html",
+        "verifiedAt": "2026-10-25",
+        "description": "Issuer announced one-for-50 Class A and Class B share consolidation effective October 22, 2026.",
+        "status": "already_present"
+      }
+    ],
+    "missingPriceObservations": {
+      "AAAC": 36,
+      "AAEQ": 36,
+      "AAOX": 107,
+      "AAPG": 8,
+      "AAUA": 102,
+      "ABLV": 5,
+      "ABUF": 111,
+      "ABX": 46,
+      "ACEP": 22,
+      "ACH": 48,
+      "ACTS": 102,
+      "ACYN": 87,
+      "ADBU": 107,
+      "ADSE": 1,
+      "ADXN": 34,
+      "AERO": 12,
+      "AGBK": 78,
+      "AGCC": 2,
+      "AGIG": 36,
+      "AGMB": 73,
+      "AHG": 3,
+      "AHRT": 92,
+      "AIB": 102,
+      "AIDX": 82,
+      "AIIA": 71,
+      "AIMS": 78,
+      "AINT": 73,
+      "AIRT": 53,
+      "AIUP": 73,
+      "AKA": 10,
+      "AKO.B": 1,
+      "AKRE": 7,
+      "AKTS": 54,
+      "ALF": 65,
+      "ALIS": 76,
+      "ALMR": 121,
+      "ALOY": 87,
+      "ALPS": 7,
+      "AMBO": 6,
+      "AMUN": 2,
+      "AMZO": 107,
+      "ANDG": 41,
+      "ANTA": 9,
+      "ANV": 73,
+      "APC": 76,
+      "APHU": 82,
+      "APLM": 8,
+      "APWC": 3,
+      "APXT": 37,
+      "AQEC": 22,
+      "ARBB": 5,
+      "ARIS": 80,
+      "ARKD": 48,
+      "ARKI": 111,
+      "ARKR": 33,
+      "ARL": 2,
+      "ARLI": 111,
+      "ARMW": 2,
+      "ARMY": 111,
+      "ARWG": 49,
+      "ARXS": 121,
+      "ASCI": 2,
+      "ASMU": 78,
+      "ASTN": 73,
+      "ATCL": 82,
+      "ATCX": 54,
+      "ATHR": 2,
+      "ATTR": 7,
+      "ATXG": 7,
+      "AUAU": 36,
+      "AUBN": 28,
+      "AURE": 1,
+      "AVEX": 121,
+      "AVOS": 92,
+      "AVRY": 63,
+      "AVTM": 73,
+      "AVX": 15,
+      "AVXX": 2,
+      "BABU": 78,
+      "BABW": 2,
+      "BACC": 13,
+      "BAFN": 1,
+      "BAIV": 87,
+      "BALQ": 31,
+      "BAOS": 2,
+      "BAVA": 121,
+      "BBHL": 22,
+      "BBHM": 22,
+      "BBYY": 2,
+      "BCEM": 116,
+      "BCFN": 41,
+      "BCG": 1,
+      "BCGD": 41,
+      "BCGS": 97,
+      "BCHT": 87,
+      "BCPL": 59,
+      "BCSM": 41,
+      "BCTK": 41,
+      "BDCI": 39,
+      "BDL": 36,
+      "BEAG": 14,
+      "BEDY": 36,
+      "BESS": 82,
+      "BETA": 12,
+      "BFEW": 116,
+      "BFJA": 59,
+      "BFXU": 116,
+      "BGIN": 4,
+      "BGLC": 3,
+      "BGM": 1,
+      "BGSI": 7,
+      "BHDG": 102,
+      "BIDG": 41,
+      "BITW": 36,
+      "BKFI": 59,
+      "BKMI": 59,
+      "BKMS": 59,
+      "BLDX": 73,
+      "BLLN": 12,
+      "BLUW": 46,
+      "BLZR": 29,
+      "BMHL": 47,
+      "BMM": 68,
+      "BMNG": 7,
+      "BMNZ": 17,
+      "BMOP": 59,
+      "BNDP": 31,
+      "BNR": 1,
+      "BOBS": 73,
+      "BOTJ": 2,
+      "BPRE": 41,
+      "BPRO": 63,
+      "BRAG": 1,
+      "BRBI": 66,
+      "BRCE": 2,
+      "BREE": 92,
+      "BRES": 73,
+      "BRFH": 6,
+      "BRIA": 3,
+      "BRIB": 102,
+      "BRID": 21,
+      "BRIE": 2,
+      "BSBK": 3,
+      "BSOL": 7,
+      "BTGO": 63,
+      "BTOT": 36,
+      "BUDA": 56,
+      "BUFE": 116,
+      "BUUU": 4,
+      "BYFC": 25,
+      "CABR": 17,
+      "CABZ": 59,
+      "CAGE": 121,
+      "CAIQ": 22,
+      "CALY": 59,
+      "CBC": 22,
+      "CBOX": 121,
+      "CCC": 6,
+      "CCEC": 3,
+      "CCEL": 1,
+      "CCII": 29,
+      "CCM": 9,
+      "CCOM": 75,
+      "CCRP": 36,
+      "CCXI": 94,
+      "CD": 17,
+      "CDNL": 36,
+      "CDTG": 1,
+      "CEPF": 5,
+      "CEPV": 57,
+      "CHNL": 111,
+      "CHNR": 3,
+      "CHNU": 111,
+      "CIG.C": 8,
+      "CITR": 31,
+      "CKX": 47,
+      "CLIM": 95,
+      "CLNK": 59,
+      "CLOC": 2,
+      "CLPS": 1,
+      "CLST": 12,
+      "CMBO": 12,
+      "CMCM": 1,
+      "CMTV": 73,
+      "CNET": 5,
+      "CNF": 5,
+      "CNTN": 82,
+      "COE": 10,
+      "COHX": 82,
+      "COMD": 78,
+      "CONX": 22,
+      "COPZ": 82,
+      "CORB": 17,
+      "COSW": 2,
+      "COZX": 12,
+      "CPHC": 25,
+      "CRAC": 80,
+      "CRD.B": 1,
+      "CRDD": 111,
+      "CRDX": 111,
+      "CRUX": 102,
+      "CRXP": 36,
+      "CSBR": 1,
+      "CSEX": 17,
+      "CSHR": 111,
+      "CSIO": 36,
+      "CSSD": 36,
+      "CTAP": 36,
+      "CUB": 54,
+      "CURX": 1,
+      "CVR": 17,
+      "CVSA": 87,
+      "CWY": 121,
+      "CYAB": 107,
+      "CYPH": 17,
+      "DAMD": 17,
+      "DANA": 31,
+      "DCH": 73,
+      "DDDD": 97,
+      "DDFA": 111,
+      "DDFD": 31,
+      "DDFF": 73,
+      "DDFJ": 49,
+      "DDFM": 92,
+      "DDFN": 12,
+      "DDNQ": 49,
+      "DDSQ": 49,
+      "DDTA": 111,
+      "DDTD": 31,
+      "DDTF": 73,
+      "DDTJ": 49,
+      "DDTM": 92,
+      "DDTN": 12,
+      "DDV": 17,
+      "DDX": 12,
+      "DDXX": 17,
+      "DFMC": 102,
+      "DFTT": 17,
+      "DFTX": 59,
+      "DGJA": 63,
+      "DGOC": 2,
+      "DLFE": 87,
+      "DLNV": 26,
+      "DLPN": 1,
+      "DLUX": 111,
+      "DMAA": 39,
+      "DMII": 50,
+      "DMRA": 97,
+      "DOO": 31,
+      "DPRE": 121,
+      "DRAM": 111,
+      "DRDB": 26,
+      "DRIO": 1,
+      "DRNZ": 7,
+      "DSCO": 73,
+      "DTCX": 41,
+      "DTF": 4,
+      "DUOG": 36,
+      "DUTY": 116,
+      "DVGR": 31,
+      "DVVY": 102,
+      "EART": 92,
+      "EBON": 3,
+      "EDGQ": 82,
+      "EDGX": 82,
+      "EDRY": 8,
+      "EEE": 68,
+      "EGHA": 69,
+      "EHCC": 111,
+      "EHLD": 5,
+      "EIKN": 73,
+      "ELE": 26,
+      "ELLO": 35,
+      "ELOG": 2,
+      "ELTK": 11,
+      "ELVR": 1,
+      "ELWT": 15,
+      "EMAT": 54,
+      "EMBJ": 12,
+      "EMET": 78,
+      "EMKT": 7,
+      "ENHI": 97,
+      "ENHU": 12,
+      "ENJ": 43,
+      "EPAI": 41,
+      "EQPT": 63,
+      "EQS": 10,
+      "ESBG": 22,
+      "ESIM": 41,
+      "ETFT": 31,
+      "ETHB": 97,
+      "EUHY": 12,
+      "EUIG": 12,
+      "EVAC": 3,
+      "EXEQ": 78,
+      "EXOZ": 6,
+      "FAAA": 78,
+      "FBYY": 2,
+      "FCLO": 78,
+      "FCRS": 23,
+      "FDIQ": 87,
+      "FDRS": 49,
+      "FDRX": 59,
+      "FEBO": 8,
+      "FEMD": 68,
+      "FENG": 6,
+      "FERA": 69,
+      "FFF": 41,
+      "FISV": 17,
+      "FKWL": 5,
+      "FLNA": 97,
+      "FLXI": 87,
+      "FMTL": 12,
+      "FMY": 1,
+      "FNUC": 102,
+      "FPS": 73,
+      "FRGN": 31,
+      "FRWD": 59,
+      "FSML": 36,
+      "FSOL": 22,
+      "FSSL": 17,
+      "FTCA": 7,
+      "FTHB": 102,
+      "FTMA": 17,
+      "FTMH": 7,
+      "FTMN": 17,
+      "FTMS": 7,
+      "FTMU": 7,
+      "FTNJ": 17,
+      "FTNY": 7,
+      "FTOH": 17,
+      "FTPA": 17,
+      "FTW": 12,
+      "FUSB": 6,
+      "FWDI": 17,
+      "GARA": 45,
+      "GARY": 45,
+      "GAVA": 97,
+      "GBHI": 22,
+      "GBLI": 20,
+      "GDEV": 30,
+      "GDHG": 4,
+      "GDOG": 26,
+      "GDT": 63,
+      "GDTC": 3,
+      "GDXW": 7,
+      "GENB": 87,
+      "GENZ": 116,
+      "GEVG": 41,
+      "GGTL": 41,
+      "GIGM": 8,
+      "GIW": 39,
+      "GLDB": 1,
+      "GLDN": 82,
+      "GLDW": 5,
+      "GLNK": 31,
+      "GLOO": 22,
+      "GLWG": 97,
+      "GMEX": 97,
+      "GMEY": 1,
+      "GMHS": 1,
+      "GMOC": 7,
+      "GMTL": 107,
+      "GOAI": 68,
+      "GOLD": 27,
+      "GOLS": 49,
+      "GOU": 31,
+      "GPGI": 63,
+      "GRAG": 36,
+      "GRAN": 9,
+      "GRDX": 31,
+      "GRNI": 22,
+      "GRNJ": 22,
+      "GRNQ": 5,
+      "GSGO": 22,
+      "GSOL": 7,
+      "GSUI": 82,
+      "GSWO": 73,
+      "GTEN": 51,
+      "GTN.A": 49,
+      "GTOH": 87,
+      "GTOP": 36,
+      "GTOQ": 87,
+      "GTPE": 2,
+      "GURE": 22,
+      "GUSE": 22,
+      "GVLE": 22,
+      "GXRP": 26,
+      "HAKY": 63,
+      "HBNB": 17,
+      "HBR": 7,
+      "HBRD": 87,
+      "HCMA": 47,
+      "HEFT": 22,
+      "HELP": 54,
+      "HEMI": 41,
+      "HERE": 17,
+      "HMH": 111,
+      "HMYY": 31,
+      "HNNA": 1,
+      "HODU": 22,
+      "HSLV": 97,
+      "HTLM": 33,
+      "HTOO": 1,
+      "HTT": 45,
+      "HUDI": 1,
+      "HUHU": 2,
+      "HUIZ": 2,
+      "HYNE": 31,
+      "IALT": 36,
+      "IBAC": 77,
+      "IBCB": 107,
+      "IBFR": 87,
+      "IBGC": 107,
+      "IBGM": 107,
+      "IBHM": 107,
+      "IBIM": 107,
+      "IBMU": 107,
+      "IBMV": 107,
+      "IBMW": 116,
+      "IBMX": 121,
+      "IBTR": 107,
+      "ICPI": 22,
+      "IDVY": 78,
+      "IFBD": 8,
+      "IFLN": 87,
+      "IFLR": 22,
+      "ILAG": 26,
+      "IMSR": 7,
+      "IMTG": 87,
+      "IMVP": 87,
+      "IND": 26,
+      "INDQ": 111,
+      "INDZ": 82,
+      "INFQ": 82,
+      "INLX": 61,
+      "IONR": 1,
+      "IOYY": 12,
+      "IPB": 70,
+      "IPM": 2,
+      "IPX": 2,
+      "IQMM": 82,
+      "IQSZ": 1,
+      "ISBG": 63,
+      "ISSB": 63,
+      "IVEP": 116,
+      "IVSI": 36,
+      "IVSS": 31,
+      "IVSX": 82,
+      "JA": 82,
+      "JACS": 61,
+      "JAN": 102,
+      "JANI": 73,
+      "JCTC": 1,
+      "JF": 59,
+      "JFU": 18,
+      "JG": 9,
+      "JHDG": 113,
+      "JIDE": 68,
+      "JL": 3,
+      "JMMF": 36,
+      "JPO": 92,
+      "JUDO": 107,
+      "KAMO": 41,
+      "KBDU": 22,
+      "KBFR": 87,
+      "KBSX": 2,
+      "KCOP": 78,
+      "KDVD": 36,
+      "KEEL": 116,
+      "KEQU": 3,
+      "KIQQ": 54,
+      "KLAG": 41,
+      "KLRA": 121,
+      "KOYN": 29,
+      "KPHO": 31,
+      "KRKR": 8,
+      "KRSP": 49,
+      "KRYP": 73,
+      "KUST": 54,
+      "KWIN": 12,
+      "KYLD": 7,
+      "KYNB": 54,
+      "LCFY": 2,
+      "LCO": 54,
+      "LEUX": 82,
+      "LFWD": 1,
+      "LIFE": 68,
+      "LINT": 22,
+      "LIQT": 1,
+      "LITB": 2,
+      "LITX": 68,
+      "LIVE": 5,
+      "LKSP": 80,
+      "LMRI": 36,
+      "LNGX": 7,
+      "LNOK": 63,
+      "LONA": 59,
+      "LRE": 9,
+      "LSBK": 2,
+      "LSE": 5,
+      "LTAX": 59,
+      "LTCC": 7,
+      "LUD": 9,
+      "LULG": 12,
+      "LUNL": 59,
+      "LVIG": 97,
+      "LVLN": 22,
+      "MAAS": 2,
+      "MAAY": 12,
+      "MACI": 62,
+      "MAIR": 121,
+      "MAKO": 111,
+      "MANE": 73,
+      "MARS": 92,
+      "MATE": 41,
+      "MBBA": 68,
+      "MBBC": 34,
+      "MCGA": 1,
+      "MCVT": 107,
+      "MDA": 97,
+      "MDBH": 16,
+      "MDIA": 2,
+      "MDLN": 41,
+      "MEGL": 1,
+      "MEMA": 41,
+      "MEMY": 63,
+      "MFIG": 36,
+      "MFMO": 36,
+      "MFVL": 36,
+      "MICC": 36,
+      "MIGO": 87,
+      "MINE": 68,
+      "MINY": 87,
+      "MKC.V": 2,
+      "MKLY": 44,
+      "MLPI": 39,
+      "MMED": 92,
+      "MMK": 78,
+      "MMMA": 41,
+      "MNVT": 102,
+      "MNZL": 22,
+      "MOGU": 12,
+      "MOLN": 27,
+      "MPG": 7,
+      "MPT": 73,
+      "MRDN": 92,
+      "MRLN": 102,
+      "MRSH": 59,
+      "MSC": 22,
+      "MSLE": 73,
+      "MSST": 22,
+      "MTEX": 9,
+      "MTR": 1,
+      "MUNA": 3,
+      "MUNX": 7,
+      "MUYY": 121,
+      "MWH": 78,
+      "MXC": 4,
+      "MXE": 27,
+      "MYHA": 87,
+      "MYHB": 87,
+      "MYHC": 87,
+      "MYHD": 87,
+      "MYHE": 87,
+      "NASA": 111,
+      "NAVN": 7,
+      "NBFR": 87,
+      "NBIE": 97,
+      "NBP": 7,
+      "NCEL": 7,
+      "NEHI": 31,
+      "NETG": 22,
+      "NFE": 1,
+      "NFRX": 68,
+      "NGEN": 54,
+      "NGHT": 116,
+      "NICM": 123,
+      "NIOG": 41,
+      "NLSI": 36,
+      "NMBL": 7,
+      "NOEM": 79,
+      "NOEQ": 107,
+      "NOMA": 7,
+      "NPAC": 24,
+      "NPFE": 97,
+      "NSRX": 12,
+      "NSYS": 9,
+      "NTSD": 102,
+      "NUCL": 87,
+      "NUGY": 22,
+      "NUKX": 92,
+      "NVA": 18,
+      "NVIT": 22,
+      "NVNO": 2,
+      "NVRI": 1,
+      "NVX": 1,
+      "NWAX": 68,
+      "NYC": 9,
+      "NYM": 17,
+      "NYSX": 107,
+      "OAKG": 36,
+      "OAKI": 36,
+      "OBTC": 41,
+      "ODTE": 111,
+      "ODYS": 1,
+      "OEI": 2,
+      "OFRM": 73,
+      "OGC": 116,
+      "ONEH": 68,
+      "OPEX": 2,
+      "OPLN": 45,
+      "ORBX": 121,
+      "ORCS": 22,
+      "ORCU": 22,
+      "ORIO": 49,
+      "OSG": 20,
+      "P": 120,
+      "PACH": 60,
+      "PARK": 31,
+      "PATX": 59,
+      "PAYH": 49,
+      "PAYM": 49,
+      "PAYP": 97,
+      "PBEU": 26,
+      "PBOG": 26,
+      "PBPH": 26,
+      "PCAP": 44,
+      "PCPI": 116,
+      "PDC": 63,
+      "PDCC": 4,
+      "PETZ": 4,
+      "PFDE": 49,
+      "PFOE": 49,
+      "PFX": 71,
+      "PGRI": 2,
+      "PICS": 68,
+      "PIEL": 45,
+      "PLBL": 22,
+      "PLGI": 36,
+      "PLUL": 59,
+      "PLUR": 2,
+      "PLUT": 40,
+      "PMDE": 31,
+      "PMNV": 12,
+      "PMTR": 18,
+      "POLE": 19,
+      "POW": 7,
+      "POWR": 7,
+      "PPHC": 68,
+      "PQUS": 87,
+      "PRAB": 97,
+      "PRHI": 4,
+      "PRMR": 36,
+      "PROV": 2,
+      "PRTO": 107,
+      "PTHS": 2,
+      "PTOR": 112,
+      "PULM": 1,
+      "PURR": 31,
+      "PW": 2,
+      "PYPU": 107,
+      "PZIV": 111,
+      "PZLV": 111,
+      "Q": 7,
+      "QBIF": 111,
+      "QBIV": 111,
+      "QBKF": 111,
+      "QBKV": 111,
+      "QBQF": 111,
+      "QBQV": 111,
+      "QBSV": 111,
+      "QBY": 26,
+      "QEW": 102,
+      "QFHD": 59,
+      "QFRD": 59,
+      "QIS": 1,
+      "QNC": 87,
+      "QSEA": 42,
+      "QSOL": 41,
+      "QSU": 2,
+      "QTAC": 41,
+      "QTI": 68,
+      "QVMT": 87,
+      "RAAR": 78,
+      "RAAY": 78,
+      "RAC": 55,
+      "RCLO": 2,
+      "RCLR": 78,
+      "RCLY": 78,
+      "RDAG": 49,
+      "REED": 31,
+      "REFA": 34,
+      "REGS": 102,
+      "REMC": 36,
+      "RESM": 36,
+      "REXC": 121,
+      "RGYY": 26,
+      "RISE": 124,
+      "RJET": 26,
+      "RKNG": 63,
+      "RKSG": 116,
+      "RMCO": 1,
+      "RMIX": 116,
+      "RMME": 31,
+      "RMRC": 87,
+      "RNAZ": 3,
+      "ROC": 82,
+      "ROCQ": 102,
+      "ROCY": 102,
+      "RONB": 41,
+      "RPC": 78,
+      "RTYY": 31,
+      "RVI": 91,
+      "RWEM": 46,
+      "RWIN": 116,
+      "RWLC": 45,
+      "RYZ": 87,
+      "SAIH": 17,
+      "SANG": 25,
+      "SAPH": 2,
+      "SASS": 92,
+      "SBTU": 2,
+      "SCEP": 36,
+      "SCMC": 36,
+      "SCNM": 36,
+      "SCOR": 3,
+      "SCSB": 111,
+      "SCUB": 111,
+      "SCZM": 63,
+      "SDMF": 82,
+      "SECU": 68,
+      "SEMY": 22,
+      "SFGV": 7,
+      "SFHG": 1,
+      "SFTX": 31,
+      "SFWL": 14,
+      "SGP": 73,
+      "SGRW": 59,
+      "SHAZ": 82,
+      "SIMA": 68,
+      "SIOO": 36,
+      "SLNG": 1,
+      "SLVX": 82,
+      "SMOX": 31,
+      "SMRF": 82,
+      "SNAG": 41,
+      "SOEZ": 31,
+      "SOFA": 78,
+      "SOLC": 22,
+      "SOLM": 12,
+      "SOLS": 7,
+      "SOUL": 17,
+      "SPCI": 97,
+      "SPCK": 116,
+      "SPDF": 121,
+      "SPLS": 59,
+      "SPOG": 22,
+      "SPPL": 9,
+      "SPYM": 7,
+      "SQFT": 4,
+      "SQLT": 111,
+      "SQS": 102,
+      "SSAC": 97,
+      "SSBI": 25,
+      "SSS": 68,
+      "STBQ": 45,
+      "STLR": 111,
+      "STLU": 111,
+      "STRR": 7,
+      "STSM": 22,
+      "SUGP": 2,
+      "SUIS": 82,
+      "SUNB": 92,
+      "SWMR": 102,
+      "SZZL": 29,
+      "TABD": 41,
+      "TACH": 63,
+      "TACN": 36,
+      "TACU": 36,
+      "TALV": 41,
+      "TAOP": 1,
+      "TAOZ": 111,
+      "TAYD": 1,
+      "TDAC": 71,
+      "TDAX": 54,
+      "TDAY": 22,
+      "TDOG": 63,
+      "TDOT": 92,
+      "TEMD": 63,
+      "TEMR": 97,
+      "TENJ": 2,
+      "TENM": 2,
+      "TERG": 22,
+      "TEST": 22,
+      "TEXX": 63,
+      "TFFI": 87,
+      "TFGZ": 111,
+      "TGLB": 1,
+      "THCH": 8,
+      "THMR": 116,
+      "THYM": 22,
+      "TII": 22,
+      "TINS": 2,
+      "TISI": 4,
+      "TKLF": 2,
+      "TKNQ": 45,
+      "TLA": 73,
+      "TLDR": 63,
+      "TLF": 1,
+      "TLG": 102,
+      "TLNC": 58,
+      "TMCR": 116,
+      "TMLP": 45,
+      "TMNL": 22,
+      "TMNS": 22,
+      "TMSF": 22,
+      "TMVE": 22,
+      "TMYY": 121,
+      "TNUK": 41,
+      "TNXT": 68,
+      "TOMZ": 1,
+      "TOPW": 107,
+      "TOS": 68,
+      "TOXR": 36,
+      "TPAY": 79,
+      "TPRY": 87,
+      "TROT": 87,
+      "TRSG": 42,
+      "TRUC": 82,
+      "TRUF": 111,
+      "TRUH": 111,
+      "TSCM": 49,
+      "TSCV": 22,
+      "TSES": 49,
+      "TSIC": 49,
+      "TSNF": 49,
+      "TSOL": 22,
+      "TSRS": 49,
+      "TSSD": 49,
+      "TSUI": 87,
+      "TSYW": 17,
+      "TSYX": 54,
+      "TTOP": 17,
+      "TULP": 103,
+      "TVA": 1,
+      "TVGN": 1,
+      "TWAV": 36,
+      "TXBC": 17,
+      "TXNU": 107,
+      "TXXD": 22,
+      "UBCP": 6,
+      "UBEW": 2,
+      "UCL": 1,
+      "UFOD": 73,
+      "UG": 1,
+      "ULTI": 7,
+      "UNHU": 107,
+      "UNHW": 31,
+      "UONEK": 12,
+      "USAX": 59,
+      "USEW": 41,
+      "USFE": 68,
+      "USGG": 59,
+      "USLN": 92,
+      "USMD": 73,
+      "UTSI": 9,
+      "UUUG": 59,
+      "VAVX": 68,
+      "VBCA": 107,
+      "VBCB": 107,
+      "VBCC": 107,
+      "VBCD": 107,
+      "VBCE": 107,
+      "VBCF": 107,
+      "VBCG": 107,
+      "VBCH": 107,
+      "VBCI": 107,
+      "VBCJ": 107,
+      "VCOB": 22,
+      "VDG": 121,
+      "VDI": 31,
+      "VDIG": 22,
+      "VDV": 121,
+      "VEFA": 111,
+      "VEM": 73,
+      "VGNT": 111,
+      "VGRO": 45,
+      "VHUB": 68,
+      "VISN": 59,
+      "VIVO": 102,
+      "VMET": 92,
+      "VMSB": 31,
+      "VOXP": 107,
+      "VPX": 97,
+      "VRM": 2,
+      "VSNT": 54,
+      "VSOL": 22,
+      "VTIX": 68,
+      "VTVT": 1,
+      "VUS": 31,
+      "VUSG": 22,
+      "VUSI": 22,
+      "VUSV": 22,
+      "VYLD": 1,
+      "WAFU": 2,
+      "WAGN": 78,
+      "WAMA": 97,
+      "WDCX": 68,
+      "WENN": 36,
+      "WEPN": 92,
+      "WFCF": 25,
+      "WIMA": 97,
+      "WLDU": 97,
+      "WLTH": 35,
+      "WMSB": 12,
+      "WMTI": 12,
+      "WSBK": 5,
+      "WSDB": 111,
+      "WSGE": 36,
+      "WTF": 9,
+      "WTIB": 36,
+      "WTLS": 63,
+      "WULX": 2,
+      "XAGG": 17,
+      "XBCI": 73,
+      "XBFR": 87,
+      "XBOX": 102,
+      "XBP": 1,
+      "XCHG": 41,
+      "XDEF": 82,
+      "XEML": 45,
+      "XOEX": 41,
+      "XPEG": 59,
+      "XQQI": 73,
+      "XRN": 87,
+      "XRP": 22,
+      "XRPC": 17,
+      "XRPM": 22,
+      "XRPZ": 26,
+      "XSPI": 73,
+      "XXI": 36,
+      "XXV": 18,
+      "XXX": 68,
+      "XZO": 12,
+      "YBST": 41,
+      "YBTY": 41,
+      "YHGJ": 21,
+      "YI": 3,
+      "YIBO": 10,
+      "YLDW": 36,
+      "YQ": 7,
+      "YSS": 68,
+      "YSXT": 2,
+      "YYYM": 97,
+      "ZCBA": 54,
+      "ZCBB": 54,
+      "ZCBC": 54,
+      "ZCBE": 54,
+      "ZCBF": 54,
+      "ZCBG": 54,
+      "ZHOG": 49,
+      "ZJK": 1,
+      "ZJYL": 1,
+      "ZKIN": 1,
+      "ZOOZ": 2
+    },
+    "quarantined": {
+      "AACG": {
+        "startDate": "2026-10-15",
+        "endDate": "2026-10-16",
+        "return": 0.5075829383693808
+      },
+      "AAOI": {
+        "startDate": "2026-02-26",
+        "endDate": "2026-02-27",
+        "return": 0.568821009447463
+      },
+      "AARD": {
+        "startDate": "2026-10-22",
+        "endDate": "2026-10-23",
+        "return": -0.6481012657254286
+      },
+      "ABTS": {
+        "startDate": "2026-05-29",
+        "endDate": "2026-06-01",
+        "return": 1.157910658794309
+      },
+      "ACRS": {
+        "startDate": "2026-01-16",
+        "endDate": "2026-01-20",
+        "return": 0.6908396946966553
+      },
+      "ACXP": {
+        "startDate": "2026-03-10",
+        "endDate": "2026-03-11",
+        "return": 1.0793103446297265
+      },
+      "ADCT": {
+        "startDate": "2026-06-03",
+        "endDate": "2026-06-04",
+        "return": -0.5714285714852041
+      },
+      "ADGM": {
+        "startDate": "2026-08-03",
+        "endDate": "2026-08-04",
+        "return": 0.7391304346216443
+      },
+      "ADVB": {
+        "startDate": "2026-07-17",
+        "endDate": "2026-07-20",
+        "return": 0.7693836978485982
+      },
+      "AEHL": {
+        "startDate": "2026-05-07",
+        "endDate": "2026-05-08",
+        "return": 1.3534026288276833
+      },
+      "AEMD": {
+        "startDate": "2026-09-16",
+        "endDate": "2026-09-17",
+        "return": 3.741258739644384
+      },
+      "AFJK": {
+        "startDate": "2025-12-05",
+        "endDate": "2025-12-09",
+        "return": 10.062499999637087
+      },
+      "AGEN": {
+        "startDate": "2026-07-10",
+        "endDate": "2026-07-13",
+        "return": 0.826865671593743
+      },
+      "AGIO": {
+        "startDate": "2025-11-18",
+        "endDate": "2025-11-19",
+        "return": -0.508903055606083
+      },
+      "AGL": {
+        "startDate": "2026-05-06",
+        "endDate": "2026-05-07",
+        "return": 1.1780969479885424
+      },
+      "AGPU": {
+        "startDate": "2026-03-31",
+        "endDate": "2026-04-01",
+        "return": 1.1975308644334022
+      },
+      "AGQ": {
+        "startDate": "2026-01-29",
+        "endDate": "2026-01-30",
+        "return": -0.5990737263717048
+      },
+      "AGRZ": {
+        "startDate": "2026-03-11",
+        "endDate": "2026-03-12",
+        "return": 1.5355450248688256
+      },
+      "AHMA": {
+        "startDate": "2025-11-28",
+        "endDate": "2025-12-01",
+        "return": 1.9812889812899428
+      },
+      "AIFF": {
+        "startDate": "2026-03-03",
+        "endDate": "2026-03-04",
+        "return": 1.2627737224529811
+      },
+      "AIFU": {
+        "startDate": "2026-08-14",
+        "endDate": "2026-08-17",
+        "return": -0.5247933885765544
+      },
+      "AIIO": {
+        "startDate": "2026-05-13",
+        "endDate": "2026-05-14",
+        "return": 1.160919540229885
+      },
+      "AIM": {
+        "startDate": "2026-05-29",
+        "endDate": "2026-06-01",
+        "return": 1.2035311425405508
+      },
+      "AIMD": {
+        "startDate": "2026-05-22",
+        "endDate": "2026-05-26",
+        "return": 1.0653594771535242
+      },
+      "AIOS": {
+        "startDate": "2026-04-30",
+        "endDate": "2026-05-01",
+        "return": 1.3605150214658601
+      },
+      "AIRS": {
+        "startDate": "2026-03-13",
+        "endDate": "2026-03-16",
+        "return": 0.5162162158841956
+      },
+      "AIXI": {
+        "startDate": "2026-04-02",
+        "endDate": "2026-04-06",
+        "return": 5.149961744484083
+      },
+      "AKAN": {
+        "startDate": "2026-04-21",
+        "endDate": "2026-04-22",
+        "return": 2.1415384616067548
+      },
+      "AKTX": {
+        "startDate": "2026-05-21",
+        "endDate": "2026-05-22",
+        "return": 2.5544747084050488
+      },
+      "ALAR": {
+        "startDate": "2026-07-02",
+        "endDate": "2026-07-06",
+        "return": -0.5149606299545028
+      },
+      "ALDX": {
+        "startDate": "2026-03-16",
+        "endDate": "2026-03-17",
+        "return": -0.7068557919395939
+      },
+      "ALMS": {
+        "startDate": "2026-01-05",
+        "endDate": "2026-01-06",
+        "return": 0.9530685920481485
+      },
+      "ALTO": {
+        "startDate": "2026-03-04",
+        "endDate": "2026-03-05",
+        "return": 0.5461538461493727
+      },
+      "AMBR": {
+        "startDate": "2025-11-25",
+        "endDate": "2025-11-26",
+        "return": 0.5632911391579274
+      },
+      "AMCI": {
+        "startDate": "2025-12-15",
+        "endDate": "2025-12-16",
+        "return": 1.015130674
+      },
+      "AMIX": {
+        "startDate": "2026-08-03",
+        "endDate": "2026-08-04",
+        "return": 4.342465754757561
+      },
+      "AMLX": {
+        "startDate": "2026-08-17",
+        "endDate": "2026-08-18",
+        "return": 0.6383574428724172
+      },
+      "AMOD": {
+        "startDate": "2026-10-01",
+        "endDate": "2026-10-02",
+        "return": 1.9829059827785813
+      },
+      "AMST": {
+        "startDate": "2026-05-18",
+        "endDate": "2026-05-19",
+        "return": 1.2007378190417244
+      },
+      "AMTD": {
+        "startDate": "2026-10-13",
+        "endDate": "2026-10-14",
+        "return": 0.5143603133380144
+      },
+      "ANGH": {
+        "startDate": "2025-12-30",
+        "endDate": "2025-12-31",
+        "return": 0.6249999999094826
+      },
+      "ANL": {
+        "startDate": "2026-01-28",
+        "endDate": "2026-01-29",
+        "return": 0.8818443804078697
+      },
+      "ANNA": {
+        "startDate": "2026-03-19",
+        "endDate": "2026-03-20",
+        "return": 0.8654353562342714
+      },
+      "ANPA": {
+        "startDate": "2026-01-08",
+        "endDate": "2026-01-09",
+        "return": 2.5888429751798254
+      },
+      "ANTX": {
+        "startDate": "2026-03-06",
+        "endDate": "2026-03-09",
+        "return": 0.8421052631643766
+      },
+      "APLX": {
+        "startDate": "2026-02-05",
+        "endDate": "2026-02-06",
+        "return": 0.500991884628949
+      },
+      "APLZ": {
+        "startDate": "2026-02-05",
+        "endDate": "2026-02-06",
+        "return": -0.5098296199135268
+      },
+      "APUS": {
+        "startDate": "2026-09-23",
+        "endDate": "2026-09-24",
+        "return": 1.148471606594382
+      },
+      "ARAI": {
+        "startDate": "2026-04-13",
+        "endDate": "2026-04-14",
+        "return": 0.8560179977502811
+      },
+      "ARBK": {
+        "startDate": "2025-12-11",
+        "endDate": "2025-12-12",
+        "return": -0.7760172142681625
+      },
+      "ARTL": {
+        "startDate": "2026-03-26",
+        "endDate": "2026-03-27",
+        "return": 2.3040752349860663
+      },
+      "ARTV": {
+        "startDate": "2025-12-12",
+        "endDate": "2025-12-15",
+        "return": 0.9090909091975761
+      },
+      "ASBP": {
+        "startDate": "2026-04-14",
+        "endDate": "2026-04-15",
+        "return": -0.5421008400782679
+      },
+      "ASTC": {
+        "startDate": "2026-05-26",
+        "endDate": "2026-05-27",
+        "return": 4.591093117497831
+      },
+      "ASTI": {
+        "startDate": "2026-04-14",
+        "endDate": "2026-04-15",
+        "return": 0.5979899497356886
+      },
+      "ATER": {
+        "startDate": "2026-04-27",
+        "endDate": "2026-04-28",
+        "return": 0.6907844629800779
+      },
+      "ATGL": {
+        "startDate": "2025-11-14",
+        "endDate": "2025-11-17",
+        "return": 1.3984461712329193
+      },
+      "ATOM": {
+        "startDate": "2026-02-12",
+        "endDate": "2026-02-13",
+        "return": 0.6401673639771537
+      },
+      "ATPC": {
+        "startDate": "2025-12-10",
+        "endDate": "2025-12-11",
+        "return": 1.6455882352941176
+      },
+      "ATRA": {
+        "startDate": "2026-05-06",
+        "endDate": "2026-05-07",
+        "return": 0.928155339823926
+      },
+      "AUID": {
+        "startDate": "2026-01-14",
+        "endDate": "2026-01-15",
+        "return": 0.7229219143576826
+      },
+      "AUUD": {
+        "startDate": "2026-04-23",
+        "endDate": "2026-04-24",
+        "return": -0.6383399208853893
+      },
+      "AXG": {
+        "startDate": "2026-09-24",
+        "endDate": "2026-09-25",
+        "return": -0.8461538461334319
+      },
+      "AXIL": {
+        "startDate": "2025-12-10",
+        "endDate": "2025-12-11",
+        "return": 0.593625497863304
+      },
+      "AZI": {
+        "startDate": "2026-03-06",
+        "endDate": "2026-03-09",
+        "return": 1.4639878668842563
+      },
+      "AZN": {
+        "startDate": "2026-01-30",
+        "endDate": "2026-02-02",
+        "return": 1.0309367252130057
+      },
+      "BAND": {
+        "startDate": "2026-04-29",
+        "endDate": "2026-04-30",
+        "return": 0.5210743801776088
+      },
+      "BANL": {
+        "startDate": "2026-08-13",
+        "endDate": "2026-08-14",
+        "return": 0.5592011412450992
+      },
+      "BATL": {
+        "startDate": "2026-01-23",
+        "endDate": "2026-01-26",
+        "return": 2.1171875002051697
+      },
+      "BBGI": {
+        "startDate": "2025-12-09",
+        "endDate": "2025-12-10",
+        "return": 3.1209876546068767
+      },
+      "BCTX": {
+        "startDate": "2026-01-13",
+        "endDate": "2026-01-14",
+        "return": -0.5549450549377822
+      },
+      "BDMD": {
+        "startDate": "2026-02-13",
+        "endDate": "2026-02-17",
+        "return": 0.6363636362116882
+      },
+      "BDRX": {
+        "startDate": "2026-09-10",
+        "endDate": "2026-09-11",
+        "return": 0.9693985732742931
+      },
+      "BEAT": {
+        "startDate": "2025-12-09",
+        "endDate": "2025-12-10",
+        "return": 0.9242706394689544
+      },
+      "BEG": {
+        "startDate": "2026-04-28",
+        "endDate": "2026-04-29",
+        "return": 0.5181948196365449
+      },
+      "BENF": {
+        "startDate": "2026-09-22",
+        "endDate": "2026-09-23",
+        "return": 4.3873304873640215
+      },
+      "BEX": {
+        "startDate": "2026-04-28",
+        "endDate": "2026-04-29",
+        "return": 0.5468965517192417
+      },
+      "BEZ": {
+        "startDate": "2026-04-28",
+        "endDate": "2026-04-29",
+        "return": -0.5448717947923849
+      },
+      "BFLY": {
+        "startDate": "2026-06-17",
+        "endDate": "2026-06-18",
+        "return": 0.5586690017308868
+      },
+      "BFRG": {
+        "startDate": "2026-03-27",
+        "endDate": "2026-03-30",
+        "return": 1.065709226938945
+      },
+      "BGL": {
+        "startDate": "2026-01-21",
+        "endDate": "2026-01-22",
+        "return": 1.038277511998789
+      },
+      "BIAF": {
+        "startDate": "2026-03-12",
+        "endDate": "2026-03-13",
+        "return": 0.9813084111550006
+      },
+      "BIOA": {
+        "startDate": "2026-07-30",
+        "endDate": "2026-07-31",
+        "return": -0.6362173038328507
+      },
+      "BIRD": {
+        "startDate": "2026-04-14",
+        "endDate": "2026-04-15",
+        "return": 5.823293171910728
+      },
+      "BIYA": {
+        "startDate": "2026-07-24",
+        "endDate": "2026-07-27",
+        "return": 1.160621757447918
+      },
+      "BJDX": {
+        "startDate": "2026-06-01",
+        "endDate": "2026-06-02",
+        "return": 1.0
+      },
+      "BKYI": {
+        "startDate": "2026-09-28",
+        "endDate": "2026-09-29",
+        "return": 0.857142857142857
+      },
+      "BLZE": {
+        "startDate": "2026-05-04",
+        "endDate": "2026-05-05",
+        "return": 0.6357758621835752
+      },
+      "BMBL": {
+        "startDate": "2026-10-12",
+        "endDate": "2026-10-13",
+        "return": 0.5657894737201106
+      },
+      "BMGL": {
+        "startDate": "2026-09-10",
+        "endDate": "2026-09-14",
+        "return": 0.5589519648930568
+      },
+      "BNAI": {
+        "startDate": "2026-01-23",
+        "endDate": "2026-01-26",
+        "return": 2.766990291237014
+      },
+      "BNC": {
+        "startDate": "2026-09-04",
+        "endDate": "2026-09-08",
+        "return": 0.5042979943903221
+      },
+      "BNY": {
+        "startDate": "2026-02-06",
+        "endDate": "2026-05-21",
+        "return": 12.625490195653521
+      },
+      "BOIL": {
+        "startDate": "2026-01-30",
+        "endDate": "2026-02-02",
+        "return": -0.5052864519045206
+      },
+      "BOLD": {
+        "startDate": "2026-06-22",
+        "endDate": "2026-06-23",
+        "return": 0.8571428571716326
+      },
+      "BOXL": {
+        "startDate": "2026-08-11",
+        "endDate": "2026-08-12",
+        "return": 1.6860068246981563
+      },
+      "BQ": {
+        "startDate": "2025-10-29",
+        "endDate": "2025-10-30",
+        "return": 1.137279597045377
+      },
+      "BRAI": {
+        "startDate": "2026-02-24",
+        "endDate": "2026-02-25",
+        "return": 0.7934782608218858
+      },
+      "BRLS": {
+        "startDate": "2026-02-06",
+        "endDate": "2026-02-09",
+        "return": 1.343032159692422
+      },
+      "BRTX": {
+        "startDate": "2026-05-26",
+        "endDate": "2026-05-27",
+        "return": 0.7329863894161928
+      },
+      "BRZE": {
+        "startDate": "2026-10-19",
+        "endDate": "2026-10-20",
+        "return": 0.5169773635123827
+      },
+      "BTCT": {
+        "startDate": "2026-08-18",
+        "endDate": "2026-08-19",
+        "return": 0.7997418803742518
+      },
+      "BTTC": {
+        "startDate": "2026-09-18",
+        "endDate": "2026-09-21",
+        "return": 1.17753424666888
+      },
+      "BVC": {
+        "startDate": "2026-01-02",
+        "endDate": "2026-01-05",
+        "return": 9.535642856992347
+      },
+      "BWEN": {
+        "startDate": "2026-05-11",
+        "endDate": "2026-05-12",
+        "return": 1.1724137930489897
+      },
+      "BWMN": {
+        "startDate": "2026-08-07",
+        "endDate": "2026-08-10",
+        "return": 0.5578406170009977
+      },
+      "BYAH": {
+        "startDate": "2026-06-05",
+        "endDate": "2026-06-08",
+        "return": 1.4999999992054245
+      },
+      "BZFD": {
+        "startDate": "2026-05-11",
+        "endDate": "2026-05-12",
+        "return": 0.9043704614533954
+      },
+      "CALC": {
+        "startDate": "2026-01-27",
+        "endDate": "2026-01-28",
+        "return": -0.7558593749875862
+      },
+      "CANF": {
+        "startDate": "2026-06-30",
+        "endDate": "2026-07-01",
+        "return": 0.5589225588875366
+      },
+      "CAPR": {
+        "startDate": "2025-12-02",
+        "endDate": "2025-12-03",
+        "return": 3.7106918239302864
+      },
+      "CAST": {
+        "startDate": "2026-08-17",
+        "endDate": "2026-08-18",
+        "return": 1.4424284719532876
+      },
+      "CATX": {
+        "startDate": "2026-01-28",
+        "endDate": "2026-01-29",
+        "return": 0.6640625000166993
+      },
+      "CCHH": {
+        "startDate": "2026-02-06",
+        "endDate": "2026-02-09",
+        "return": 1.351916375487137
+      },
+      "CCTG": {
+        "startDate": "2026-06-08",
+        "endDate": "2026-06-09",
+        "return": 2.7145242104103664
+      },
+      "CCUP": {
+        "startDate": "2026-02-24",
+        "endDate": "2026-02-25",
+        "return": 0.7118644065167481
+      },
+      "CDIO": {
+        "startDate": "2026-02-17",
+        "endDate": "2026-02-18",
+        "return": 0.7899159664872255
+      },
+      "CELU": {
+        "startDate": "2026-08-26",
+        "endDate": "2026-08-27",
+        "return": 1.3852794184327077
+      },
+      "CELZ": {
+        "startDate": "2026-06-29",
+        "endDate": "2026-06-30",
+        "return": 0.7896815605910599
+      },
+      "CETX": {
+        "startDate": "2025-12-05",
+        "endDate": "2025-12-08",
+        "return": 1.2964169380346848
+      },
+      "CETY": {
+        "startDate": "2025-11-24",
+        "endDate": "2025-11-25",
+        "return": 1.1682242989899114
+      },
+      "CGC": {
+        "startDate": "2025-12-11",
+        "endDate": "2025-12-12",
+        "return": 0.5398230087999374
+      },
+      "CGTL": {
+        "startDate": "2026-05-27",
+        "endDate": "2026-05-28",
+        "return": 1.5149334293336838
+      },
+      "CHAI": {
+        "startDate": "2026-06-08",
+        "endDate": "2026-06-09",
+        "return": 1.268292682926829
+      },
+      "CHOW": {
+        "startDate": "2026-06-09",
+        "endDate": "2026-06-10",
+        "return": 1.0924441876059987
+      },
+      "CHPT": {
+        "startDate": "2026-09-02",
+        "endDate": "2026-09-03",
+        "return": 0.7495183046652789
+      },
+      "CHSN": {
+        "startDate": "2026-04-23",
+        "endDate": "2026-04-24",
+        "return": -0.9262248995844626
+      },
+      "CIFG": {
+        "startDate": "2026-07-29",
+        "endDate": "2026-07-30",
+        "return": 0.5947089236843197
+      },
+      "CIFU": {
+        "startDate": "2026-07-29",
+        "endDate": "2026-07-30",
+        "return": 0.5712820511421048
+      },
+      "CIGL": {
+        "startDate": "2026-04-10",
+        "endDate": "2026-07-27",
+        "return": -0.7693467336567511
+      },
+      "CIIT": {
+        "startDate": "2026-06-22",
+        "endDate": "2026-06-23",
+        "return": 0.8118367336835528
+      },
+      "CISS": {
+        "startDate": "2025-12-10",
+        "endDate": "2025-12-11",
+        "return": -0.8070175438885914
+      },
+      "CJMB": {
+        "startDate": "2026-01-14",
+        "endDate": "2026-01-15",
+        "return": 2.7500000004665175
+      },
+      "CLBK": {
+        "startDate": "2026-07-20",
+        "endDate": "2026-07-21",
+        "return": -0.5477551020660731
+      },
+      "CLDI": {
+        "startDate": "2026-03-05",
+        "endDate": "2026-03-06",
+        "return": -0.5313758606395467
+      },
+      "CLGN": {
+        "startDate": "2026-02-04",
+        "endDate": "2026-02-05",
+        "return": -0.5341614906463679
+      },
+      "CLIK": {
+        "startDate": "2025-10-24",
+        "endDate": "2025-10-27",
+        "return": 0.6843800321583515
+      },
+      "CLRO": {
+        "startDate": "2026-08-05",
+        "endDate": "2026-08-06",
+        "return": 1.6630434783786825
+      },
+      "CLWT": {
+        "startDate": "2026-10-09",
+        "endDate": "2026-10-12",
+        "return": 0.5808823529147924
+      },
+      "CMCT": {
+        "startDate": "2025-11-11",
+        "endDate": "2025-11-12",
+        "return": 0.8822355288536603
+      },
+      "CMND": {
+        "startDate": "2026-04-17",
+        "endDate": "2026-04-20",
+        "return": 0.5842134583006771
+      },
+      "CMPX": {
+        "startDate": "2026-04-24",
+        "endDate": "2026-04-27",
+        "return": -0.644135188911694
+      },
+      "CNBS": {
+        "startDate": "2025-12-11",
+        "endDate": "2025-12-12",
+        "return": 0.545673269092048
+      },
+      "CNCK": {
+        "startDate": "2025-11-28",
+        "endDate": "2025-12-01",
+        "return": 1.43209876532564
+      },
+      "CNEY": {
+        "startDate": "2026-05-18",
+        "endDate": "2026-05-19",
+        "return": 1.1976521974622734
+      },
+      "CNSP": {
+        "startDate": "2026-05-01",
+        "endDate": "2026-05-04",
+        "return": 2.392324001655439
+      },
+      "CNTX": {
+        "startDate": "2026-06-12",
+        "endDate": "2026-06-15",
+        "return": -0.5114388489208633
+      },
+      "COCH": {
+        "startDate": "2026-02-10",
+        "endDate": "2026-02-11",
+        "return": 0.6919723005575948
+      },
+      "CODX": {
+        "startDate": "2025-10-24",
+        "endDate": "2025-10-27",
+        "return": 2.592814371265433
+      },
+      "COGT": {
+        "startDate": "2025-11-07",
+        "endDate": "2025-11-10",
+        "return": 1.1902834008328247
+      },
+      "CORT": {
+        "startDate": "2025-12-30",
+        "endDate": "2025-12-31",
+        "return": -0.5042381935992897
+      },
+      "CPAC": {
+        "startDate": "2025-12-15",
+        "endDate": "2025-12-16",
+        "return": 0.522174535024374
+      },
+      "CPHI": {
+        "startDate": "2026-07-20",
+        "endDate": "2026-07-21",
+        "return": 7.901098901379342
+      },
+      "CPOP": {
+        "startDate": "2026-06-09",
+        "endDate": "2026-06-10",
+        "return": 3.2222222220401484
+      },
+      "CPSH": {
+        "startDate": "2026-05-22",
+        "endDate": "2026-05-26",
+        "return": 0.853333333269831
+      },
+      "CRCA": {
+        "startDate": "2026-02-24",
+        "endDate": "2026-02-25",
+        "return": 0.7023255818057432
+      },
+      "CRCD": {
+        "startDate": "2026-02-24",
+        "endDate": "2026-02-25",
+        "return": -0.7110397062159295
+      },
+      "CRCG": {
+        "startDate": "2026-02-24",
+        "endDate": "2026-02-25",
+        "return": 0.7194244608523677
+      },
+      "CRE": {
+        "startDate": "2026-08-25",
+        "endDate": "2026-08-26",
+        "return": 1.649805447120651
+      },
+      "CRIS": {
+        "startDate": "2026-06-25",
+        "endDate": "2026-06-26",
+        "return": 0.5597667636959942
+      },
+      "CRMT": {
+        "startDate": "2026-06-09",
+        "endDate": "2026-06-10",
+        "return": -0.5502846299284226
+      },
+      "CRMX": {
+        "startDate": "2026-09-18",
+        "endDate": "2026-09-21",
+        "return": 0.7478260852691494
+      },
+      "CRVO": {
+        "startDate": "2026-06-15",
+        "endDate": "2026-06-16",
+        "return": 0.8225806450461761
+      },
+      "CRVS": {
+        "startDate": "2026-01-16",
+        "endDate": "2026-01-20",
+        "return": 1.6596273291511126
+      },
+      "CTNT": {
+        "startDate": "2026-04-14",
+        "endDate": "2026-04-15",
+        "return": -0.8983928571200345
+      },
+      "CTVA": {
+        "startDate": "2026-09-30",
+        "endDate": "2026-10-01",
+        "return": -0.8381197681505761
+      },
+      "CUE": {
+        "startDate": "2026-04-30",
+        "endDate": "2026-05-01",
+        "return": 1.063772048931146
+      },
+      "CUPR": {
+        "startDate": "2026-06-12",
+        "endDate": "2026-06-15",
+        "return": 1.1183879093801936
+      },
+      "CVRX": {
+        "startDate": "2026-08-06",
+        "endDate": "2026-08-07",
+        "return": -0.597643097658239
+      },
+      "CWD": {
+        "startDate": "2026-07-01",
+        "endDate": "2026-07-02",
+        "return": 0.9060901911293411
+      },
+      "CXAI": {
+        "startDate": "2026-06-03",
+        "endDate": "2026-06-04",
+        "return": 0.6036432163359029
+      },
+      "CYCU": {
+        "startDate": "2026-07-29",
+        "endDate": "2026-07-30",
+        "return": 4.958549227312466
+      },
+      "DAIC": {
+        "startDate": "2026-08-21",
+        "endDate": "2026-08-24",
+        "return": 3.061032832903525
+      },
+      "DARE": {
+        "startDate": "2026-04-15",
+        "endDate": "2026-04-16",
+        "return": 0.5195530727046254
+      },
+      "DBGI": {
+        "startDate": "2026-09-09",
+        "endDate": "2026-09-10",
+        "return": 0.8106666699181511
+      },
+      "DCOY": {
+        "startDate": "2026-06-26",
+        "endDate": "2026-06-29",
+        "return": 0.7379485321239914
+      },
+      "DCX": {
+        "startDate": "2026-09-17",
+        "endDate": "2026-09-18",
+        "return": -0.698932060374831
+      },
+      "DFNS": {
+        "startDate": "2026-07-24",
+        "endDate": "2026-07-27",
+        "return": 2.011494244821641
+      },
+      "DFSC": {
+        "startDate": "2026-08-12",
+        "endDate": "2026-08-13",
+        "return": 0.8629032257187501
+      },
+      "DGNX": {
+        "startDate": "2026-06-26",
+        "endDate": "2026-06-29",
+        "return": 0.5851449300740392
+      },
+      "DJTU": {
+        "startDate": "2025-12-17",
+        "endDate": "2025-12-18",
+        "return": 0.8362989322254113
+      },
+      "DKI": {
+        "startDate": "2026-01-30",
+        "endDate": "2026-02-02",
+        "return": 1.8528528529991801
+      },
+      "DLLL": {
+        "startDate": "2026-05-28",
+        "endDate": "2026-05-29",
+        "return": 0.6440873506281315
+      },
+      "DLXY": {
+        "startDate": "2026-09-15",
+        "endDate": "2026-09-16",
+        "return": 4.518072289108084
+      },
+      "DOGZ": {
+        "startDate": "2026-01-23",
+        "endDate": "2026-01-26",
+        "return": -0.7621145374411908
+      },
+      "DRMA": {
+        "startDate": "2026-02-18",
+        "endDate": "2026-02-19",
+        "return": 0.5078125002267913
+      },
+      "DSS": {
+        "startDate": "2026-09-02",
+        "endDate": "2026-09-03",
+        "return": 0.5398550724729376
+      },
+      "DSY": {
+        "startDate": "2026-06-09",
+        "endDate": "2026-06-10",
+        "return": 2.913043479581555
+      },
+      "DTSS": {
+        "startDate": "2026-09-16",
+        "endDate": "2026-09-17",
+        "return": 1.0635994590681461
+      },
+      "DVLT": {
+        "startDate": "2025-12-31",
+        "endDate": "2026-01-02",
+        "return": 0.5488422022733355
+      },
+      "DXF": {
+        "startDate": "2026-06-30",
+        "endDate": "2026-07-01",
+        "return": 1.405575294002125
+      },
+      "DXST": {
+        "startDate": "2026-06-01",
+        "endDate": "2026-06-02",
+        "return": 2.093750001777344
+      },
+      "EDHL": {
+        "startDate": "2026-06-10",
+        "endDate": "2026-06-11",
+        "return": 0.7085714283277713
+      },
+      "EDSA": {
+        "startDate": "2026-03-02",
+        "endDate": "2026-03-03",
+        "return": 0.9078947368374479
+      },
+      "EEIQ": {
+        "startDate": "2026-03-25",
+        "endDate": "2026-03-26",
+        "return": 2.091461851617276
+      },
+      "EFOI": {
+        "startDate": "2026-04-16",
+        "endDate": "2026-04-17",
+        "return": 2.10526315783105
+      },
+      "EGG": {
+        "startDate": "2026-07-27",
+        "endDate": "2026-07-28",
+        "return": 0.8585365851804807
+      },
+      "EHGO": {
+        "startDate": "2026-06-18",
+        "endDate": "2026-06-22",
+        "return": 1.2555555554971063
+      },
+      "EJH": {
+        "startDate": "2026-03-06",
+        "endDate": "2026-03-09",
+        "return": -0.7227317935225797
+      },
+      "ELAB": {
+        "startDate": "2026-03-31",
+        "endDate": "2026-04-01",
+        "return": 1.3372287127259512
+      },
+      "ELPW": {
+        "startDate": "2026-01-29",
+        "endDate": "2026-01-30",
+        "return": 31.411067212629355
+      },
+      "ELTX": {
+        "startDate": "2026-06-12",
+        "endDate": "2026-06-15",
+        "return": -0.7252525252527837
+      },
+      "ELVN": {
+        "startDate": "2026-01-07",
+        "endDate": "2026-01-08",
+        "return": 0.5029088558874706
+      },
+      "EMBC": {
+        "startDate": "2026-05-04",
+        "endDate": "2026-05-05",
+        "return": -0.5783783783976761
+      },
+      "ENGN": {
+        "startDate": "2026-05-06",
+        "endDate": "2026-05-07",
+        "return": -0.8056497175276808
+      },
+      "ENGS": {
+        "startDate": "2025-11-05",
+        "endDate": "2025-11-06",
+        "return": -0.6759410802261504
+      },
+      "ENSC": {
+        "startDate": "2026-02-26",
+        "endDate": "2026-02-27",
+        "return": 0.5777215185302484
+      },
+      "ENTX": {
+        "startDate": "2026-07-24",
+        "endDate": "2026-07-27",
+        "return": 0.9121951219822819
+      },
+      "ENVB": {
+        "startDate": "2026-04-17",
+        "endDate": "2026-04-20",
+        "return": 1.0054945058094913
+      },
+      "EONR": {
+        "startDate": "2026-03-11",
+        "endDate": "2026-03-12",
+        "return": 0.5168539325303572
+      },
+      "EOSU": {
+        "startDate": "2026-02-25",
+        "endDate": "2026-02-26",
+        "return": -0.7908704883983958
+      },
+      "EPSM": {
+        "startDate": "2025-11-17",
+        "endDate": "2025-11-18",
+        "return": 0.9154929570745884
+      },
+      "ERNA": {
+        "startDate": "2026-05-11",
+        "endDate": "2026-05-12",
+        "return": 0.6657420249433816
+      },
+      "ESLA": {
+        "startDate": "2026-10-14",
+        "endDate": "2026-10-15",
+        "return": 0.6835482860089763
+      },
+      "EUDA": {
+        "startDate": "2026-04-22",
+        "endDate": "2026-04-23",
+        "return": 0.8973509941501303
+      },
+      "EVC": {
+        "startDate": "2026-05-05",
+        "endDate": "2026-05-06",
+        "return": 0.9321608040032088
+      },
+      "EVER": {
+        "startDate": "2026-05-04",
+        "endDate": "2026-05-05",
+        "return": 0.6303901437371664
+      },
+      "EVMN": {
+        "startDate": "2026-02-09",
+        "endDate": "2026-02-10",
+        "return": 0.7086521483430233
+      },
+      "EYPT": {
+        "startDate": "2026-10-16",
+        "endDate": "2026-10-19",
+        "return": -0.8528428092307692
+      },
+      "EZGO": {
+        "startDate": "2026-05-05",
+        "endDate": "2026-05-06",
+        "return": -0.9157894735920167
+      },
+      "EZRA": {
+        "startDate": "2026-02-06",
+        "endDate": "2026-02-09",
+        "return": 0.5555555554207132
+      },
+      "FAMI": {
+        "startDate": "2026-06-26",
+        "endDate": "2026-06-29",
+        "return": -0.7745901639583446
+      },
+      "FATN": {
+        "startDate": "2026-05-27",
+        "endDate": "2026-05-28",
+        "return": 0.5892116182741169
+      },
+      "FCHL": {
+        "startDate": "2026-03-25",
+        "endDate": "2026-03-26",
+        "return": 1.0760233920991076
+      },
+      "FCUV": {
+        "startDate": "2026-07-30",
+        "endDate": "2026-07-31",
+        "return": 5.1702127522394745
+      },
+      "FFAI": {
+        "startDate": "2026-04-20",
+        "endDate": "2026-04-21",
+        "return": 0.8552493898129334
+      },
+      "FGI": {
+        "startDate": "2026-08-12",
+        "endDate": "2026-08-13",
+        "return": 1.477801268454733
+      },
+      "FGL": {
+        "startDate": "2026-02-09",
+        "endDate": "2026-02-10",
+        "return": 0.5595959597287001
+      },
+      "FGRU": {
+        "startDate": "2026-02-26",
+        "endDate": "2026-02-27",
+        "return": -0.5075642965291203
+      },
+      "FJET": {
+        "startDate": "2025-12-22",
+        "endDate": "2025-12-23",
+        "return": -0.5892063491999999
+      },
+      "FLUX": {
+        "startDate": "2026-10-01",
+        "endDate": "2026-10-02",
+        "return": 0.5740285299987671
+      },
+      "FLYE": {
+        "startDate": "2025-11-28",
+        "endDate": "2025-12-01",
+        "return": 2.524553572028622
+      },
+      "FLYX": {
+        "startDate": "2026-01-07",
+        "endDate": "2026-01-08",
+        "return": 1.302547770839202
+      },
+      "FMFC": {
+        "startDate": "2026-07-30",
+        "endDate": "2026-07-31",
+        "return": 1.4140948831618858
+      },
+      "FNGR": {
+        "startDate": "2026-08-27",
+        "endDate": "2026-08-28",
+        "return": 1.2952710496997297
+      },
+      "FOFO": {
+        "startDate": "2026-06-02",
+        "endDate": "2026-06-03",
+        "return": 0.6433915215397754
+      },
+      "FOXX": {
+        "startDate": "2026-06-03",
+        "endDate": "2026-06-04",
+        "return": 0.8356643356222566
+      },
+      "FRMM": {
+        "startDate": "2026-04-16",
+        "endDate": "2026-04-17",
+        "return": 0.8101265823285582
+      },
+      "FSLY": {
+        "startDate": "2026-02-11",
+        "endDate": "2026-02-12",
+        "return": 0.7228786251996941
+      },
+      "FTFT": {
+        "startDate": "2026-09-11",
+        "endDate": "2026-09-14",
+        "return": 1.7916666713425924
+      },
+      "FTHM": {
+        "startDate": "2026-06-16",
+        "endDate": "2026-06-17",
+        "return": 0.7535545023696681
+      },
+      "FULC": {
+        "startDate": "2026-06-01",
+        "endDate": "2026-06-02",
+        "return": -0.5109034268598955
+      },
+      "FUSE": {
+        "startDate": "2026-04-09",
+        "endDate": "2026-04-10",
+        "return": 1.1529411764705881
+      },
+      "FUTG": {
+        "startDate": "2026-05-21",
+        "endDate": "2026-05-22",
+        "return": -0.5637393767925463
+      },
+      "FVN": {
+        "startDate": "2026-08-21",
+        "endDate": "2026-08-24",
+        "return": 0.5261538461287454
+      },
+      "GAUZ": {
+        "startDate": "2026-08-05",
+        "endDate": "2026-08-06",
+        "return": 0.6952532919556029
+      },
+      "GCDT": {
+        "startDate": "2026-09-04",
+        "endDate": "2026-09-08",
+        "return": 1.4325046776809138
+      },
+      "GCL": {
+        "startDate": "2026-05-19",
+        "endDate": "2026-05-20",
+        "return": 0.7245772526853433
+      },
+      "GCTK": {
+        "startDate": "2026-07-29",
+        "endDate": "2026-07-30",
+        "return": 1.7368421045440443
+      },
+      "GDC": {
+        "startDate": "2026-05-06",
+        "endDate": "2026-05-07",
+        "return": -0.8782258063229916
+      },
+      "GELS": {
+        "startDate": "2026-06-10",
+        "endDate": "2026-06-11",
+        "return": 1.9737609329879269
+      },
+      "GIPR": {
+        "startDate": "2026-08-21",
+        "endDate": "2026-08-24",
+        "return": 1.5066622245081116
+      },
+      "GITS": {
+        "startDate": "2026-01-26",
+        "endDate": "2026-01-27",
+        "return": 1.1832460732984291
+      },
+      "GLE": {
+        "startDate": "2026-05-06",
+        "endDate": "2026-05-07",
+        "return": 0.5207756233491256
+      },
+      "GLND": {
+        "startDate": "2026-09-18",
+        "endDate": "2026-09-21",
+        "return": 1.3999999986863334
+      },
+      "GLXG": {
+        "startDate": "2026-06-10",
+        "endDate": "2026-06-11",
+        "return": 1.1309292078955755
+      },
+      "GMM": {
+        "startDate": "2026-07-09",
+        "endDate": "2026-07-10",
+        "return": 1.4702702669195031
+      },
+      "GNLN": {
+        "startDate": "2026-08-17",
+        "endDate": "2026-08-18",
+        "return": 0.517412935446588
+      },
+      "GNS": {
+        "startDate": "2026-07-30",
+        "endDate": "2026-07-31",
+        "return": 0.6283650688149749
+      },
+      "GNTA": {
+        "startDate": "2025-10-23",
+        "endDate": "2025-10-24",
+        "return": 0.9195046439999999
+      },
+      "GORO": {
+        "startDate": "2026-07-17",
+        "endDate": "2026-07-20",
+        "return": 2.2982456140011376
+      },
+      "GOSS": {
+        "startDate": "2026-02-20",
+        "endDate": "2026-02-23",
+        "return": -0.80126760560561
+      },
+      "GOVX": {
+        "startDate": "2026-05-15",
+        "endDate": "2026-05-18",
+        "return": 0.7967479674439752
+      },
+      "GP": {
+        "startDate": "2026-01-08",
+        "endDate": "2026-01-09",
+        "return": 0.5103532277731695
+      },
+      "GPCR": {
+        "startDate": "2025-12-05",
+        "endDate": "2025-12-08",
+        "return": 1.0248842592032656
+      },
+      "GPUS": {
+        "startDate": "2026-06-12",
+        "endDate": "2026-06-15",
+        "return": 0.7548512290804834
+      },
+      "GRAL": {
+        "startDate": "2026-02-19",
+        "endDate": "2026-02-20",
+        "return": -0.505466364604505
+      },
+      "GRI": {
+        "startDate": "2025-12-10",
+        "endDate": "2025-12-11",
+        "return": -0.5645454546227806
+      },
+      "GRML": {
+        "startDate": "2026-09-18",
+        "endDate": "2026-09-21",
+        "return": 2.3052631573450637
+      },
+      "GSUN": {
+        "startDate": "2026-07-28",
+        "endDate": "2026-07-29",
+        "return": 0.6574358959775728
+      },
+      "GUTS": {
+        "startDate": "2026-01-28",
+        "endDate": "2026-01-29",
+        "return": -0.6803825136636128
+      },
+      "GVH": {
+        "startDate": "2026-07-17",
+        "endDate": "2026-07-20",
+        "return": -0.6890756302660281
+      },
+      "HAIN": {
+        "startDate": "2026-10-14",
+        "endDate": "2026-10-15",
+        "return": -0.5109299099140415
+      },
+      "HAO": {
+        "startDate": "2026-05-08",
+        "endDate": "2026-05-11",
+        "return": -0.9383561644575718
+      },
+      "HCAI": {
+        "startDate": "2026-04-06",
+        "endDate": "2026-04-07",
+        "return": 1.4233128829687178
+      },
+      "HCWB": {
+        "startDate": "2026-05-14",
+        "endDate": "2026-05-15",
+        "return": 2.6201780417353326
+      },
+      "HHS": {
+        "startDate": "2026-08-13",
+        "endDate": "2026-08-14",
+        "return": 0.5302491103969682
+      },
+      "HIHO": {
+        "startDate": "2025-12-22",
+        "endDate": "2025-12-23",
+        "return": 0.5060240965071061
+      },
+      "HIMZ": {
+        "startDate": "2026-03-06",
+        "endDate": "2026-03-09",
+        "return": 0.8124999995957161
+      },
+      "HKD": {
+        "startDate": "2025-10-30",
+        "endDate": "2025-10-31",
+        "return": 0.7455621301355975
+      },
+      "HOWL": {
+        "startDate": "2026-08-20",
+        "endDate": "2026-08-21",
+        "return": 1.025742115415488
+      },
+      "HQ": {
+        "startDate": "2026-06-12",
+        "endDate": "2026-06-15",
+        "return": 0.6333638863797377
+      },
+      "HSCS": {
+        "startDate": "2026-06-22",
+        "endDate": "2026-06-23",
+        "return": 0.5536723162998949
+      },
+      "HTCO": {
+        "startDate": "2026-04-24",
+        "endDate": "2026-04-27",
+        "return": 2.3973333332270728
+      },
+      "HUBC": {
+        "startDate": "2026-05-28",
+        "endDate": "2026-05-29",
+        "return": 1.3736359580413477
+      },
+      "HURA": {
+        "startDate": "2026-02-09",
+        "endDate": "2026-02-10",
+        "return": 0.6047401556625225
+      },
+      "HUTG": {
+        "startDate": "2026-05-05",
+        "endDate": "2026-05-06",
+        "return": 0.7154737286606345
+      },
+      "HXHX": {
+        "startDate": "2025-12-19",
+        "endDate": "2025-12-22",
+        "return": 2.739130434544423
+      },
+      "HYFM": {
+        "startDate": "2026-07-31",
+        "endDate": "2026-08-03",
+        "return": 2.9814814806515773
+      },
+      "IBG": {
+        "startDate": "2026-03-12",
+        "endDate": "2026-03-13",
+        "return": -0.5528455286051953
+      },
+      "IBO": {
+        "startDate": "2026-03-19",
+        "endDate": "2026-03-20",
+        "return": 0.6846652267905751
+      },
+      "IBTA": {
+        "startDate": "2026-08-03",
+        "endDate": "2026-08-04",
+        "return": 0.5191212367365297
+      },
+      "IBX": {
+        "startDate": "2026-07-13",
+        "endDate": "2026-07-14",
+        "return": -0.5038461538700136
+      },
+      "ICCM": {
+        "startDate": "2026-06-16",
+        "endDate": "2026-06-17",
+        "return": 2.004694836330563
+      },
+      "IMCC": {
+        "startDate": "2026-09-17",
+        "endDate": "2026-09-18",
+        "return": 1.4310344836076103
+      },
+      "IMMP": {
+        "startDate": "2026-03-05",
+        "endDate": "2026-03-13",
+        "return": -0.8244202898336046
+      },
+      "IMRN": {
+        "startDate": "2026-09-03",
+        "endDate": "2026-09-04",
+        "return": 0.6216216215216948
+      },
+      "INBS": {
+        "startDate": "2025-12-30",
+        "endDate": "2025-12-31",
+        "return": 1.324390244006199
+      },
+      "INBX": {
+        "startDate": "2025-10-23",
+        "endDate": "2025-10-24",
+        "return": 1.0200987306
+      },
+      "INDP": {
+        "startDate": "2026-06-03",
+        "endDate": "2026-06-04",
+        "return": 1.149321266833859
+      },
+      "INHD": {
+        "startDate": "2026-06-05",
+        "endDate": "2026-06-08",
+        "return": 36.609523528341775
+      },
+      "INLF": {
+        "startDate": "2026-01-29",
+        "endDate": "2026-01-30",
+        "return": 2.8628944507152285
+      },
+      "INM": {
+        "startDate": "2026-05-18",
+        "endDate": "2026-05-19",
+        "return": 1.3505215222690565
+      },
+      "INOD": {
+        "startDate": "2026-05-07",
+        "endDate": "2026-05-08",
+        "return": 0.8599912358615596
+      },
+      "INTS": {
+        "startDate": "2025-10-29",
+        "endDate": "2025-10-30",
+        "return": 3.9456725364430163
+      },
+      "INV": {
+        "startDate": "2026-08-13",
+        "endDate": "2026-08-14",
+        "return": -0.5513888888829075
+      },
+      "IOTR": {
+        "startDate": "2026-01-21",
+        "endDate": "2026-01-22",
+        "return": 0.7406143344372385
+      },
+      "IPHA": {
+        "startDate": "2026-05-13",
+        "endDate": "2026-05-14",
+        "return": 0.6439393939997244
+      },
+      "IPST": {
+        "startDate": "2026-08-14",
+        "endDate": "2026-08-17",
+        "return": 2.3589382276293054
+      },
+      "IRE": {
+        "startDate": "2026-07-29",
+        "endDate": "2026-07-30",
+        "return": 0.596610170237118
+      },
+      "IREG": {
+        "startDate": "2026-07-29",
+        "endDate": "2026-07-30",
+        "return": 0.602972398810645
+      },
+      "IREX": {
+        "startDate": "2026-07-29",
+        "endDate": "2026-07-30",
+        "return": 0.6125150415234293
+      },
+      "IREZ": {
+        "startDate": "2026-07-29",
+        "endDate": "2026-07-30",
+        "return": -0.6124426312570838
+      },
+      "ITOC": {
+        "startDate": "2026-06-05",
+        "endDate": "2026-06-08",
+        "return": 0.8060714286096282
+      },
+      "IVDA": {
+        "startDate": "2026-06-15",
+        "endDate": "2026-06-16",
+        "return": 0.6287160025300444
+      },
+      "IVF": {
+        "startDate": "2026-01-16",
+        "endDate": "2026-01-20",
+        "return": 1.9172821277531584
+      },
+      "IZM": {
+        "startDate": "2026-03-26",
+        "endDate": "2026-03-27",
+        "return": 0.9453660692963481
+      },
+      "JAGU": {
+        "startDate": "2026-03-30",
+        "endDate": "2026-03-31",
+        "return": 0.571428571374694
+      },
+      "JAGX": {
+        "startDate": "2026-09-21",
+        "endDate": "2026-09-22",
+        "return": 11.90636681737461
+      },
+      "JANX": {
+        "startDate": "2025-12-01",
+        "endDate": "2025-12-02",
+        "return": -0.5333921741673278
+      },
+      "JBDI": {
+        "startDate": "2026-10-09",
+        "endDate": "2026-10-13",
+        "return": 2.42999999964466
+      },
+      "JCSE": {
+        "startDate": "2026-01-02",
+        "endDate": "2026-01-05",
+        "return": 0.8598130841966329
+      },
+      "JDZG": {
+        "startDate": "2026-02-12",
+        "endDate": "2026-02-13",
+        "return": 1.2544378696796503
+      },
+      "JEM": {
+        "startDate": "2026-06-29",
+        "endDate": "2026-06-30",
+        "return": 2.675925925622401
+      },
+      "JLHL": {
+        "startDate": "2026-07-08",
+        "endDate": "2026-07-09",
+        "return": 3.179738562318489
+      },
+      "JWEL": {
+        "startDate": "2026-08-07",
+        "endDate": "2026-08-10",
+        "return": 1.580645161272633
+      },
+      "JXG": {
+        "startDate": "2025-12-08",
+        "endDate": "2025-12-09",
+        "return": 0.6789883267660537
+      },
+      "JYD": {
+        "startDate": "2026-05-18",
+        "endDate": "2026-05-19",
+        "return": -0.6594202898620904
+      },
+      "JZ": {
+        "startDate": "2026-05-29",
+        "endDate": "2026-06-01",
+        "return": 3.258241757613325
+      },
+      "JZXN": {
+        "startDate": "2026-02-09",
+        "endDate": "2026-02-10",
+        "return": 0.8970588241760382
+      },
+      "KD": {
+        "startDate": "2026-02-06",
+        "endDate": "2026-02-09",
+        "return": -0.5491698594862158
+      },
+      "KIDZ": {
+        "startDate": "2026-07-02",
+        "endDate": "2026-07-06",
+        "return": 0.5443447945336786
+      },
+      "KITT": {
+        "startDate": "2025-12-02",
+        "endDate": "2025-12-03",
+        "return": 1.1588707447877078
+      },
+      "KNRX": {
+        "startDate": "2026-09-25",
+        "endDate": "2026-09-28",
+        "return": 3.046052631402679
+      },
+      "KOD": {
+        "startDate": "2026-09-25",
+        "endDate": "2026-09-28",
+        "return": 1.7795981452503589
+      },
+      "KPTI": {
+        "startDate": "2026-07-30",
+        "endDate": "2026-07-31",
+        "return": -0.7261055634620988
+      },
+      "KRRO": {
+        "startDate": "2025-11-12",
+        "endDate": "2025-11-13",
+        "return": -0.7931253978837872
+      },
+      "KTTA": {
+        "startDate": "2025-11-25",
+        "endDate": "2025-11-26",
+        "return": 1.173913043380622
+      },
+      "KXIN": {
+        "startDate": "2026-01-29",
+        "endDate": "2026-01-30",
+        "return": -0.8815399802156914
+      },
+      "KZIA": {
+        "startDate": "2025-11-24",
+        "endDate": "2025-11-25",
+        "return": 0.5136094675035736
+      },
+      "LASE": {
+        "startDate": "2026-06-01",
+        "endDate": "2026-06-02",
+        "return": 1.6091644207020437
+      },
+      "LBGJ": {
+        "startDate": "2026-07-17",
+        "endDate": "2026-07-20",
+        "return": -0.907759336172664
+      },
+      "LFCR": {
+        "startDate": "2026-09-25",
+        "endDate": "2026-09-28",
+        "return": 0.5523809523222722
+      },
+      "LFS": {
+        "startDate": "2025-11-10",
+        "endDate": "2025-11-11",
+        "return": 5.7678571428
+      },
+      "LGCL": {
+        "startDate": "2026-06-29",
+        "endDate": "2026-06-30",
+        "return": 1.1721263354292186
+      },
+      "LGHL": {
+        "startDate": "2025-12-08",
+        "endDate": "2025-12-09",
+        "return": 0.8591224019988415
+      },
+      "LGPS": {
+        "startDate": "2026-08-26",
+        "endDate": "2026-08-27",
+        "return": 0.7485333026082388
+      },
+      "LGVN": {
+        "startDate": "2026-03-09",
+        "endDate": "2026-03-10",
+        "return": 0.6827195466344327
+      },
+      "LHAI": {
+        "startDate": "2026-06-30",
+        "endDate": "2026-07-01",
+        "return": 3.1515151496051423
+      },
+      "LHSW": {
+        "startDate": "2026-07-02",
+        "endDate": "2026-07-06",
+        "return": 2.777777777573333
+      },
+      "LICN": {
+        "startDate": "2026-05-19",
+        "endDate": "2026-05-20",
+        "return": -0.6148409894132427
+      },
+      "LIMN": {
+        "startDate": "2026-02-02",
+        "endDate": "2026-02-03",
+        "return": 0.8735773068903114
+      },
+      "LNAI": {
+        "startDate": "2026-03-16",
+        "endDate": "2026-03-17",
+        "return": 1.6276545541104293
+      },
+      "LNKS": {
+        "startDate": "2026-10-09",
+        "endDate": "2026-10-12",
+        "return": 1.383702615125173
+      },
+      "LNZA": {
+        "startDate": "2026-04-06",
+        "endDate": "2026-04-07",
+        "return": 0.5251319078783574
+      },
+      "LOCL": {
+        "startDate": "2026-04-20",
+        "endDate": "2026-04-21",
+        "return": 0.5478723402671939
+      },
+      "LPCN": {
+        "startDate": "2026-04-01",
+        "endDate": "2026-04-02",
+        "return": -0.778378378376585
+      },
+      "LQDA": {
+        "startDate": "2026-09-29",
+        "endDate": "2026-09-30",
+        "return": -0.5719337954552248
+      },
+      "LRMR": {
+        "startDate": "2026-02-24",
+        "endDate": "2026-02-25",
+        "return": 0.6124661246180221
+      },
+      "LRN": {
+        "startDate": "2025-10-28",
+        "endDate": "2025-10-29",
+        "return": -0.5437373803620588
+      },
+      "LSTA": {
+        "startDate": "2026-01-20",
+        "endDate": "2026-01-21",
+        "return": 0.8657407406571287
+      },
+      "LUCY": {
+        "startDate": "2026-08-21",
+        "endDate": "2026-08-24",
+        "return": 0.6376663254540347
+      },
+      "LVLU": {
+        "startDate": "2026-01-09",
+        "endDate": "2026-01-12",
+        "return": 0.7946824224311662
+      },
+      "LVWR": {
+        "startDate": "2026-07-23",
+        "endDate": "2026-07-24",
+        "return": 0.8961038967526394
+      },
+      "LXEH": {
+        "startDate": "2026-01-29",
+        "endDate": "2026-01-30",
+        "return": 0.6350048213393729
+      },
+      "LZMH": {
+        "startDate": "2026-04-16",
+        "endDate": "2026-04-17",
+        "return": -0.8407339450059473
+      },
+      "MAMO": {
+        "startDate": "2026-02-02",
+        "endDate": "2026-02-03",
+        "return": -0.5949367088391477
+      },
+      "MASK": {
+        "startDate": "2026-05-27",
+        "endDate": "2026-05-28",
+        "return": 1.99275362194069
+      },
+      "MB": {
+        "startDate": "2026-08-06",
+        "endDate": "2026-08-07",
+        "return": 1.3786666668007292
+      },
+      "MBAI": {
+        "startDate": "2026-01-23",
+        "endDate": "2026-01-26",
+        "return": 1.1208053692523756
+      },
+      "MBRX": {
+        "startDate": "2026-07-30",
+        "endDate": "2026-07-31",
+        "return": -0.6078431373963091
+      },
+      "MCRP": {
+        "startDate": "2025-12-02",
+        "endDate": "2025-12-03",
+        "return": 0.5128205129240633
+      },
+      "MDCX": {
+        "startDate": "2026-03-04",
+        "endDate": "2026-03-05",
+        "return": -0.5087681159973305
+      },
+      "MDXH": {
+        "startDate": "2026-08-13",
+        "endDate": "2026-08-14",
+        "return": 0.7489177485714287
+      },
+      "MENS": {
+        "startDate": "2025-12-16",
+        "endDate": "2025-12-17",
+        "return": -0.8103896102292739
+      },
+      "MGLD": {
+        "startDate": "2026-09-24",
+        "endDate": "2026-09-25",
+        "return": 0.9301930193938452
+      },
+      "MGN": {
+        "startDate": "2026-09-04",
+        "endDate": "2026-09-09",
+        "return": 1.7470120069943347
+      },
+      "MGRT": {
+        "startDate": "2025-12-16",
+        "endDate": "2025-12-17",
+        "return": 1.4392523363042344
+      },
+      "MGRX": {
+        "startDate": "2026-03-20",
+        "endDate": "2026-03-23",
+        "return": 0.9981481487899404
+      },
+      "MI": {
+        "startDate": "2026-10-02",
+        "endDate": "2026-10-05",
+        "return": 6.829977589163453
+      },
+      "MKDW": {
+        "startDate": "2026-03-24",
+        "endDate": "2026-03-25",
+        "return": 0.7035830617612284
+      },
+      "MLEC": {
+        "startDate": "2026-01-14",
+        "endDate": "2026-01-15",
+        "return": 1.1813031163832464
+      },
+      "MNDR": {
+        "startDate": "2026-10-09",
+        "endDate": "2026-10-12",
+        "return": 2.576470588086809
+      },
+      "MNTS": {
+        "startDate": "2026-05-22",
+        "endDate": "2026-05-26",
+        "return": 1.097560975473837
+      },
+      "MOBX": {
+        "startDate": "2026-03-02",
+        "endDate": "2026-03-03",
+        "return": 5.327683616133333
+      },
+      "MOVE": {
+        "startDate": "2025-11-07",
+        "endDate": "2025-11-10",
+        "return": 1.4968553457862743
+      },
+      "MPLT": {
+        "startDate": "2026-07-24",
+        "endDate": "2026-07-27",
+        "return": -0.7290754923190905
+      },
+      "MPU": {
+        "startDate": "2026-06-08",
+        "endDate": "2026-06-09",
+        "return": 0.5186956527079245
+      },
+      "MREO": {
+        "startDate": "2025-12-26",
+        "endDate": "2025-12-29",
+        "return": -0.8764502164502165
+      },
+      "MRNA": {
+        "startDate": "2026-08-18",
+        "endDate": "2026-08-19",
+        "return": 1.7696950444253328
+      },
+      "MRNO": {
+        "startDate": "2026-05-14",
+        "endDate": "2026-05-15",
+        "return": 0.942386832319599
+      },
+      "MRNX": {
+        "startDate": "2026-08-18",
+        "endDate": "2026-08-19",
+        "return": 3.52090647926493
+      },
+      "MRNY": {
+        "startDate": "2026-08-18",
+        "endDate": "2026-08-19",
+        "return": 1.6923076923118248
+      },
+      "MRVU": {
+        "startDate": "2026-06-01",
+        "endDate": "2026-06-02",
+        "return": 0.6511072802014473
+      },
+      "MSGM": {
+        "startDate": "2025-11-06",
+        "endDate": "2025-11-07",
+        "return": 0.7077625570964823
+      },
+      "MSGY": {
+        "startDate": "2026-09-24",
+        "endDate": "2026-09-25",
+        "return": 3.0964467017039343
+      },
+      "MSOS": {
+        "startDate": "2025-12-11",
+        "endDate": "2025-12-12",
+        "return": 0.5425531915623443
+      },
+      "MSOX": {
+        "startDate": "2025-12-11",
+        "endDate": "2025-12-12",
+        "return": 1.078534031221873
+      },
+      "MSTP": {
+        "startDate": "2026-02-05",
+        "endDate": "2026-02-06",
+        "return": 0.5345056398761978
+      },
+      "MSTU": {
+        "startDate": "2026-02-05",
+        "endDate": "2026-02-06",
+        "return": 0.512328766790197
+      },
+      "MSTX": {
+        "startDate": "2026-02-05",
+        "endDate": "2026-02-06",
+        "return": 0.5209580845631612
+      },
+      "MSTZ": {
+        "startDate": "2026-02-05",
+        "endDate": "2026-02-06",
+        "return": -0.5225644699113235
+      },
+      "MTC": {
+        "startDate": "2025-11-04",
+        "endDate": "2025-11-05",
+        "return": 6.269736841568256
+      },
+      "MTEN": {
+        "startDate": "2026-06-05",
+        "endDate": "2026-06-08",
+        "return": 0.8130840757061755
+      },
+      "MTVA": {
+        "startDate": "2026-05-18",
+        "endDate": "2026-05-19",
+        "return": 0.6936936932989883
+      },
+      "MVLL": {
+        "startDate": "2026-06-01",
+        "endDate": "2026-06-02",
+        "return": 0.6499695095533837
+      },
+      "MXL": {
+        "startDate": "2026-04-23",
+        "endDate": "2026-04-24",
+        "return": 0.761167883195907
+      },
+      "MYND": {
+        "startDate": "2026-05-28",
+        "endDate": "2026-05-29",
+        "return": 1.1449579831144918
+      },
+      "MYSE": {
+        "startDate": "2026-04-15",
+        "endDate": "2026-04-16",
+        "return": 1.2916666666666665
+      },
+      "NAMI": {
+        "startDate": "2026-08-06",
+        "endDate": "2026-08-07",
+        "return": 0.515463917827192
+      },
+      "NAMM": {
+        "startDate": "2026-01-20",
+        "endDate": "2026-01-21",
+        "return": 1.3061224486839236
+      },
+      "NBIG": {
+        "startDate": "2026-08-11",
+        "endDate": "2026-08-12",
+        "return": 0.6806722689295295
+      },
+      "NBIL": {
+        "startDate": "2026-08-11",
+        "endDate": "2026-08-12",
+        "return": 0.682761950832296
+      },
+      "NBIZ": {
+        "startDate": "2026-08-11",
+        "endDate": "2026-08-12",
+        "return": -0.6775956267144031
+      },
+      "NCI": {
+        "startDate": "2026-02-10",
+        "endDate": "2026-02-11",
+        "return": 2.3846153847879688
+      },
+      "NCPL": {
+        "startDate": "2026-08-24",
+        "endDate": "2026-08-25",
+        "return": 1.2682831441750535
+      },
+      "NCRA": {
+        "startDate": "2026-07-28",
+        "endDate": "2026-07-29",
+        "return": 1.1818181790546727
+      },
+      "NCT": {
+        "startDate": "2026-09-02",
+        "endDate": "2026-09-03",
+        "return": -0.8965918368391929
+      },
+      "NDLS": {
+        "startDate": "2026-03-25",
+        "endDate": "2026-03-26",
+        "return": 0.5561056106929987
+      },
+      "NEBX": {
+        "startDate": "2026-08-11",
+        "endDate": "2026-08-12",
+        "return": 0.6850542197138558
+      },
+      "NEUP": {
+        "startDate": "2025-10-23",
+        "endDate": "2025-10-24",
+        "return": 0.5407407407
+      },
+      "NEXR": {
+        "startDate": "2026-06-24",
+        "endDate": "2026-06-25",
+        "return": 0.9555555554716839
+      },
+      "NINE": {
+        "startDate": "2026-01-30",
+        "endDate": "2026-03-31",
+        "return": 12.986013985354944
+      },
+      "NIPG": {
+        "startDate": "2026-07-20",
+        "endDate": "2026-07-21",
+        "return": 0.5889830503017095
+      },
+      "NIVF": {
+        "startDate": "2026-09-29",
+        "endDate": "2026-09-30",
+        "return": 1.3333330063333362
+      },
+      "NKTR": {
+        "startDate": "2026-02-09",
+        "endDate": "2026-02-10",
+        "return": 0.5106555166182065
+      },
+      "NMRA": {
+        "startDate": "2026-06-15",
+        "endDate": "2026-06-16",
+        "return": 0.7058501912449759
+      },
+      "NNNN": {
+        "startDate": "2025-11-04",
+        "endDate": "2025-11-05",
+        "return": 0.5748031496411319
+      },
+      "NPT": {
+        "startDate": "2026-06-05",
+        "endDate": "2026-06-08",
+        "return": 2.837209303117956
+      },
+      "NTCL": {
+        "startDate": "2026-05-26",
+        "endDate": "2026-05-27",
+        "return": 1.1014767137945696
+      },
+      "NUWE": {
+        "startDate": "2026-07-29",
+        "endDate": "2026-07-30",
+        "return": 1.3544973521222814
+      },
+      "NVEC": {
+        "startDate": "2026-07-22",
+        "endDate": "2026-07-23",
+        "return": 0.5483387171865339
+      },
+      "NWGL": {
+        "startDate": "2026-10-13",
+        "endDate": "2026-10-14",
+        "return": -0.7815126049956924
+      },
+      "NXL": {
+        "startDate": "2026-09-30",
+        "endDate": "2026-10-01",
+        "return": 0.7640186910555506
+      },
+      "NXTC": {
+        "startDate": "2026-07-13",
+        "endDate": "2026-07-14",
+        "return": 2.0183486235651333
+      },
+      "NXTS": {
+        "startDate": "2026-06-18",
+        "endDate": "2026-06-22",
+        "return": 1.5590551182285997
+      },
+      "NXTT": {
+        "startDate": "2026-03-24",
+        "endDate": "2026-03-25",
+        "return": 0.769999997867415
+      },
+      "NXXT": {
+        "startDate": "2026-05-18",
+        "endDate": "2026-05-19",
+        "return": 1.0002439024877856
+      },
+      "OBAI": {
+        "startDate": "2026-06-15",
+        "endDate": "2026-06-16",
+        "return": 1.0763187436208579
+      },
+      "OCC": {
+        "startDate": "2026-06-05",
+        "endDate": "2026-06-08",
+        "return": 0.5447154471962978
+      },
+      "OCG": {
+        "startDate": "2025-12-08",
+        "endDate": "2025-12-09",
+        "return": 2.9198473282623216
+      },
+      "OESX": {
+        "startDate": "2026-08-04",
+        "endDate": "2026-08-05",
+        "return": 0.544230769247604
+      },
+      "OFAL": {
+        "startDate": "2026-08-11",
+        "endDate": "2026-08-12",
+        "return": 0.9068984860161591
+      },
+      "OIO": {
+        "startDate": "2026-04-23",
+        "endDate": "2026-04-24",
+        "return": -0.5843971630772705
+      },
+      "OKTG": {
+        "startDate": "2026-05-28",
+        "endDate": "2026-05-29",
+        "return": 0.6060580404063236
+      },
+      "OLB": {
+        "startDate": "2026-02-13",
+        "endDate": "2026-02-17",
+        "return": 2.565405926531389
+      },
+      "OLMA": {
+        "startDate": "2025-11-17",
+        "endDate": "2025-11-18",
+        "return": 1.3638497651730703
+      },
+      "OLOX": {
+        "startDate": "2026-05-28",
+        "endDate": "2026-05-29",
+        "return": 0.782520325203252
+      },
+      "OMER": {
+        "startDate": "2025-12-23",
+        "endDate": "2025-12-24",
+        "return": 0.7554285714268729
+      },
+      "OMEX": {
+        "startDate": "2026-04-07",
+        "endDate": "2026-04-08",
+        "return": 0.5033072759424162
+      },
+      "OMH": {
+        "startDate": "2026-07-20",
+        "endDate": "2026-07-21",
+        "return": 2.2269815850314814
+      },
+      "ONCO": {
+        "startDate": "2026-05-18",
+        "endDate": "2026-05-19",
+        "return": -0.6156362439563092
+      },
+      "ONDG": {
+        "startDate": "2026-05-13",
+        "endDate": "2026-05-14",
+        "return": 0.5114822548381073
+      },
+      "ONDL": {
+        "startDate": "2026-05-13",
+        "endDate": "2026-05-14",
+        "return": 0.5045317218810033
+      },
+      "ONDU": {
+        "startDate": "2026-05-13",
+        "endDate": "2026-05-14",
+        "return": 0.5103896106585557
+      },
+      "ONEG": {
+        "startDate": "2026-05-06",
+        "endDate": "2026-05-07",
+        "return": -0.8033536584474964
+      },
+      "ONFO": {
+        "startDate": "2026-04-15",
+        "endDate": "2026-04-16",
+        "return": 1.2488755623189065
+      },
+      "OPTU": {
+        "startDate": "2026-05-29",
+        "endDate": "2026-06-01",
+        "return": 0.7623822547866825
+      },
+      "ORKT": {
+        "startDate": "2025-12-05",
+        "endDate": "2025-12-08",
+        "return": 1.4763524287202308
+      },
+      "OSS": {
+        "startDate": "2026-05-05",
+        "endDate": "2026-05-06",
+        "return": 0.5690890481341802
+      },
+      "OTLK": {
+        "startDate": "2025-12-31",
+        "endDate": "2026-01-02",
+        "return": -0.5822784810116167
+      },
+      "PACS": {
+        "startDate": "2025-11-19",
+        "endDate": "2025-11-20",
+        "return": 0.553178847223315
+      },
+      "PAPL": {
+        "startDate": "2026-01-07",
+        "endDate": "2026-01-08",
+        "return": 0.5664335663436255
+      },
+      "PASW": {
+        "startDate": "2026-01-08",
+        "endDate": "2026-01-09",
+        "return": -0.6765324275649796
+      },
+      "PAVM": {
+        "startDate": "2026-01-20",
+        "endDate": "2026-01-21",
+        "return": 0.9466882068903197
+      },
+      "PAVS": {
+        "startDate": "2025-11-28",
+        "endDate": "2025-12-01",
+        "return": -0.9257142857142857
+      },
+      "PBM": {
+        "startDate": "2026-04-15",
+        "endDate": "2026-04-16",
+        "return": 1.0381944450400233
+      },
+      "PCLA": {
+        "startDate": "2026-05-21",
+        "endDate": "2026-05-22",
+        "return": 1.942222222657985
+      },
+      "PCSA": {
+        "startDate": "2025-12-16",
+        "endDate": "2025-12-17",
+        "return": 1.2229617305930818
+      },
+      "PDSB": {
+        "startDate": "2026-09-15",
+        "endDate": "2026-09-16",
+        "return": 0.6924654025582504
+      },
+      "PEPG": {
+        "startDate": "2026-03-30",
+        "endDate": "2026-03-31",
+        "return": -0.5815602837234042
+      },
+      "PETS": {
+        "startDate": "2025-12-10",
+        "endDate": "2025-12-11",
+        "return": 0.6836158192476618
+      },
+      "PFAI": {
+        "startDate": "2026-10-06",
+        "endDate": "2026-10-07",
+        "return": 1.1666666666452277
+      },
+      "PFSA": {
+        "startDate": "2026-08-17",
+        "endDate": "2026-08-18",
+        "return": 5.06622519010789
+      },
+      "PHOE": {
+        "startDate": "2026-01-29",
+        "endDate": "2026-01-30",
+        "return": 9.974443528538195
+      },
+      "PIII": {
+        "startDate": "2026-05-14",
+        "endDate": "2026-05-15",
+        "return": 1.8014888339327992
+      },
+      "PLAG": {
+        "startDate": "2026-08-10",
+        "endDate": "2026-08-11",
+        "return": 9.270461374684782
+      },
+      "PLRZ": {
+        "startDate": "2025-12-01",
+        "endDate": "2025-12-02",
+        "return": 1.3196202530931744
+      },
+      "PLSE": {
+        "startDate": "2026-02-05",
+        "endDate": "2026-02-06",
+        "return": 0.5157048939846103
+      },
+      "PLTA": {
+        "startDate": "2026-08-03",
+        "endDate": "2026-08-04",
+        "return": 0.5801104972007811
+      },
+      "PLTG": {
+        "startDate": "2026-08-03",
+        "endDate": "2026-08-04",
+        "return": 0.581349206364729
+      },
+      "PLTU": {
+        "startDate": "2026-08-03",
+        "endDate": "2026-08-04",
+        "return": 0.5787249032426942
+      },
+      "PLTZ": {
+        "startDate": "2026-08-03",
+        "endDate": "2026-08-04",
+        "return": -0.5871304348188908
+      },
+      "PLU": {
+        "startDate": "2026-06-04",
+        "endDate": "2026-06-05",
+        "return": -0.5217303416290507
+      },
+      "PLYX": {
+        "startDate": "2026-03-09",
+        "endDate": "2026-03-10",
+        "return": 0.6960227272344395
+      },
+      "PMAX": {
+        "startDate": "2026-05-05",
+        "endDate": "2026-05-06",
+        "return": 0.9528301897814171
+      },
+      "PMCB": {
+        "startDate": "2025-12-03",
+        "endDate": "2025-12-04",
+        "return": 0.5421871018041065
+      },
+      "PMI": {
+        "startDate": "2026-08-24",
+        "endDate": "2026-08-25",
+        "return": 0.8615984379125201
+      },
+      "PN": {
+        "startDate": "2026-07-21",
+        "endDate": "2026-07-22",
+        "return": 1.3176178658604663
+      },
+      "POAS": {
+        "startDate": "2026-02-12",
+        "endDate": "2026-02-13",
+        "return": -0.8348909657436699
+      },
+      "POM": {
+        "startDate": "2026-10-20",
+        "endDate": "2026-10-21",
+        "return": 3.52767746832515
+      },
+      "PPBT": {
+        "startDate": "2025-10-28",
+        "endDate": "2025-10-29",
+        "return": 0.8181818181818181
+      },
+      "PPCB": {
+        "startDate": "2026-08-26",
+        "endDate": "2026-08-27",
+        "return": 1.0841121519241854
+      },
+      "PRFX": {
+        "startDate": "2026-05-28",
+        "endDate": "2026-05-29",
+        "return": 1.1897810215420108
+      },
+      "PRIM": {
+        "startDate": "2026-05-05",
+        "endDate": "2026-05-06",
+        "return": -0.5011334516164828
+      },
+      "PRLD": {
+        "startDate": "2025-10-31",
+        "endDate": "2025-11-03",
+        "return": 1.5031446540566038
+      },
+      "PRSO": {
+        "startDate": "2026-03-05",
+        "endDate": "2026-03-06",
+        "return": 1.5154130701050539
+      },
+      "PSIG": {
+        "startDate": "2026-06-25",
+        "endDate": "2026-06-26",
+        "return": -0.8771186440575994
+      },
+      "PSNYW": {
+        "startDate": "2026-07-15",
+        "endDate": "2026-07-17",
+        "return": 1.3333777777837361
+      },
+      "PTIR": {
+        "startDate": "2026-08-03",
+        "endDate": "2026-08-04",
+        "return": 0.5803402646244522
+      },
+      "PTLE": {
+        "startDate": "2026-03-20",
+        "endDate": "2026-03-23",
+        "return": 0.8758782201984412
+      },
+      "PTN": {
+        "startDate": "2025-11-20",
+        "endDate": "2025-11-21",
+        "return": 0.5748792270476188
+      },
+      "PUMP": {
+        "startDate": "2025-10-28",
+        "endDate": "2025-10-29",
+        "return": 0.5205479452363635
+      },
+      "QBTX": {
+        "startDate": "2026-05-20",
+        "endDate": "2026-05-21",
+        "return": 0.6649916247958374
+      },
+      "QBTZ": {
+        "startDate": "2026-05-20",
+        "endDate": "2026-05-21",
+        "return": -0.6668869795655108
+      },
+      "QCLS": {
+        "startDate": "2026-09-15",
+        "endDate": "2026-09-16",
+        "return": 1.184455019921499
+      },
+      "QH": {
+        "startDate": "2026-04-02",
+        "endDate": "2026-06-01",
+        "return": 64.63829783670485
+      },
+      "QMCO": {
+        "startDate": "2026-08-10",
+        "endDate": "2026-08-11",
+        "return": 0.6468590831419185
+      },
+      "QNTM": {
+        "startDate": "2026-03-23",
+        "endDate": "2026-03-24",
+        "return": 0.5258064520606784
+      },
+      "QTTB": {
+        "startDate": "2026-07-10",
+        "endDate": "2026-07-13",
+        "return": 0.9072256913298324
+      },
+      "QUCY": {
+        "startDate": "2026-05-12",
+        "endDate": "2026-05-13",
+        "return": 3.1511771992157076
+      },
+      "QURE": {
+        "startDate": "2026-06-16",
+        "endDate": "2026-06-17",
+        "return": 0.7843645793073224
+      },
+      "RADX": {
+        "startDate": "2025-12-12",
+        "endDate": "2025-12-15",
+        "return": 1.4953051641917963
+      },
+      "RAIN": {
+        "startDate": "2026-09-21",
+        "endDate": "2026-09-22",
+        "return": 0.5431164900065686
+      },
+      "RANI": {
+        "startDate": "2025-10-30",
+        "endDate": "2025-10-31",
+        "return": 0.5172413792556718
+      },
+      "RAYA": {
+        "startDate": "2026-04-09",
+        "endDate": "2026-04-10",
+        "return": 1.079413695597875
+      },
+      "RBLU": {
+        "startDate": "2026-07-30",
+        "endDate": "2026-07-31",
+        "return": -0.5446685881501921
+      },
+      "RBNE": {
+        "startDate": "2026-03-23",
+        "endDate": "2026-03-24",
+        "return": 0.9181818183742978
+      },
+      "RCAX": {
+        "startDate": "2026-05-27",
+        "endDate": "2026-05-28",
+        "return": 0.6529801324078717
+      },
+      "RCEL": {
+        "startDate": "2026-08-06",
+        "endDate": "2026-08-07",
+        "return": 0.6357894736893777
+      },
+      "RCON": {
+        "startDate": "2026-08-04",
+        "endDate": "2026-08-05",
+        "return": -0.8452554746263449
+      },
+      "RCT": {
+        "startDate": "2026-04-10",
+        "endDate": "2026-04-13",
+        "return": 0.7719298248771929
+      },
+      "RDAC": {
+        "startDate": "2026-04-28",
+        "endDate": "2026-04-29",
+        "return": 3.1857142859123178
+      },
+      "RDGT": {
+        "startDate": "2026-03-23",
+        "endDate": "2026-03-24",
+        "return": -0.9628770949544492
+      },
+      "RDWU": {
+        "startDate": "2026-05-22",
+        "endDate": "2026-05-26",
+        "return": 0.5205278592084277
+      },
+      "RECT": {
+        "startDate": "2026-04-10",
+        "endDate": "2026-04-13",
+        "return": 0.8583333332327086
+      },
+      "REFR": {
+        "startDate": "2026-09-17",
+        "endDate": "2026-09-18",
+        "return": 0.6846870149487099
+      },
+      "RENX": {
+        "startDate": "2026-02-10",
+        "endDate": "2026-02-11",
+        "return": 0.5157142856491514
+      },
+      "REPL": {
+        "startDate": "2026-07-29",
+        "endDate": "2026-07-31",
+        "return": 1.070240295860236
+      },
+      "RETO": {
+        "startDate": "2026-09-14",
+        "endDate": "2026-09-15",
+        "return": 6.762683646137674
+      },
+      "RFAI": {
+        "startDate": "2026-08-20",
+        "endDate": "2026-08-21",
+        "return": 3.556166535661598
+      },
+      "RGC": {
+        "startDate": "2026-01-06",
+        "endDate": "2026-01-07",
+        "return": 0.6009688162271432
+      },
+      "RGNT": {
+        "startDate": "2026-06-12",
+        "endDate": "2026-06-15",
+        "return": 5.2666666676439995
+      },
+      "RGTU": {
+        "startDate": "2026-05-20",
+        "endDate": "2026-05-21",
+        "return": 0.6019682892541633
+      },
+      "RGTX": {
+        "startDate": "2026-05-20",
+        "endDate": "2026-05-21",
+        "return": 0.6095132744523033
+      },
+      "RGTZ": {
+        "startDate": "2026-05-20",
+        "endDate": "2026-05-21",
+        "return": -0.6089795917935428
+      },
+      "RHLD": {
+        "startDate": "2025-10-31",
+        "endDate": "2025-11-03",
+        "return": 0.9680966603418943
+      },
+      "RILY": {
+        "startDate": "2025-12-15",
+        "endDate": "2025-12-16",
+        "return": 0.5376344087487888
+      },
+      "RIME": {
+        "startDate": "2026-02-12",
+        "endDate": "2026-02-13",
+        "return": 2.222222222356173
+      },
+      "RKLX": {
+        "startDate": "2026-05-07",
+        "endDate": "2026-05-08",
+        "return": 0.6770361991577805
+      },
+      "RKLZ": {
+        "startDate": "2026-05-07",
+        "endDate": "2026-05-08",
+        "return": -0.6845794393514598
+      },
+      "RLMD": {
+        "startDate": "2026-03-06",
+        "endDate": "2026-03-09",
+        "return": 0.6112359550816251
+      },
+      "RLYB": {
+        "startDate": "2026-05-01",
+        "endDate": "2026-05-04",
+        "return": 0.5005313496195445
+      },
+      "RMCF": {
+        "startDate": "2026-08-11",
+        "endDate": "2026-08-12",
+        "return": 1.2602230481834114
+      },
+      "RMSG": {
+        "startDate": "2026-04-10",
+        "endDate": "2026-04-13",
+        "return": 4.750798723070413
+      },
+      "RNA": {
+        "startDate": "2026-02-25",
+        "endDate": "2026-02-27",
+        "return": -0.7973901099074693
+      },
+      "ROLR": {
+        "startDate": "2026-01-13",
+        "endDate": "2026-01-14",
+        "return": 4.366477272651499
+      },
+      "ROMA": {
+        "startDate": "2026-01-20",
+        "endDate": "2026-01-21",
+        "return": 0.6620689653213259
+      },
+      "RPGL": {
+        "startDate": "2026-01-28",
+        "endDate": "2026-01-29",
+        "return": 1.7385904993494452
+      },
+      "RUBI": {
+        "startDate": "2025-11-24",
+        "endDate": "2025-11-25",
+        "return": 0.5422396865141019
+      },
+      "RVNL": {
+        "startDate": "2026-02-12",
+        "endDate": "2026-02-13",
+        "return": 0.5298523807877691
+      },
+      "RXT": {
+        "startDate": "2026-02-17",
+        "endDate": "2026-02-18",
+        "return": 2.269689738035133
+      },
+      "RYDE": {
+        "startDate": "2026-02-27",
+        "endDate": "2026-03-02",
+        "return": 0.9446845291234671
+      },
+      "RYM": {
+        "startDate": "2026-03-31",
+        "endDate": "2026-04-01",
+        "return": 0.6393442621187799
+      },
+      "RYOJ": {
+        "startDate": "2026-05-21",
+        "endDate": "2026-05-22",
+        "return": 1.4875621889551054
+      },
+      "RZLT": {
+        "startDate": "2025-12-10",
+        "endDate": "2025-12-11",
+        "return": -0.8720292504675895
+      },
+      "SAFX": {
+        "startDate": "2026-01-26",
+        "endDate": "2026-01-27",
+        "return": 1.0828114117468686
+      },
+      "SBFM": {
+        "startDate": "2026-05-15",
+        "endDate": "2026-05-18",
+        "return": 0.7951425552174991
+      },
+      "SCAG": {
+        "startDate": "2026-06-04",
+        "endDate": "2026-06-05",
+        "return": 1.945842069121464
+      },
+      "SCKT": {
+        "startDate": "2026-08-07",
+        "endDate": "2026-08-10",
+        "return": 4.516705515949429
+      },
+      "SCNI": {
+        "startDate": "2026-04-23",
+        "endDate": "2026-04-24",
+        "return": 0.616228069969202
+      },
+      "SDEV": {
+        "startDate": "2026-09-28",
+        "endDate": "2026-09-29",
+        "return": 1.082802547681545
+      },
+      "SDOT": {
+        "startDate": "2026-06-25",
+        "endDate": "2026-06-26",
+        "return": 2.4708737830851715
+      },
+      "SEGG": {
+        "startDate": "2026-01-13",
+        "endDate": "2026-01-14",
+        "return": 0.7990681426009016
+      },
+      "SER": {
+        "startDate": "2026-03-18",
+        "endDate": "2026-03-19",
+        "return": 0.9375000003026368
+      },
+      "SHFS": {
+        "startDate": "2026-10-21",
+        "endDate": "2026-10-22",
+        "return": 1.2237353992776576
+      },
+      "SIDU": {
+        "startDate": "2025-12-19",
+        "endDate": "2025-12-22",
+        "return": 0.9741379309625446
+      },
+      "SION": {
+        "startDate": "2026-08-07",
+        "endDate": "2026-08-10",
+        "return": -0.9118338558283463
+      },
+      "SKYQ": {
+        "startDate": "2026-04-01",
+        "endDate": "2026-04-02",
+        "return": 1.0158102765294816
+      },
+      "SLDP": {
+        "startDate": "2025-11-04",
+        "endDate": "2025-11-05",
+        "return": 0.5155832590888065
+      },
+      "SLE": {
+        "startDate": "2026-08-17",
+        "endDate": "2026-08-18",
+        "return": 0.8211920536150517
+      },
+      "SLGB": {
+        "startDate": "2026-01-23",
+        "endDate": "2026-01-26",
+        "return": 1.032786885083338
+      },
+      "SLMT": {
+        "startDate": "2025-11-19",
+        "endDate": "2025-11-20",
+        "return": -0.637305699385886
+      },
+      "SLN": {
+        "startDate": "2026-10-16",
+        "endDate": "2026-10-19",
+        "return": 1.255760368706127
+      },
+      "SLND": {
+        "startDate": "2026-07-16",
+        "endDate": "2026-07-17",
+        "return": 0.6732716861482486
+      },
+      "SLQT": {
+        "startDate": "2026-05-04",
+        "endDate": "2026-05-05",
+        "return": 0.5242778119237863
+      },
+      "SLXN": {
+        "startDate": "2026-05-19",
+        "endDate": "2026-05-20",
+        "return": 0.9695167276558367
+      },
+      "SMCC": {
+        "startDate": "2026-01-26",
+        "endDate": "2026-07-06",
+        "return": 2.705308095222114
+      },
+      "SMCL": {
+        "startDate": "2026-03-19",
+        "endDate": "2026-03-20",
+        "return": -0.6674418604517112
+      },
+      "SMCX": {
+        "startDate": "2026-03-19",
+        "endDate": "2026-03-20",
+        "return": -0.6657075933192623
+      },
+      "SMCZ": {
+        "startDate": "2026-03-19",
+        "endDate": "2026-03-20",
+        "return": 0.6505352830203259
+      },
+      "SMJF": {
+        "startDate": "2026-08-26",
+        "endDate": "2026-08-27",
+        "return": -0.8702559576368887
+      },
+      "SMST": {
+        "startDate": "2026-02-05",
+        "endDate": "2026-02-06",
+        "return": -0.5234661859980005
+      },
+      "SMTK": {
+        "startDate": "2026-06-05",
+        "endDate": "2026-06-08",
+        "return": 1.0552972834958325
+      },
+      "SMX": {
+        "startDate": "2025-11-26",
+        "endDate": "2025-11-28",
+        "return": 2.5080459771895867
+      },
+      "SNAL": {
+        "startDate": "2026-04-13",
+        "endDate": "2026-04-14",
+        "return": 3.50928381908645
+      },
+      "SNDU": {
+        "startDate": "2026-07-29",
+        "endDate": "2026-07-30",
+        "return": 0.5241635687631381
+      },
+      "SNGX": {
+        "startDate": "2026-04-27",
+        "endDate": "2026-04-28",
+        "return": -0.7025441696113075
+      },
+      "SNOU": {
+        "startDate": "2026-05-27",
+        "endDate": "2026-05-28",
+        "return": 0.7351054079562271
+      },
+      "SNXX": {
+        "startDate": "2026-07-29",
+        "endDate": "2026-07-30",
+        "return": 0.518840579744702
+      },
+      "SOAR": {
+        "startDate": "2026-09-25",
+        "endDate": "2026-09-28",
+        "return": 0.7760445687918995
+      },
+      "SOC": {
+        "startDate": "2025-12-17",
+        "endDate": "2025-12-18",
+        "return": 0.5625000001659564
+      },
+      "SORA": {
+        "startDate": "2026-01-30",
+        "endDate": "2026-02-02",
+        "return": 0.5819209039647997
+      },
+      "SOS": {
+        "startDate": "2026-09-21",
+        "endDate": "2026-09-22",
+        "return": -0.546211924008978
+      },
+      "SPCL": {
+        "startDate": "2026-06-11",
+        "endDate": "2026-06-12",
+        "return": 0.5656163049631673
+      },
+      "SPCX": {
+        "startDate": "2026-04-06",
+        "endDate": "2026-06-15",
+        "return": 7.757961783644339
+      },
+      "SPHL": {
+        "startDate": "2026-01-14",
+        "endDate": "2026-01-15",
+        "return": 6.737777777912133
+      },
+      "SPRC": {
+        "startDate": "2026-05-27",
+        "endDate": "2026-05-28",
+        "return": 1.4031890656967896
+      },
+      "SPRU": {
+        "startDate": "2025-11-11",
+        "endDate": "2025-11-12",
+        "return": 0.5475409835808265
+      },
+      "SPWR": {
+        "startDate": "2026-09-02",
+        "endDate": "2026-09-03",
+        "return": 0.5820543090909092
+      },
+      "SRXH": {
+        "startDate": "2026-06-23",
+        "endDate": "2026-07-06",
+        "return": -0.6655641309788709
+      },
+      "SRZN": {
+        "startDate": "2026-09-23",
+        "endDate": "2026-09-24",
+        "return": 1.0841584157903634
+      },
+      "SSM": {
+        "startDate": "2026-09-30",
+        "endDate": "2026-10-01",
+        "return": 0.9732142850054448
+      },
+      "SST": {
+        "startDate": "2026-03-26",
+        "endDate": "2026-03-27",
+        "return": 1.4233576647566464
+      },
+      "SSTI": {
+        "startDate": "2026-09-28",
+        "endDate": "2026-09-29",
+        "return": 0.500914076851203
+      },
+      "STAK": {
+        "startDate": "2026-07-23",
+        "endDate": "2026-07-24",
+        "return": 6.022727272765383
+      },
+      "STEX": {
+        "startDate": "2026-04-30",
+        "endDate": "2026-05-01",
+        "return": 0.5420805020366128
+      },
+      "STFS": {
+        "startDate": "2026-05-05",
+        "endDate": "2026-05-06",
+        "return": 0.9652605458680223
+      },
+      "STG": {
+        "startDate": "2026-05-28",
+        "endDate": "2026-05-29",
+        "return": 1.2573529412189983
+      },
+      "STI": {
+        "startDate": "2026-06-03",
+        "endDate": "2026-06-04",
+        "return": 3.505952381562585
+      },
+      "STKH": {
+        "startDate": "2026-07-27",
+        "endDate": "2026-07-28",
+        "return": 1.6666666663829628
+      },
+      "STRL": {
+        "startDate": "2026-05-04",
+        "endDate": "2026-05-05",
+        "return": 0.5222194942476048
+      },
+      "SUNE": {
+        "startDate": "2026-06-05",
+        "endDate": "2026-06-08",
+        "return": 4.203539822794173
+      },
+      "SVCO": {
+        "startDate": "2026-03-12",
+        "endDate": "2026-03-13",
+        "return": 0.5242424242402515
+      },
+      "SVRN": {
+        "startDate": "2026-03-25",
+        "endDate": "2026-03-26",
+        "return": 0.5
+      },
+      "SWVL": {
+        "startDate": "2026-08-24",
+        "endDate": "2026-08-25",
+        "return": 0.503401360584973
+      },
+      "SXTC": {
+        "startDate": "2026-10-06",
+        "endDate": "2026-10-07",
+        "return": 1.2640002161152513
+      },
+      "SXTP": {
+        "startDate": "2026-01-21",
+        "endDate": "2026-01-22",
+        "return": 1.5199999999304001
+      },
+      "SYNX": {
+        "startDate": "2026-03-05",
+        "endDate": "2026-03-06",
+        "return": 0.5798420156466031
+      },
+      "TANH": {
+        "startDate": "2026-10-21",
+        "endDate": "2026-10-22",
+        "return": 1.8183881955278354
+      },
+      "TC": {
+        "startDate": "2026-06-30",
+        "endDate": "2026-07-01",
+        "return": 1.5945945939724835
+      },
+      "TCRT": {
+        "startDate": "2026-10-12",
+        "endDate": "2026-10-13",
+        "return": 1.8857142859723806
+      },
+      "TCX": {
+        "startDate": "2026-07-30",
+        "endDate": "2026-07-31",
+        "return": 0.5917525772130601
+      },
+      "TDIC": {
+        "startDate": "2026-05-12",
+        "endDate": "2026-05-13",
+        "return": 8.76694915247655
+      },
+      "TDUP": {
+        "startDate": "2026-08-05",
+        "endDate": "2026-08-06",
+        "return": -0.50477707007265
+      },
+      "TENX": {
+        "startDate": "2026-08-07",
+        "endDate": "2026-08-10",
+        "return": -0.8976934523965754
+      },
+      "TGE": {
+        "startDate": "2025-10-31",
+        "endDate": "2025-11-03",
+        "return": 1.3273755949735784
+      },
+      "TGHL": {
+        "startDate": "2026-05-29",
+        "endDate": "2026-06-01",
+        "return": 2.881541115734856
+      },
+      "TGL": {
+        "startDate": "2025-12-04",
+        "endDate": "2025-12-05",
+        "return": 2.7644273453244907
+      },
+      "THH": {
+        "startDate": "2026-01-12",
+        "endDate": "2026-01-13",
+        "return": 1.3831168831320668
+      },
+      "TLIH": {
+        "startDate": "2026-04-30",
+        "endDate": "2026-05-01",
+        "return": 0.5080346105252926
+      },
+      "TMDE": {
+        "startDate": "2026-02-27",
+        "endDate": "2026-03-02",
+        "return": 2.318152244599929
+      },
+      "TNGX": {
+        "startDate": "2026-06-05",
+        "endDate": "2026-06-08",
+        "return": 0.5296735905234029
+      },
+      "TNMG": {
+        "startDate": "2026-06-26",
+        "endDate": "2026-06-29",
+        "return": 1.069672130594474
+      },
+      "TNON": {
+        "startDate": "2026-09-09",
+        "endDate": "2026-09-10",
+        "return": 1.172131146550524
+      },
+      "TOPP": {
+        "startDate": "2026-05-27",
+        "endDate": "2026-05-28",
+        "return": 0.7857142857512989
+      },
+      "TORO": {
+        "startDate": "2026-04-21",
+        "endDate": "2026-04-22",
+        "return": 0.7276214834638548
+      },
+      "TOVX": {
+        "startDate": "2026-04-17",
+        "endDate": "2026-04-20",
+        "return": 0.5940902022893779
+      },
+      "TPET": {
+        "startDate": "2026-02-27",
+        "endDate": "2026-03-02",
+        "return": 1.6666666666666665
+      },
+      "TPST": {
+        "startDate": "2026-01-29",
+        "endDate": "2026-01-30",
+        "return": 0.9359430602955414
+      },
+      "TRDA": {
+        "startDate": "2026-05-06",
+        "endDate": "2026-05-07",
+        "return": -0.5726762320648784
+      },
+      "TRT": {
+        "startDate": "2026-04-22",
+        "endDate": "2026-04-23",
+        "return": 0.6682808716255162
+      },
+      "TRUG": {
+        "startDate": "2026-09-10",
+        "endDate": "2026-09-11",
+        "return": 0.7613912153208902
+      },
+      "TURB": {
+        "startDate": "2026-03-02",
+        "endDate": "2026-03-03",
+        "return": 1.1021897810582395
+      },
+      "TVRD": {
+        "startDate": "2026-07-07",
+        "endDate": "2026-07-08",
+        "return": 0.6129032258655152
+      },
+      "TWG": {
+        "startDate": "2025-12-05",
+        "endDate": "2025-12-08",
+        "return": 2.6622296172244275
+      },
+      "TXXS": {
+        "startDate": "2026-05-08",
+        "endDate": "2026-05-11",
+        "return": 0.5494539328164876
+      },
+      "UAVS": {
+        "startDate": "2025-12-31",
+        "endDate": "2026-01-02",
+        "return": 0.5114278693113434
+      },
+      "UCAR": {
+        "startDate": "2026-04-07",
+        "endDate": "2026-04-08",
+        "return": 3.316285825360236
+      },
+      "UFG": {
+        "startDate": "2026-01-02",
+        "endDate": "2026-01-05",
+        "return": 0.8758620687951104
+      },
+      "UMAC": {
+        "startDate": "2026-05-27",
+        "endDate": "2026-05-28",
+        "return": 0.5719596389018795
+      },
+      "UNX": {
+        "startDate": "2026-02-10",
+        "endDate": "2026-02-11",
+        "return": -0.5494978479796877
+      },
+      "UPC": {
+        "startDate": "2026-06-26",
+        "endDate": "2026-06-29",
+        "return": 3.114864864951249
+      },
+      "UTZ": {
+        "startDate": "2026-07-20",
+        "endDate": "2026-07-21",
+        "return": 0.8872483220280132
+      },
+      "VATE": {
+        "startDate": "2026-08-06",
+        "endDate": "2026-08-07",
+        "return": 0.6342780027399604
+      },
+      "VCIG": {
+        "startDate": "2026-05-22",
+        "endDate": "2026-05-26",
+        "return": 1.1804511344592687
+      },
+      "VCX": {
+        "startDate": "2026-03-23",
+        "endDate": "2026-03-24",
+        "return": 0.6421980084000001
+      },
+      "VEEA": {
+        "startDate": "2026-09-14",
+        "endDate": "2026-09-15",
+        "return": 1.4934497815657797
+      },
+      "VEEE": {
+        "startDate": "2026-07-10",
+        "endDate": "2026-07-13",
+        "return": 4.157676348672801
+      },
+      "VELO": {
+        "startDate": "2025-12-10",
+        "endDate": "2025-12-11",
+        "return": 0.555813953531145
+      },
+      "VERU": {
+        "startDate": "2026-06-03",
+        "endDate": "2026-06-04",
+        "return": 0.8799999999404802
+      },
+      "VIOT": {
+        "startDate": "2026-09-01",
+        "endDate": "2026-09-02",
+        "return": 0.8363767666096866
+      },
+      "VIVS": {
+        "startDate": "2026-01-29",
+        "endDate": "2026-01-30",
+        "return": 0.7176470589194464
+      },
+      "VLN": {
+        "startDate": "2026-01-08",
+        "endDate": "2026-01-09",
+        "return": 0.5897435896886261
+      },
+      "VMAR": {
+        "startDate": "2025-12-15",
+        "endDate": "2025-12-16",
+        "return": 1.5677453303101054
+      },
+      "VRAX": {
+        "startDate": "2026-07-08",
+        "endDate": "2026-07-09",
+        "return": 1.0000000004638365
+      },
+      "VRRM": {
+        "startDate": "2026-05-26",
+        "endDate": "2026-05-27",
+        "return": -0.705657492279356
+      },
+      "VSA": {
+        "startDate": "2026-03-25",
+        "endDate": "2026-03-26",
+        "return": 1.4035088037869343
+      },
+      "VSME": {
+        "startDate": "2026-06-09",
+        "endDate": "2026-06-10",
+        "return": 1.489676944996749
+      },
+      "VTGN": {
+        "startDate": "2025-12-16",
+        "endDate": "2025-12-17",
+        "return": -0.8025229358282013
+      },
+      "WBUY": {
+        "startDate": "2025-12-05",
+        "endDate": "2025-12-08",
+        "return": 1.0609137055316031
+      },
+      "WCT": {
+        "startDate": "2026-06-02",
+        "endDate": "2026-06-03",
+        "return": 1.7934782617293834
+      },
+      "WEED": {
+        "startDate": "2025-12-11",
+        "endDate": "2025-12-12",
+        "return": 0.5565457899035362
+      },
+      "WETO": {
+        "startDate": "2026-07-30",
+        "endDate": "2026-07-31",
+        "return": 1.9999999999999996
+      },
+      "WFF": {
+        "startDate": "2026-10-08",
+        "endDate": "2026-10-09",
+        "return": 4.995121951618565
+      },
+      "WHLR": {
+        "startDate": "2026-09-22",
+        "endDate": "2026-09-23",
+        "return": 1.909090476880983
+      },
+      "WLDS": {
+        "startDate": "2026-07-23",
+        "endDate": "2026-07-24",
+        "return": 0.5829596418692935
+      },
+      "WNW": {
+        "startDate": "2026-05-18",
+        "endDate": "2026-05-19",
+        "return": 0.9709543623270951
+      },
+      "WOK": {
+        "startDate": "2026-05-08",
+        "endDate": "2026-05-11",
+        "return": 2.0624999958007812
+      },
+      "WSHP": {
+        "startDate": "2025-11-18",
+        "endDate": "2025-11-19",
+        "return": 5.06060606087454
+      },
+      "WVE": {
+        "startDate": "2025-12-05",
+        "endDate": "2025-12-08",
+        "return": 1.4726301735966727
+      },
+      "WWR": {
+        "startDate": "2026-08-06",
+        "endDate": "2026-08-07",
+        "return": 0.8776309350846665
+      },
+      "WXM": {
+        "startDate": "2026-08-10",
+        "endDate": "2026-08-11",
+        "return": 0.9749999998171874
+      },
+      "WYHG": {
+        "startDate": "2026-08-05",
+        "endDate": "2026-08-06",
+        "return": 1.9425851644594117
+      },
+      "WYY": {
+        "startDate": "2026-09-24",
+        "endDate": "2026-09-25",
+        "return": -0.5058717253997768
+      },
+      "XAIR": {
+        "startDate": "2026-01-12",
+        "endDate": "2026-01-13",
+        "return": 1.499999999762557
+      },
+      "XCH": {
+        "startDate": "2026-06-22",
+        "endDate": "2026-06-23",
+        "return": 0.522919179904604
+      },
+      "XHG": {
+        "startDate": "2026-08-12",
+        "endDate": "2026-08-13",
+        "return": 3.48038465741449
+      },
+      "XHLD": {
+        "startDate": "2026-08-05",
+        "endDate": "2026-08-06",
+        "return": 2.525721454613549
+      },
+      "XNDU": {
+        "startDate": "2026-04-14",
+        "endDate": "2026-04-15",
+        "return": 0.6979096426455123
+      },
+      "XOS": {
+        "startDate": "2026-06-02",
+        "endDate": "2026-06-03",
+        "return": 2.3452914797601316
+      },
+      "XPON": {
+        "startDate": "2026-08-21",
+        "endDate": "2026-08-24",
+        "return": 0.8049490536035697
+      },
+      "XRPN": {
+        "startDate": "2026-10-01",
+        "endDate": "2026-10-02",
+        "return": 0.6824583866650498
+      },
+      "XTLB": {
+        "startDate": "2025-12-23",
+        "endDate": "2025-12-24",
+        "return": -0.7490717030153982
+      },
+      "XWEL": {
+        "startDate": "2026-02-24",
+        "endDate": "2026-02-25",
+        "return": 2.2010582011230166
+      },
+      "YAAS": {
+        "startDate": "2026-04-24",
+        "endDate": "2026-04-27",
+        "return": 1.4962341298248925
+      },
+      "YCBD": {
+        "startDate": "2025-12-11",
+        "endDate": "2025-12-12",
+        "return": 0.9017432646796446
+      },
+      "YDDL": {
+        "startDate": "2026-04-09",
+        "endDate": "2026-04-10",
+        "return": -0.6290438533375153
+      },
+      "YHC": {
+        "startDate": "2026-06-29",
+        "endDate": "2026-06-30",
+        "return": -0.9150537634861254
+      },
+      "YJ": {
+        "startDate": "2026-08-06",
+        "endDate": "2026-08-07",
+        "return": 1.7642276425168948
+      },
+      "YMAT": {
+        "startDate": "2026-05-22",
+        "endDate": "2026-05-26",
+        "return": 2.0316344462557008
+      },
+      "YOUL": {
+        "startDate": "2026-06-08",
+        "endDate": "2026-06-09",
+        "return": 2.059103058666251
+      },
+      "YRD": {
+        "startDate": "2026-07-01",
+        "endDate": "2026-07-02",
+        "return": 0.5968063867433551
+      },
+      "YXT": {
+        "startDate": "2026-08-03",
+        "endDate": "2026-08-05",
+        "return": 8.011538460645
+      },
+      "YYAI": {
+        "startDate": "2026-07-24",
+        "endDate": "2026-07-27",
+        "return": -0.7350993371803225
+      },
+      "ZBAO": {
+        "startDate": "2026-02-27",
+        "endDate": "2026-03-02",
+        "return": 0.5389212610189749
+      },
+      "ZBIO": {
+        "startDate": "2026-01-02",
+        "endDate": "2026-01-05",
+        "return": -0.5185507246056793
+      },
+      "ZCMD": {
+        "startDate": "2026-07-21",
+        "endDate": "2026-07-22",
+        "return": 1.9183673886938788
+      },
+      "ZEO": {
+        "startDate": "2026-09-21",
+        "endDate": "2026-09-22",
+        "return": 0.5703751206794687
+      },
+      "ZNB": {
+        "startDate": "2026-01-26",
+        "endDate": "2026-01-27",
+        "return": 0.6249794845228147
+      },
+      "ZNTL": {
+        "startDate": "2026-04-08",
+        "endDate": "2026-04-09",
+        "return": 0.6014492753205523
+      },
+      "ZSTK": {
+        "startDate": "2026-08-18",
+        "endDate": "2026-08-19",
+        "return": 1.695505679328055
+      },
+      "ZTG": {
+        "startDate": "2026-09-15",
+        "endDate": "2026-09-16",
+        "return": 0.7533432390433179
+      },
+      "ZYBT": {
+        "startDate": "2026-07-17",
+        "endDate": "2026-07-20",
+        "return": 10.475644698585924
+      }
+    }
+  },
+  "treasury": {
+    "series": "DGS10",
+    "startDate": "2025-10-23",
+    "endDate": "2026-10-23",
+    "observations": 250,
+    "source": "https://fred.stlouisfed.org/series/DGS10"
+  },
+  "comparison": {
+    "previousAsOf": "2026-10-23",
+    "coverageAdded": [],
+    "coverageRemoved": [],
+    "quarantineAdded": [],
+    "quarantineRemoved": [],
+    "revisedReturns": {},
+    "reviewedOverridesChanged": false
+  },
+  "limitations": [
+    "Latest observed event dates are not provider completeness guarantees.",
+    "Unverified moves of at least 50% between observations are quarantined, not capped; some genuine moves may require review.",
+    "Latest event dates are not completeness guarantees.",
+    "Return revisions describe changes in observed adjusted returns, not a diagnosis of their cause."
+  ]
+}
