@@ -19,7 +19,8 @@ export function WelcomePage({onEnterLab, onUseSample, hasPortfolio, isSampleLoad
       <span className="flex items-center gap-2.5 font-extrabold text-white"><Activity className="h-6 w-6 text-emerald-400" />RiskLab</span>
       <nav aria-label="Welcome navigation" className="flex items-center gap-5 text-sm">
         {onOpenSaved&&<button onClick={onOpenSaved} className="text-slate-300 hover:text-white">Saved portfolios</button>}
-        <a href="#why-risklab" className="hidden text-slate-400 hover:text-white sm:block">Why I built it</a>
+        <a href="#our-story" className="hidden text-slate-400 hover:text-white sm:block">Our story</a>
+        <a href="#why-risklab" className="hidden text-slate-400 hover:text-white lg:block">Why we built it</a>
         <button onClick={onEnterLab} disabled={isSampleLoading} className="flex items-center gap-2 text-emerald-300 hover:text-emerald-200 disabled:opacity-50">Enter the Lab <ArrowRight className="h-4 w-4" /></button>
       </nav>
     </header>
@@ -60,12 +61,26 @@ export function WelcomePage({onEnterLab, onUseSample, hasPortfolio, isSampleLoad
         </div>
       </section>
 
-      <section id="why-risklab" className="scroll-mt-8 grid gap-6 border-t border-slate-800 py-12 sm:py-16 md:grid-cols-[1fr_2fr]">
-        <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">The idea behind RiskLab</p><h2 className="mt-3 text-2xl font-bold text-white">Why I started building it.</h2></div>
+      <section id="our-story" aria-labelledby="our-story-heading" className="scroll-mt-8 border-t border-slate-800 py-12 sm:py-16">
+        <div className="grid gap-8 rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-slate-900/50 p-6 sm:p-8 lg:grid-cols-[1fr_1.3fr] lg:gap-12 lg:p-10">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">Our story</p>
+            <h2 id="our-story-heading" className="mt-4 max-w-sm text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl">A marriage of <span className="text-emerald-300">finance and technology.</span></h2>
+            <p className="mt-5 max-w-sm text-sm leading-relaxed text-slate-400">Two backgrounds. A shared idea. Something we could build together.</p>
+          </div>
+          <div className="max-w-2xl space-y-5 text-base leading-relaxed text-slate-300">
+            <p>RiskLab is a project my wife and I are building together. She brings a financial background, and I bring a technical one. We wanted to marry our ideas into a product that brings out the best in both of us.</p>
+            <p>Our shared goal is practical: help people understand what they own, where their portfolio’s risk comes from, and how market changes could affect it. RiskLab brings our perspectives together in a tool people can explore, question, and learn from.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="why-risklab" aria-labelledby="why-risklab-heading" className="scroll-mt-8 grid gap-6 border-t border-slate-800 py-12 sm:py-16 md:grid-cols-[1fr_2fr]">
+        <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">The idea behind RiskLab</p><h2 id="why-risklab-heading" className="mt-3 text-2xl font-bold text-white">Why we started building it.</h2></div>
         <div className="max-w-2xl space-y-4 text-base leading-relaxed text-slate-400">
-          <p>Risk tools often feel like opaque institutional systems or simple dashboards that hide the assumptions behind the numbers. I started RiskLab to make portfolio risk modeling more interactive and inspectable.</p>
-          <p>I also wanted to explore a practical role for AI: helping interpret questions and explain results, while a testable quantitative engine handles the calculations. The goal is to make it easier to understand what’s driving a result—and question the assumptions behind it.</p>
-          <p className="text-sm text-slate-500">A personal research and engineering project, built around curiosity and transparency.</p>
+          <p>Risk tools often feel like opaque institutional systems or simple dashboards that hide the assumptions behind the numbers. We started RiskLab to make portfolio risk modeling more interactive and inspectable.</p>
+          <p>We also wanted to explore a practical role for AI: helping answer questions and explain results, while a testable quantitative engine handles the calculations. The goal is to make it easier to understand what’s driving a result—and question the assumptions behind it.</p>
+          <p className="text-sm text-slate-500">A shared project, built around curiosity and transparency.</p>
         </div>
       </section>
     </main>
