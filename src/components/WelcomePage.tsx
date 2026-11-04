@@ -1,6 +1,7 @@
 import React from 'react';
 import type {SavedPortfolio} from '../types/workspace';
 import {Activity, ArrowRight, BarChart3, MessageCircle, ShieldAlert, TrendingUp} from 'lucide-react';
+import ourStoryPhoto from '../assets/our-story.jpg';
 
 interface WelcomePageProps {
   onEnterLab: () => void;
@@ -62,15 +63,18 @@ export function WelcomePage({onEnterLab, onUseSample, hasPortfolio, isSampleLoad
       </section>
 
       <section id="our-story" aria-labelledby="our-story-heading" className="scroll-mt-8 border-t border-slate-800 py-12 sm:py-16">
-        <div className="grid gap-8 rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-slate-900/50 p-6 sm:p-8 lg:grid-cols-[1fr_1.3fr] lg:gap-12 lg:p-10">
+        <div className="grid items-center gap-8 rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-slate-900/50 p-6 sm:p-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.4fr)] lg:gap-12 lg:p-10">
+          <figure className="mx-auto w-full max-w-[16rem] sm:max-w-xs">
+            <img src={ourStoryPhoto} alt="The couple behind RiskLab." width={856} height={1280} loading="lazy" decoding="async" className="h-auto w-full rounded-xl border border-slate-700/60" />
+          </figure>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">Our story</p>
-            <h2 id="our-story-heading" className="mt-4 max-w-sm text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl">A marriage of <span className="text-emerald-300">finance and technology.</span></h2>
-            <p className="mt-5 max-w-sm text-sm leading-relaxed text-slate-400">Two backgrounds. A shared idea. Something we could build together.</p>
-          </div>
-          <div className="max-w-2xl space-y-5 text-base leading-relaxed text-slate-300">
+            <h2 id="our-story-heading" className="mt-4 max-w-xl text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl">A marriage of <span className="text-emerald-300">finance and technology.</span></h2>
+            <p className="mt-5 text-sm leading-relaxed text-slate-400">Two backgrounds. A shared idea. Something we could build together.</p>
+            <div className="mt-6 max-w-2xl space-y-5 text-base leading-relaxed text-slate-300">
             <p>RiskLab is a project my wife and I are building together. She brings a financial background, and I bring a technical one. We wanted to marry our ideas into a product that brings out the best in both of us.</p>
             <p>Our shared goal is practical: help people understand what they own, where their portfolio’s risk comes from, and how market changes could affect it. RiskLab brings our perspectives together in a tool people can explore, question, and learn from.</p>
+            </div>
           </div>
         </div>
       </section>
